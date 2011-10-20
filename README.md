@@ -87,6 +87,34 @@ If your object has a relationship field, typically the related objects' IDs are 
 StackMobQuery q = new StackMobQuery("user").expandDepthIs(1)
 ```
 
+Below are JSON results without and with `expandDepthIs` respectively:
+
+```json
+//without expandDepthIs
+{
+  "username": "johnsmith",
+  "age": 30,
+  "friends": ["johndoe", "maryjane"]
+}
+
+//with expandDepthIs
+{
+  "username": "johnsmith",
+  "age": 30,
+  "friends": [
+    {
+      "username": "johndoe",
+      "age": 35,
+      ...
+    },
+    {
+      "username": "maryjane",
+      "age": 25",
+      ...
+    }]
+}
+```
+
 Read more about <a href="https://www.stackmob.com/platform/stackmob/help/topics/Object-Relationships#a-expanding_relationships:_the__expand_parameter" target="_blank">Expanding Relationships</a>
 
 
