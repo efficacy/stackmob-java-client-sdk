@@ -162,7 +162,7 @@ Now let's use `StackMobQuery` to make a REST API call.  This query represents al
 long curTime = System.currentTimeMillis();
 StackMobQuery q = new StackMobQuery("myobject")
     .field("objectName").in(Arrays.asList("object1", "object2"))
-    .field("createddate").isLessThanOrEqualTo(curTime - 10).isGreaterThanOrEqualTo(curTime - 50);
+    .field("createddate").isGreaterThanOrEqualTo(curTime - 50).isLessThanOrEqualTo(curTime - 10);
 
 stackmob.get(q, new StackMobCallback() {
     @Override public void success(String responseBody) {
