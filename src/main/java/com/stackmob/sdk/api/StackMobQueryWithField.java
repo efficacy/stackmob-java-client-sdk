@@ -44,6 +44,23 @@ public class StackMobQueryWithField {
         }
     }
 
+    public StackMobQueryWithField isEqualTo(String val) {
+        this.q = this.q.fieldIsEqualTo(this.field, val);
+        return this;
+    }
+
+    public StackMobQueryWithField isEqualTo(Integer val) {
+        return this.isEqualTo(val.toString());
+    }
+
+    public StackMobQueryWithField isEqualTo(Long val) {
+        return this.isEqualTo(val.toString());
+    }
+
+    public StackMobQueryWithField isEqualTo(Boolean val) {
+        return this.isEqualTo(val.toString());
+    }
+
     public StackMobQueryWithField isIn(List<String> values) {
         this.q = this.q.fieldIsIn(this.field, values);
         return this;

@@ -146,6 +146,17 @@ public class StackMobQuery {
     }
 
     /**
+     * add an "=" to your query. test whether the given field's value is equal to the given value
+     * @param field the field whose value to test
+     * @param val the value against which to test
+     * @return the new query that resulted from adding this operation
+     */
+    public StackMobQuery fieldIsEqualTo(String field, String val) {
+        args.put(field, val);
+        return this;
+    }
+
+    /**
      * set the expand depth of this query. the expand depth instructs the StackMob platform to detect relationships and automatically replace those
      * relationship IDs with the values that they point to.
      * @param i the expand depth. at time of writing, StackMob restricts expand depth to maximum 3

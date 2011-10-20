@@ -17,6 +17,8 @@
 package com.stackmob.sdk;
 
 import com.stackmob.sdk.net.HttpRedirectHelper;
+
+import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Test;
@@ -24,7 +26,7 @@ import static org.junit.Assert.*;
 
 public class HttpRedirectHelperTests extends StackMobTestCommon {
 
-    private static final int RedirectErrorCode = 302;
+    private static final int RedirectErrorCode = HttpURLConnection.HTTP_MOVED_TEMP;
     private static final String RedirectedLoc = "http://redirected.com";
 
 
