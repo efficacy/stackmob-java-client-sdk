@@ -10,9 +10,9 @@ Here are some example usages:
 
 Hopefully you can see the pattern here. With this library, you can connect almost any JVM to your StackMob app and access the same app data as with the [iOS](https://github.com/stackmob/StackMob_iOS), [Android](https://github.com/stackmob/Stackmob_Android) and [Ruby](https://github.com/stackmob/stackmob-ruby) SDKs.
 
-## Getting Started
+# Getting Started
 
-### With Maven
+## With Maven
 
 ```xml
 <dependency>
@@ -22,17 +22,18 @@ Hopefully you can see the pattern here. With this library, you can connect almos
 </dependency>
 ```
 
-### With SBT
+## With SBT
 
 ```scala
 libraryDependencies += "com.stackmob" % "stackmob-java-client-sdk" % "0.1.5"
 ```
 
-### Commandline
+## Commandline
 
 [Download this JAR](http://search.maven.org/remotecontent?filepath=com/stackmob/stackmob-java-client-sdk/0.1.5/stackmob-java-client-sdk-0.1.5.jar) and put it on your CLASSPATH
 
-## Coding
+# Making REST API Calls
+
 The main interface to your app on StackMob's servers is through the com.stackmob.sdk.api.StackMob object. Check out the [javadoc](http://stackmob.github.com/stackmob-java-client-sdk/javadoc/0.1.5/apidocs/) for details.
 The following code shows basic use of the StackMob object.
 
@@ -74,8 +75,9 @@ stackmob.post("myobject", object, new StackMobCallback() {
 });
 ```
 
-### Advanced Querying
-The SDK includes StackMobQuery and StackMobQueryWithField classes to make building large queries easier than building up a Map of parameters. Here's how to use them:
+# Advanced Queries
+
+The SDK includes `StackMobQuery` and `StackMobQueryWithField` classes to make building large queries easier than building up a Map of parameters. Here's how to use them:
 
 ```java
 import com.stackmob.sdk.api.StackMobQuery;
@@ -86,6 +88,13 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.Gson;
 
 final Gson gson = new Gson();
+
+...
+
+StackMob stackmob = new StackMob(API_KEY, API_SECRET, USER_OBJ_NAME, API_VERSION);
+
+...
+
 //this query represents all myobject objects named "object1" or "object2" that were created between 10 and 50 milliseconds ago (inclusive)
 long curTime = System.currentTimeMillis();
 StackMobQuery q = new StackMobQuery("myobject")
@@ -105,7 +114,7 @@ stackmob.get(q, new StackMobCallback() {
 });
 ```
 
-## Issues
+# Issues
 We use Github to track issues with the SDK. If you find any issues, please report them [here](https://github.com/stackmob/stackmob-java-client-sdk/issues), and include as many details as possible about the issue you encountered.
 
 ## Contributing
@@ -115,7 +124,7 @@ We encourage contributions to the StackMob SDK. If you'd like to contribute, for
 2. Be sure to test your code against live StackMob servers. To do, use com.stackmob.sdk.StackMobTestCommon in your tests so that you can change your API keys in one place.
 3. If your tests must run with a specific server configuration (ie: specific object model, etc...), please include a descr
 
-## Copyright
+# Copyright
 
 Copyright 2011 StackMob
 
