@@ -22,8 +22,10 @@ import com.stackmob.sdk.testobjects.Error;
 import static org.junit.Assert.*;
 
 public class StackMobTestCommon {
-    public static final String API_KEY = "YOUR_API_KEY_HERE";
-    public static final String API_SECRET = "YOUR_API_SECRET_HERE";
+    private static final String DEFAULT_API_KEY = "YOUR_API_KEY_HERE";
+    private static final String DEFAULT_API_SECRET = "YOUR_API_SECRET_HERE";
+    public static final String API_KEY = DEFAULT_API_KEY;
+    public static final String API_SECRET = DEFAULT_API_SECRET;
 
     public static final String USER_OBJECT_NAME = "user";
     public static final Integer API_VERSION_NUM = 0;
@@ -31,8 +33,8 @@ public class StackMobTestCommon {
     protected final StackMob stackmob;
 
     public StackMobTestCommon() {
-        assertFalse("YOUR_API_KEY_HERE".equals(API_KEY));
-        assertFalse("YOUR_API_SECRET_HERE".equals(API_SECRET));
+        assertFalse("you forgot to set your API key", DEFAULT_API_KEY.equals(API_KEY));
+        assertFalse("you forgot to set your API secret", DEFAULT_API_SECRET.equals(API_SECRET));
         stackmob = new StackMob(API_KEY, API_SECRET, USER_OBJECT_NAME, API_VERSION_NUM);
     }
 
