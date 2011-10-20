@@ -77,7 +77,7 @@ stackmob.post("myobject", object, new StackMobCallback() {
 
 # Advanced Queries
 
-The SDK includes `StackMobQuery` and `StackMobQueryWithField` classes to make building large queries easier than building up a Map of parameters. Here's how to use them.  Each code example assumes you have the following in your file:
+The SDK includes `StackMobQuery` and `StackMobQueryWithField` classes to make building large queries easier than building up a Map of parameters. Here's how to use them.
 
 ## Expanding Relationships
 
