@@ -18,9 +18,10 @@ package com.stackmob.sdk.net;
 
 import java.net.URISyntaxException;
 import java.util.Map;
+import java.net.HttpURLConnection;
 
 public class HttpRedirectHelper {
-    public static final int RedirectStatusCode = 302;
+    public static final int RedirectStatusCode = HttpURLConnection.HTTP_MOVED_TEMP;
 
     /**
      * get the new request that represents the redirect if there is one
