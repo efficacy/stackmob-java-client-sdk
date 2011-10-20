@@ -32,11 +32,10 @@ libraryDependencies += "com.stackmob" % "stackmob-java-client-sdk" % "0.1.5"
 
 [Download this JAR](http://search.maven.org/remotecontent?filepath=com/stackmob/stackmob-java-client-sdk/0.1.5/stackmob-java-client-sdk-0.1.5.jar) and put it on your CLASSPATH
 
-# Coding
+# Making REST API Calls
+
 The main interface to your app on StackMob's servers is through the com.stackmob.sdk.api.StackMob object. Check out the [javadoc](http://stackmob.github.com/stackmob-java-client-sdk/javadoc/0.1.5/apidocs/) for details.
 The following code shows basic use of the StackMob object.
-
-## Making REST API Calls
 
 ```java
 import com.stackmob.sdk.api.StackMob;
@@ -76,8 +75,9 @@ stackmob.post("myobject", object, new StackMobCallback() {
 });
 ```
 
-## Advanced Querying
-The SDK includes StackMobQuery and StackMobQueryWithField classes to make building large queries easier than building up a Map of parameters. Here's how to use them:
+# Advanced Queries
+
+The SDK includes `StackMobQuery` and `StackMobQueryWithField` classes to make building large queries easier than building up a Map of parameters. Here's how to use them:
 
 ```java
 import com.stackmob.sdk.api.StackMobQuery;
