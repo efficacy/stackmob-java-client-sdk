@@ -153,7 +153,7 @@ StackMobQuery q = new StackMobQuery("user")
     .field("age").isGreaterThan(20).isLessThanOrEqualTo(25)
 ```
 
-## Performing Request using StackMobQuery
+## Performing Requests using StackMobQuery
 
 Now let's use `StackMobQuery` to make a REST API call.  This query represents all `myobject` objects named "object1" or "object2" that were created between 10 and 50 milliseconds ago (inclusive)
 
