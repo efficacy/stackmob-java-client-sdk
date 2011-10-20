@@ -77,29 +77,64 @@ stackmob.post("myobject", object, new StackMobCallback() {
 
 # Advanced Queries
 
-The SDK includes `StackMobQuery` and `StackMobQueryWithField` classes to make building large queries easier than building up a Map of parameters. Here's how to use them:
+The SDK includes `StackMobQuery` and `StackMobQueryWithField` classes to make building large queries easier than building up a Map of parameters. Here's how to use them.  Each code example assumes you have the following in your file:
+
+## Expanding Relationships
+
+If your object has a relationship field, typically the related objects' IDs are returned as an array.  You can return an array of objects instead by defining `expandDepthIs(..)`:
 
 ```java
-import com.stackmob.sdk.api.StackMobQuery;
-import com.stackmob.sdk.api.StackMobQueryWithField;
-import java.util.Arrays;
-import java.util.List;
-import com.google.gson.reflect.TypeToken;
-import com.google.gson.Gson;
+StackMobQuery q = new StackMobQuery("user").expandDepthIs(1)
+```
 
-final Gson gson = new Gson();
+Read more about <a href="https://www.stackmob.com/platform/stackmob/help/topics/Object-Relationships#a-expanding_relationships:_the__expand_parameter" target="_blank">Expanding Relationships</a>
 
-...
 
-StackMob stackmob = new StackMob(API_KEY, API_SECRET, USER_OBJ_NAME, API_VERSION);
+## Querying for Multiple Values
 
-...
+Get an object with `username` equals to "johndoe1" or "johndoe2":
 
-//this query represents all myobject objects named "object1" or "object2" that were created between 10 and 50 milliseconds ago (inclusive)
+```java
+StackMobQuery q = new StackMobQuery("user")
+    .field("username").in(Arrays.asList("johndoe1", "johndoe2"))
+```
+
+Querying for an array field will also match on the contents of the array.  The following will return `users` who're friends with "johndoe" OR "maryjane":
+
+```java
+StackMobQuery q = new StackMobQuery("user")
+    .field("friends").in(Arrays.asList("johndoe", "maryjane"))
+```
+
+
+## Inequality Queries
+
+Your StackMob API allows you to perform range queries using the `less than`, `less than or equal to`, `greater than`, and `greater than or equal to` operators.
+
+Here's a query for an object with age less than "21":
+
+```java
+StackMobQuery q = new StackMobQuery("user")
+    .field("age").isLessThan(21)
+```
+
+Here's a query for an object with age greater than "20" and less than or equal to "25":
+
+```java
+StackMobQuery q = new StackMobQuery("user")
+    .field("age").isGreaterThan(20).isLessThanOrEqualTo(25)
+```
+
+## Performing Request using StackMobQuery
+
+Now let's use `StackMobQuery` to make a REST API call.  This query represents all `myobject` objects named "object1" or "object2" that were created between 10 and 50 milliseconds ago (inclusive)
+
+
+```java
 long curTime = System.currentTimeMillis();
 StackMobQuery q = new StackMobQuery("myobject")
     .field("objectName").in(Arrays.asList("object1", "object2"))
-    .field("createddate").isLessThanOrEqualTo(curTime - 10).isLessThanOrEqualTo(curTime - 50);
+    .field("createddate").isLessThanOrEqualTo(curTime - 10).isGreaterThanOrEqualTo(curTime - 50);
 
 stackmob.get(q, new StackMobCallback() {
     @Override public void success(String responseBody) {
