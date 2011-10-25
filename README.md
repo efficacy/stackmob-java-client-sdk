@@ -34,7 +34,7 @@ libraryDependencies += "com.stackmob" % "stackmob-java-client-sdk" % "0.1.5"
 
 # Making REST API Calls
 
-The main interface to your app on StackMob's servers is through the com.stackmob.sdk.api.StackMob object. Check out the [javadoc](http://stackmob.github.com/stackmob-java-client-sdk/javadoc/0.1.5/apidocs/) for details.
+The main interface to your app on StackMob's servers is through the ``` com.stackmob.sdk.api.StackMob ``` object. Check out the [javadoc](http://stackmob.github.com/stackmob-java-client-sdk/javadoc/0.1.5/apidocs/) for details.
 The following code shows basic use of the StackMob object.
 
 ```java
