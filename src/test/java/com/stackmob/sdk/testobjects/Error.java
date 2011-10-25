@@ -16,15 +16,6 @@
 
 package com.stackmob.sdk.testobjects;
 
-public class Error extends StackMobObject {
-
+public class Error {
     public String error;
-
-    public String getId() {
-        return error;
-    }
-
-    public String getName() {
-        return "Error";
-    }
 }

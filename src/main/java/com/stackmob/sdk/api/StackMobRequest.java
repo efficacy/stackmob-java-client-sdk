@@ -25,6 +25,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 
 import com.google.gson.GsonBuilder;
 import com.stackmob.sdk.callback.StackMobRedirectedCallback;
@@ -53,6 +56,7 @@ public class StackMobRequest {
     protected static final String SECURE_SCHEME = "https";
     protected static final String REGULAR_SCHEME = "http";
 
+    protected final ExecutorService executor;
     protected final StackMobSession session;
     protected final String sessionKey;
     protected final StackMobRedirectedCallback redirectedCallback;
@@ -78,7 +82,8 @@ public class StackMobRequest {
     };
 
     //default constructor - not available for public consumption
-    private StackMobRequest(StackMobSession session, String method, StackMobRedirectedCallback cb) {
+    private StackMobRequest(ExecutorService executor, StackMobSession session, String method, StackMobRedirectedCallback cb) {
+        this.executor = executor;
         this.session = session;
         this.sessionKey = session.getKey();
         this.sessionSecret = session.getSecret();
@@ -94,23 +99,23 @@ public class StackMobRequest {
         oAuthService = new ServiceBuilder().provider(StackMobApi.class).apiKey(sessionKey).apiSecret(sessionSecret).build();
     }
 
-    public StackMobRequest(StackMobSession session, String method, StackMobCallback callback, StackMobRedirectedCallback redirCB) {
-        this(session, method, redirCB);
+    public StackMobRequest(ExecutorService executor, StackMobSession session, String method, StackMobCallback callback, StackMobRedirectedCallback redirCB) {
+        this(executor, session, method, redirCB);
         this.callback = callback;
     }
 
-    public StackMobRequest(StackMobSession session, String method, Map<String, String> args, StackMobCallback callback, StackMobRedirectedCallback redirCB) {
-        this(session, method, callback, redirCB);
+    public StackMobRequest(ExecutorService executor, StackMobSession session, String method, Map<String, String> args, StackMobCallback callback, StackMobRedirectedCallback redirCB) {
+        this(executor, session, method, callback, redirCB);
         this.params = args;
     }
 
-    public StackMobRequest(StackMobSession session, String method, HttpVerb verb, Object requestObject, StackMobCallback callback, StackMobRedirectedCallback redirCB) {
-        this(session, method, verb, callback, redirCB);
+    public StackMobRequest(ExecutorService executor, StackMobSession session, String method, HttpVerb verb, Object requestObject, StackMobCallback callback, StackMobRedirectedCallback redirCB) {
+        this(executor, session, method, verb, callback, redirCB);
         this.requestObject = requestObject;
     }
 
-    public StackMobRequest(StackMobSession session, String method, HttpVerb verb, StackMobCallback callback, StackMobRedirectedCallback redirCB) {
-        this(session, method, callback, redirCB);
+    public StackMobRequest(ExecutorService executor, StackMobSession session, String method, HttpVerb verb, StackMobCallback callback, StackMobRedirectedCallback redirCB) {
+        this(executor, session, method, callback, redirCB);
         this.methodName = method;
         this.httpMethod = verb;
     }
@@ -124,32 +129,25 @@ public class StackMobRequest {
 
     public void sendRequest() {
         try {
-            String response = null;
-
-            switch(httpMethod) {
-                case GET:
-                    response = sendGetRequest();
-                    break;
-                case POST:
-                    response = sendPostRequest();
-                    break;
-                case PUT:
-                    response = sendPutRequest();
-                    break;
-                case DELETE:
-                    response = sendDeleteRequest();
-                    break;
+            if(HttpVerb.GET == httpMethod) {
+                sendGetRequest();
             }
-
-            callback.success(response);
-
+            else if(HttpVerb.POST == httpMethod) {
+                sendPostRequest();
+            }
+            else if(HttpVerb.PUT == httpMethod) {
+                sendPutRequest();
+            }
+            else if(HttpVerb.DELETE == httpMethod) {
+                sendDeleteRequest();
+            }
         }
         catch (StackMobException e) {
             callback.failure(e);
         }
     }
 
-    private String sendGetRequest() throws StackMobException {
+    private void sendGetRequest() throws StackMobException {
         try {
             String query = null;
             if (null != params) {
@@ -158,38 +156,56 @@ public class StackMobRequest {
 
             URI uri = createURI(getScheme(), getHost(), getPath(), query);
             OAuthRequest req = getOAuthRequest(HttpVerb.GET, uri.toString());
-            return sendRequest(req);
+            sendRequest(req);
         }
         catch (URISyntaxException e) {
             throw new StackMobException(e.getMessage());
         }
+        catch (InterruptedException e) {
+            throw new StackMobException(e.getMessage());
+        }
+        catch (ExecutionException e) {
+            throw new StackMobException(e.getMessage());
+        }
     }
 
-    private String sendPostRequest() throws StackMobException {
+    private void sendPostRequest() throws StackMobException {
         try {
             URI uri = createURI(getScheme(), getHost(), getPath(), "");
             String payload = getPayload();
             OAuthRequest req = getOAuthRequest(HttpVerb.POST, uri.toString(), payload);
-            return sendRequest(req);
+            sendRequest(req);
         }
         catch (URISyntaxException e) {
             throw new StackMobException(e.getMessage());
         }
+        catch (InterruptedException e) {
+            throw new StackMobException(e.getMessage());
+        }
+        catch (ExecutionException e) {
+            throw new StackMobException(e.getMessage());
+        }
     }
 
-    private String sendPutRequest() throws StackMobException {
+    private void sendPutRequest() throws StackMobException {
         try {
             URI uri = createURI(getScheme(), getHost(), getPath(), "");
             String payload = getPayload();
             OAuthRequest req = getOAuthRequest(HttpVerb.PUT, uri.toString(), payload);
-            return sendRequest(req);
+            sendRequest(req);
         }
         catch (URISyntaxException e) {
             throw new StackMobException(e.getMessage());
         }
+        catch (InterruptedException e) {
+            throw new StackMobException(e.getMessage());
+        }
+        catch (ExecutionException e) {
+            throw new StackMobException(e.getMessage());
+        }
     }
 
-    private String sendDeleteRequest() throws StackMobException {
+    private void sendDeleteRequest() throws StackMobException {
         try {
             String query = null;
             if (null != params) {
@@ -198,9 +214,15 @@ public class StackMobRequest {
 
             URI uri = createURI(getScheme(), getHost(), getPath(), query);
             OAuthRequest req = getOAuthRequest(HttpVerb.DELETE, uri.toString());
-            return sendRequest(req);
+            sendRequest(req);
         }
         catch (URISyntaxException e) {
+            throw new StackMobException(e.getMessage());
+        }
+        catch (InterruptedException e) {
+            throw new StackMobException(e.getMessage());
+        }
+        catch (ExecutionException e) {
             throw new StackMobException(e.getMessage());
         }
     }
@@ -312,27 +334,34 @@ public class StackMobRequest {
         return req;
     }
 
-    private String sendRequest(OAuthRequest req) {
-        Response ret = req.send();
-        if(HttpRedirectHelper.isRedirected(ret.getCode())) {
-            try {
-                String newLocation = HttpRedirectHelper.getNewLocation(ret.getHeaders());
-                HttpVerb verb = HttpVerb.valueOf(req.getVerb().toString());
-                OAuthRequest newReq = getOAuthRequest(verb, newLocation);
-                if(req.getBodyContents() != null && req.getBodyContents().length() > 0) {
-                    newReq = getOAuthRequest(verb, newLocation, req.getBodyContents());
+    private void sendRequest(final OAuthRequest req) throws InterruptedException, ExecutionException {
+        final StackMobCallback cb = this.callback;
+        executor.submit(new Callable<Object>() {
+            @Override
+            public String call() throws Exception {
+                Response ret = req.send();
+                if(HttpRedirectHelper.isRedirected(ret.getCode())) {
+                    try {
+                        String newLocation = HttpRedirectHelper.getNewLocation(ret.getHeaders());
+                        HttpVerb verb = HttpVerb.valueOf(req.getVerb().toString());
+                        OAuthRequest newReq = getOAuthRequest(verb, newLocation);
+                        if(req.getBodyContents() != null && req.getBodyContents().length() > 0) {
+                            newReq = getOAuthRequest(verb, newLocation, req.getBodyContents());
+                        }
+                        //does NOT protect against circular redirects
+                        redirectedCallback.redirected(req.getUrl(), ret.getHeaders(), ret.getBody(), newReq.getUrl());
+                        sendRequest(newReq);
+                    }
+                    catch(Exception e) {
+                        callback.failure(new StackMobException(e.getMessage()));
+                    }
                 }
-                //does NOT protect against circular redirects
-                redirectedCallback.redirected(req.getUrl(), ret.getHeaders(), ret.getBody(), newReq.getUrl());
-                return sendRequest(newReq);
+                else {
+                    cb.success(ret.getBody());
+                }
+                return null;
             }
-            catch(Exception e) {
-                return ret.getBody();
-            }
-        }
-        else {
-            return ret.getBody();
-        }
+        });
     }
 
 }

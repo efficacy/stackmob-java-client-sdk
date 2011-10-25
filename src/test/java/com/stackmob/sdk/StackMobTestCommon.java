@@ -18,19 +18,38 @@ package com.stackmob.sdk;
 
 import com.google.gson.Gson;
 import com.stackmob.sdk.api.StackMob;
+import com.stackmob.sdk.callback.StackMobCallback;
+import com.stackmob.sdk.exception.StackMobException;
 import com.stackmob.sdk.testobjects.Error;
+
+import java.util.HashMap;
+import java.util.concurrent.CountDownLatch;
+import java.lang.reflect.Type;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+
+import com.google.gson.reflect.TypeToken;
+import com.stackmob.sdk.testobjects.StackMobObject;
+import com.stackmob.sdk.util.Pair;
+import com.stackmob.sdk.testobjects.StackMobObjectOnServer;
+import static com.stackmob.sdk.concurrencyutils.CountDownLatchUtils.*;
+
 import static org.junit.Assert.*;
 
 public class StackMobTestCommon {
-    private static final String DEFAULT_API_KEY = "YOUR_API_KEY_HERE";
-    private static final String DEFAULT_API_SECRET = "YOUR_API_SECRET_HERE";
-    public static final String API_KEY = DEFAULT_API_KEY;
-    public static final String API_SECRET = DEFAULT_API_SECRET;
+
+    public static final String API_KEY = "8bce5b97-6018-4993-a690-4cc034aa2bfe";
+    public static final String API_SECRET = "c2227f24-7ad5-452f-8669-4a4a454c8fe4";
 
     public static final String USER_OBJECT_NAME = "user";
     public static final Integer API_VERSION_NUM = 0;
+
     protected static final Gson gson = new Gson();
     protected final StackMob stackmob;
+
+    private static final Type hashMapStringStringType = new TypeToken<HashMap<String, String>>() {}.getType();
+    private static final String DEFAULT_API_KEY = "DEFAULT_API_KEY";
+    private static final String DEFAULT_API_SECRET = "DEFAULT_API_SECRET";
 
     public StackMobTestCommon() {
         assertFalse("you forgot to set your API key", DEFAULT_API_KEY.equals(API_KEY));
@@ -48,8 +67,52 @@ public class StackMobTestCommon {
         }
     }
 
-    public static void assertError(String responseBody) {
-        Error err = Error.decodeFromJson(responseBody, Error.class);
-        assertNotNull(err.error);
+    public static boolean isError(String responseBody) {
+        Error err = gson.fromJson(responseBody, Error.class);
+        return err.error != null;
+    }
+
+    private Pair<Boolean, String> getErrorFromJson(String json) {
+        HashMap<String, String> hm = getHashMapFromJson(json);
+        if(hm.get("error") != null) {
+            return new Pair<Boolean, String>(true, hm.get("error"));
+        }
+        return new Pair<Boolean, String>(false, "");
+    }
+
+    private HashMap<String, String> getHashMapFromJson(String json) {
+        return gson.fromJson(json, hashMapStringStringType);
+    }
+
+
+    protected StackMobObjectOnServer createOnServer(final StackMobObject obj) throws StackMobException, InterruptedException {
+        final AtomicBoolean errorBool = new AtomicBoolean();
+        final AtomicReference<StackMobException> exception = new AtomicReference<StackMobException>(null);
+        final CountDownLatch latch = new CountDownLatch(1);
+        final AtomicReference<String> ref = new AtomicReference<String>(null);
+
+        stackmob.post(obj.getName(), this, new StackMobCallback() {
+            @Override public void success(String responseBody) {
+                Pair<Boolean, String> err = getErrorFromJson(responseBody);
+                if(err.getFirst()) {
+                    errorBool.set(true);
+                    exception.set(new StackMobException(err.getSecond()));
+                }
+                else {
+                    HashMap<String, String> hm = getHashMapFromJson(responseBody);
+                    ref.set(hm.get(obj.getIdFieldName()));
+                }
+                latch.countDown();
+            }
+
+            @Override public void failure(StackMobException e) {
+                errorBool.set(true);
+                exception.set(e);
+                latch.countDown();
+            }
+        });
+
+        assertLatchFinished(latch, errorBool, exception);
+        return new StackMobObjectOnServer(stackmob, ref.get(), obj);
     }
 }

@@ -22,10 +22,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import com.stackmob.sdk.api.StackMobQuery;
 import com.stackmob.sdk.api.StackMobQueryWithField;
+import com.stackmob.sdk.concurrencyutils.MultiThreadAsserter;
 import com.stackmob.sdk.testobjects.*;
+import com.stackmob.sdk.util.Pair;
 import org.junit.Test;
 import org.junit.Ignore;
 
@@ -33,272 +37,313 @@ import com.google.gson.reflect.TypeToken;
 import com.stackmob.sdk.callback.StackMobCallback;
 import com.stackmob.sdk.exception.StackMobException;
 import static org.junit.Assert.*;
+import static com.stackmob.sdk.concurrencyutils.CountDownLatchUtils.*;
 
 public class StackMobTests extends StackMobTestCommon {
 
     @Test public void login() throws Exception {
         final String username = "testUser";
         final String password = "1234";
-        new User(username, password).delete(stackmob, true);
+        final User user = new User(username, password);
+        final StackMobObjectOnServer objectOnServer = createOnServer(user);
+        final MultiThreadAsserter asserter = new MultiThreadAsserter();
 
-        User user = StackMobObject.create(stackmob, new User(username, password), User.class);
-        user.password = password;
         Map<String, String> params = new HashMap<String, String>();
         params.put("username", user.username);
         params.put("password", user.password);
 
-        StackMobCallback callback = new StackMobCallback() {
-            @Override
-            public void success(String responseBody) {
-                assertNotNull(responseBody);
-                assertNotError(responseBody);
-            }
-            @Override
-            public void failure(StackMobException e) {
-                fail(e.getMessage());
-            }
-        };
+        final CountDownLatch latch = latchOne();
 
-        stackmob.login(params, callback);
-        user.delete(stackmob);
+        stackmob.login(params, new StackMobCallback() {
+            @Override public void success(String responseBody) {
+                asserter.markNotNull(responseBody);
+                asserter.markNotJsonError(responseBody);
+                latch.countDown();
+            }
+
+            @Override public void failure(StackMobException e) {
+                asserter.markException(e);
+            }
+        });
+        asserter.assertLatchFinished(latch);
+        objectOnServer.delete();
     }
 
-    @Test public void loginShouldFail() {
-        final String username = "doesntexist";
-        final String password = "doesntexist";
-
-        new User(username, password).delete(stackmob, true);
+    @Test public void loginShouldFail() throws Exception {
+        final String username = "nonexistent";
+        final String password = "nonexistent";
 
         Map<String, String> params = new HashMap<String, String>();
         params.put("username", username);
         params.put("password", password);
 
+        final CountDownLatch latch = latchOne();
+        final MultiThreadAsserter asserter = new MultiThreadAsserter();
 
-        StackMobCallback callback = new StackMobCallback() {
+        stackmob.login(params, new StackMobCallback() {
             @Override
             public void success(String responseBody) {
-                assertError(responseBody);
+                asserter.markJsonError(responseBody);
+                latch.countDown();
             }
             @Override
             public void failure(StackMobException e) {
-                assertEquals("Unauthorized", e.getMessage());
+                fail("login was supposed to fail with a 200 but a JSON error");
             }
-        };
-
-        stackmob.login(params, callback);
+        });
+        asserter.assertLatchFinished(latch);
     }
 
     @Test public void logout() throws Exception {
         final String username = "username";
         final String password = "1234";
 
-        new User(username, password).delete(stackmob, true);
-
-        User user = StackMobObject.create(stackmob, new User(username, password), User.class);
-        user.password = password;
+        final User user = new User(username, password);
+        final StackMobObjectOnServer objectOnServer = createOnServer(user);
 
         Map<String, String> params = new HashMap<String, String>();
         params.put("username", user.username);
         params.put("password", user.password);
 
+        final CountDownLatch loginLatch = latchOne();
+        final MultiThreadAsserter asserter = new MultiThreadAsserter();
+
         stackmob.login(params, new StackMobCallback() {
-            @Override
-            public void success(String responseBody) {
-                assertNotError(responseBody);
-            }
+            @Override public void success(String responseBody) {
+                asserter.markNotJsonError(responseBody);
+                final CountDownLatch logoutLatch = latchOne();
 
-            @Override
-            public void failure(StackMobException e) {
-                fail(e.getMessage());
+                stackmob.logout(new StackMobCallback() {
+                    @Override public void success(String responseBody2) {
+                        asserter.markNotNull(responseBody2);
+                        asserter.markNotJsonError(responseBody2);
+                        logoutLatch.countDown();
+                    }
+                    @Override public void failure(StackMobException e) {
+                        asserter.markException(e);
+                    }
+                });
+
+                try {
+                    asserter.markLatchFinished(logoutLatch);
+                    loginLatch.countDown();
+                }
+                catch(InterruptedException e) {
+                    asserter.markFailure("logout did not complete");
+                }
+            }
+            @Override public void failure(StackMobException e) {
+                asserter.markException(e);
             }
         });
 
-        stackmob.logout(new StackMobCallback() {
-            @Override
-            public void success(String responseBody) {
-                assertNotError(responseBody);
-                assertNotNull(responseBody);
-            }
-            @Override
-            public void failure(StackMobException e) {
-                fail(e.getMessage());
-            }
-        });
-
-        user.delete(stackmob);
+        asserter.assertLatchFinished(loginLatch, new Pair<Long, TimeUnit>(4L, TimeUnit.SECONDS));
+        objectOnServer.delete();
     }
 
-    @Test public void startSession() {
+    @Test public void startSession() throws InterruptedException, StackMobException {
+        final CountDownLatch latch = latchOne();
+        final MultiThreadAsserter asserter = new MultiThreadAsserter();
+
         stackmob.startSession(new StackMobCallback() {
-            @Override
-            public void success(String responseBody) {
-                assertNotError(responseBody);
-                assertNotNull(responseBody);
+            @Override public void success(String responseBody) {
+                asserter.markNotNull(responseBody);
+                asserter.markNotJsonError(responseBody);
+                latch.countDown();
             }
 
-            @Override
-            public void failure(StackMobException e) {
-                fail(e.getMessage());
+            @Override public void failure(StackMobException e) {
+                asserter.markException(e);
             }
         });
+        asserter.assertLatchFinished(latch);
     }
 
     @Test public void getWithoutArguments() throws Exception {
-        Game game = StackMobObject.create(stackmob, new Game(Arrays.asList("one", "two"), "one"), Game.class);
+        final Game game = new Game(Arrays.asList("one", "two"), "one");
+        final StackMobObjectOnServer objectOnServer = createOnServer(game);
+        final CountDownLatch latch = latchOne();
+        final MultiThreadAsserter asserter = new MultiThreadAsserter();
 
         stackmob.get("game", new StackMobCallback() {
-            @Override
-            public void success(String responseBody) {
-                assertNotError(responseBody);
-                assertNotNull(responseBody);
+            @Override public void success(String responseBody) {
+                asserter.markNotJsonError(responseBody);
                 Type collectionType = new TypeToken<List<Game>>() {}.getType();
                 List<Game> games = gson.fromJson(responseBody, collectionType);
-                assertNotNull(games);
-                assertFalse(games.isEmpty());
+                asserter.markNotNull(games);
+                asserter.markFalse(games.isEmpty());
+                latch.countDown();
             }
-            @Override
-            public void failure(StackMobException e) {
-                fail(e.getMessage());
+
+            @Override public void failure(StackMobException e) {
+                asserter.markException(e);
             }
         });
-        game.delete(stackmob);
+        asserter.assertLatchFinished(latch);
+        objectOnServer.delete();
     }
 
     @Test public void getWithArguments() throws Exception {
-        StackMobObject.create(stackmob, new Game(Arrays.asList("one", "two"), "one"), Game.class);
+        final Game game = new Game(Arrays.asList("one", "two"), "one");
+        final StackMobObjectOnServer objectOnServer = createOnServer(game);
+
+        final CountDownLatch latch = latchOne();
+        final MultiThreadAsserter asserter = new MultiThreadAsserter();
 
         Map<String, String> arguments = new HashMap<String, String>();
         arguments.put("name", "one");
         stackmob.get("game", arguments, new StackMobCallback() {
-            @Override
-            public void success(String responseBody) {
-                assertNotError(responseBody);
-                assertNotNull(responseBody);
+            @Override public void success(String responseBody) {
+                asserter.markNotJsonError(responseBody);
                 Type collectionType = new TypeToken<List<Game>>() {}.getType();
                 List<Game> games = gson.fromJson(responseBody, collectionType);
-                assertNotNull(games);
-                assertTrue(games.size() >= 1);
-                assertEquals("one", games.get(0).name);
-                games.get(0).delete(stackmob);
+                asserter.markNotNull(games);
+                asserter.markTrue(games.size() >= 1);
+                asserter.markEquals("one", games.get(0).name);
+                latch.countDown();
             }
-            @Override
-            public void failure(StackMobException e) {
-                fail(e.getMessage());
+            @Override public void failure(StackMobException e) {
+                asserter.markException(e);
             }
         });
+        asserter.assertLatchFinished(latch);
+
+        objectOnServer.delete();
     }
 
     @Test
-    public void getWithQuery() throws Exception {
-        StackMobObject.create(stackmob, new Game(Arrays.asList("seven", "six"), "woot"), Game.class);
+    public void getWithQuery() throws InterruptedException, StackMobException {
+        final Game g = new Game(Arrays.asList("seven", "six"), "woot");
+        final StackMobObjectOnServer objectOnServer = createOnServer(g);
 
         StackMobQuery query = new StackMobQuery("game").fieldIsGreaterThanOrEqualTo("name", "sup");
+        final CountDownLatch latch = latchOne();
+        final MultiThreadAsserter asserter = new MultiThreadAsserter();
+
         stackmob.get(query, new StackMobCallback() {
-            @Override
-            public void success(String responseBody) {
-                assertNotNull(responseBody);
-                assertNotError(responseBody);
+            @Override public void success(String responseBody) {
+                asserter.markNotJsonError(responseBody);
                 Type collectionType = new TypeToken<List<Game>>() {}.getType();
                 List<Game> games = gson.fromJson(responseBody, collectionType);
-                assertNotNull(games);
-                assertTrue(games.size() >= 1);
-                assertEquals("woot", games.get(0).name);
-                games.get(0).delete(stackmob);
+                asserter.markNotNull(games);
+                asserter.markTrue(games.size() >= 1);
+                asserter.markEquals("woot", games.get(0).name);
+                latch.countDown();
             }
-            @Override
-            public void failure(StackMobException e) {
-                fail(e.getMessage());
+            @Override public void failure(StackMobException e) {
+                asserter.markException(e);
             }
         });
+        asserter.assertLatchFinished(latch);
+        objectOnServer.delete();
     }
 
-    @Test
-    public void getWithQueryWithField() throws Exception {
-        Game g = StackMobObject.create(stackmob, new Game(Arrays.asList("seven", "six"), "woot"), Game.class);
+    @Test public void getWithQueryWithField() throws Exception {
+        final Game g = new Game(Arrays.asList("seven", "six"), "woot");
+        final StackMobObjectOnServer objectOnServer = createOnServer(g);
 
         StackMobQuery q = new StackMobQuery("game");
         StackMobQueryWithField qWithField = new StackMobQueryWithField("name", q).isGreaterThanOrEqualTo("sup");
+        final CountDownLatch latch = latchOne();
+        final MultiThreadAsserter asserter = new MultiThreadAsserter();
+
         stackmob.get(qWithField, new StackMobCallback() {
-            @Override
-            public void success(String responseBody) {
-                assertNotNull(responseBody);
-                assertNotError(responseBody);
+            @Override public void success(String responseBody) {
+                asserter.markNotJsonError(responseBody);
+
                 Type collectionType = new TypeToken<List<Game>>() {}.getType();
                 List<Game> games = gson.fromJson(responseBody, collectionType);
-                assertNotNull(games);
-                assertTrue(games.size() >= 1);
-                assertEquals("woot", games.get(0).name);
-                games.get(0).delete(stackmob);
+                asserter.markNotNull(games);
+                asserter.markTrue(games.size() >= 1);
+                asserter.markEquals("woot", games.get(0).name);
+                latch.countDown();
             }
 
-            @Override
-            public void failure(StackMobException e) {
-                fail(e.getMessage());
+            @Override public void failure(StackMobException e) {
+                asserter.markException(e);
             }
         });
-        g.delete(stackmob, true);
+        asserter.assertLatchFinished(latch);
+        objectOnServer.delete();
     }
 
-    @Test
-    public void postWithRequestObject() throws Exception {
-        Game game = new Game(Arrays.asList("one", "two"), "newGame");
-        game.name = "newGame";
-        stackmob.post("game", game, new StackMobCallback() {
-            @Override
-            public void success(String responseBody) {
-                assertNotError(responseBody);
+    @Test public void postWithRequestObject() throws Exception {
+        final Game g = new Game(Arrays.asList("one", "two"), "newGame");
+        g.name = "newGame";
+        final CountDownLatch latch = latchOne();
+        final MultiThreadAsserter asserter = new MultiThreadAsserter();
+
+        stackmob.post("game", g, new StackMobCallback() {
+            @Override public void success(String responseBody) {
+                asserter.markNotJsonError(responseBody);
                 Game game = gson.fromJson(responseBody, Game.class);
-                assertEquals("newGame", game.name);
-                game.delete(stackmob);
+                StackMobObjectOnServer onServer = new StackMobObjectOnServer(stackmob, game.game_id, game);
+                try {
+                    onServer.delete();
+                }
+                catch(StackMobException e) {
+                    asserter.markException(e);
+                }
+
+                asserter.markEquals("newGame", game.name);
+                latch.countDown();
             }
 
-            @Override
-            public void failure(StackMobException e) {
-                fail(e.getMessage());
+            @Override public void failure(StackMobException e) {
+                asserter.markException(e);
             }
         });
+        asserter.assertLatchFinished(latch);
+
     }
 
     @Test public void deleteWithId() throws Exception {
-        Game game = StackMobObject.create(stackmob, new Game(new ArrayList<String>(), "gameToDelete"), Game.class);
+        final Game game = new Game(new ArrayList<String>(), "gameToDelete");
+        final StackMobObjectOnServer objectOnServer = createOnServer(game);
+        final CountDownLatch latch = latchOne();
+        final MultiThreadAsserter asserter = new MultiThreadAsserter();
 
-        stackmob.delete("game", game.game_id, new StackMobCallback() {
-            @Override
-            public void success(String responseBody) {
-                assertNotError(responseBody);
-                assertNotNull(responseBody);
+        stackmob.delete("game", objectOnServer.getObjectId(), new StackMobCallback() {
+            @Override public void success(String responseBody) {
+                asserter.markNotJsonError(responseBody);
+                latch.countDown();
             }
 
-            @Override
-            public void failure(StackMobException e) {
-                fail(e.getMessage());
+            @Override public void failure(StackMobException e) {
+                asserter.markException(e);
             }
         });
+        asserter.assertLatchFinished(latch);
     }
 
     @Test public void put() throws Exception {
         final String oldName = "oldGameName";
         final String newName = "newGameName";
 
-        Game game = StackMobObject.create(stackmob, new Game(Arrays.asList("one", "two"), oldName), Game.class);
+        final Game game = new Game(Arrays.asList("one", "two"), oldName);
+        final StackMobObjectOnServer objectOnServer = createOnServer(game);
+        final String objectId = objectOnServer.getObjectId();
 
         game.name = newName;
         final Game updatedGame = new Game(Arrays.asList("modified", "modified2"), "modified_game");
-        stackmob.put(game.getName(), game.getId(), updatedGame, new StackMobCallback() {
-            @Override
-            public void success(String responseBody) {
-                assertNotError(responseBody);
+        final CountDownLatch latch = latchOne();
+        final MultiThreadAsserter asserter = new MultiThreadAsserter();
+
+        stackmob.put(game.getName(), objectId, updatedGame, new StackMobCallback() {
+            @Override public void success(String responseBody) {
+                asserter.markNotJsonError(responseBody);
                 Game jsonGame = gson.fromJson(responseBody, Game.class);
-                assertNotNull(jsonGame);
-                assertNotNull(jsonGame.name);
-                assertEquals(updatedGame.name, jsonGame.name);
-                jsonGame.delete(stackmob);
+                asserter.markNotNull(jsonGame);
+                asserter.markEquals(updatedGame.name, jsonGame.name);
+                latch.countDown();
             }
-            @Override
-            public void failure(StackMobException e) {
-                fail(e.getMessage());
+
+            @Override public void failure(StackMobException e) {
+                asserter.markException(e);
             }
         });
+        asserter.assertLatchFinished(latch);
+        objectOnServer.delete();
     }
 
     @Ignore("push doesn't support new style URLs yet")
@@ -307,22 +352,24 @@ public class StackMobTests extends StackMobTestCommon {
         final String password = "password";
         final String token = "testToken";
 
-        new User(username, password).delete(stackmob, true);
+        User user = new User(username, password);
+        final StackMobObjectOnServer objectOnServer = createOnServer(user);
+        final String objectId = objectOnServer.getObjectId();
 
-        final User user = StackMobObject.create(stackmob, new User(username, password), User.class);
-        user.password = password;
+        final CountDownLatch latch = latchOne();
+        final MultiThreadAsserter asserter = new MultiThreadAsserter();
 
-        stackmob.registerForPushWithUser(user.username, token, new StackMobCallback() {
-            @Override
-            public void success(String responseBody) {
-                assertNotError(responseBody);
+        stackmob.registerForPushWithUser(objectId, token, new StackMobCallback() {
+            @Override public void success(String responseBody) {
+                asserter.markNotJsonError(responseBody);
+                latch.countDown();
             }
 
-            @Override
-            public void failure(StackMobException e) {
-                fail("exception thrown when trying to register for push: " + e.getMessage());
+            @Override public void failure(StackMobException e) {
+                asserter.markException(e);
             }
         });
-        user.delete(stackmob);
+        asserter.assertLatchFinished(latch);
+        objectOnServer.delete();
     }
 }

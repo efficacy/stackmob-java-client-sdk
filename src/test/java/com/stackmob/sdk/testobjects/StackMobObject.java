@@ -18,94 +18,29 @@ package com.stackmob.sdk.testobjects;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import com.stackmob.sdk.StackMobTestCommon;
+import com.google.gson.reflect.TypeToken;
 import com.stackmob.sdk.api.StackMob;
 import com.stackmob.sdk.callback.StackMobCallback;
 import com.stackmob.sdk.exception.StackMobException;
+import com.stackmob.sdk.util.Pair;
 
+import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.*;
 
 public abstract class StackMobObject {
 
-    protected static final Gson gson = new Gson();
-    private static final long MAX_LATCH_WAIT_TIME_MS = 2000L;
-
-    public abstract String getId();
+    public abstract String getIdFieldName();
     public abstract String getName();
 
-    public void delete(StackMob stackmob) {
-        delete(stackmob, false);
-    }
-
-    public void delete(StackMob stackmob, final boolean ignoreFail) {
-        final String objectId = getId();
-        final String objectName = getName();
-        final CountDownLatch latch = new CountDownLatch(1);
-        assertNotNull(objectId);
-
-        stackmob.delete(objectName, objectId, new StackMobCallback() {
-            @Override
-            public void success(String responseBody) {
-                if(!ignoreFail) {
-                    assertEquals("response body was " + responseBody, "Successfully deleted document", responseBody);
-                }
-                latch.countDown();
-            }
-
-            @Override
-            public void failure(StackMobException e) {
-                fail("attempted to delete " + objectName + " " + objectId + " but failed: " + e.getMessage());
-                latch.countDown();
-            }
-        });
-
-        try {
-            assertTrue(latch.await(MAX_LATCH_WAIT_TIME_MS, TimeUnit.MILLISECONDS));
-        }
-        catch (InterruptedException e) {
-            fail("trying to delete " + getName() + " " + objectId + " resulted in exception: " + e.getMessage());
-        }
-    }
-
     public String toString() {
-        if(getId() != null) {
-            return "<"+getName()+" " + getId()+">";
-        }
-        else {
-            return "<"+getName()+">";
-        }
+        return "<"+getName()+">";
     }
 
-    public static <T extends StackMobObject> T decodeFromJson(final String json, final Class<T> objectClass) throws JsonSyntaxException {
-        T obj = gson.fromJson(json, objectClass);
-        assertNotNull(obj.getId());
-        assertNotNull(obj.getName());
-        return obj;
-    }
 
-    public static <T extends StackMobObject> T create(final StackMob stackmob, final T object, final Class<T> objectClass) throws InterruptedException {
-        final AtomicReference<T> ref = new AtomicReference<T>();
-        final CountDownLatch latch = new CountDownLatch(1);
-        stackmob.post(object.getName(), object, new StackMobCallback() {
-            @Override
-            public void success(String responseBody) {
-                StackMobTestCommon.assertNotError(responseBody);
-                T obj = gson.fromJson(responseBody, objectClass);
-                assertNotNull(obj.getId());
-                ref.set(obj);
-                latch.countDown();
-            }
-
-            @Override
-            public void failure(StackMobException e) {
-                fail("creating " + object.getName() + " threw an exception: " + e.getMessage());
-            }
-        });
-        assertTrue(latch.await(MAX_LATCH_WAIT_TIME_MS, TimeUnit.MILLISECONDS));
-        return ref.get();
-    }
 }

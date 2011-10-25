@@ -19,15 +19,16 @@ package com.stackmob.sdk.api;
 import com.stackmob.sdk.callback.StackMobRedirectedCallback;
 import com.stackmob.sdk.callback.StackMobCallback;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 public class StackMobUserBasedRequest extends StackMobRequest {
-    public StackMobUserBasedRequest(StackMobSession session, String method, StackMobCallback callback, StackMobRedirectedCallback redirCB) {
-        super(session, method, callback, redirCB);
+    public StackMobUserBasedRequest(ExecutorService executor, StackMobSession session, String method, StackMobCallback callback, StackMobRedirectedCallback redirCB) {
+        super(executor, session, method, callback, redirCB);
         isSecure = true;
     }
 
-    public StackMobUserBasedRequest(StackMobSession session, String method, Map<String, String> params, StackMobCallback callback, StackMobRedirectedCallback redirCB) {
-        super(session, method, params, callback, redirCB);
+    public StackMobUserBasedRequest(ExecutorService executor, StackMobSession session, String method, Map<String, String> params, StackMobCallback callback, StackMobRedirectedCallback redirCB) {
+        super(executor, session, method, params, callback, redirCB);
         isSecure = true;
     }
 

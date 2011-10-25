@@ -36,6 +36,6 @@ public class User extends StackMobObject {
         this.password = password;
     }
 
-    public String getName() { return "user"; }
-    public String getId() { return username; }
+    @Override public String getIdFieldName() { return "username"; }
+    @Override public String getName() { return "user"; }
 }
