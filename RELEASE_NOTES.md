@@ -1,5 +1,8 @@
 # Stackmob Java SDK (Release Notes)
 
+### 0.1.6 (10/25/2011)
+* Added functionality to do HTTP requests in the background. callbacks (both redirect and normal) will now be called in a different thread than the original function call
+
 ### 0.1.5 (10/20/2011)
 * Added the StackMobQuery class to assist with building complex query operations (ie: <, >, <=, =>, IN)
 	* See [Javadoc](http://stackmob.github.com/stackmob-java-client-sdk/javadoc/0.1.5/apidocs) and [README](https://github.com/stackmob/stackmob-java-client-sdk/blob/master/README.md) for more details
