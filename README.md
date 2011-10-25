@@ -153,7 +153,7 @@ StackMobQuery q = new StackMobQuery("user")
     .field("age").isGreaterThan(20).isLessThanOrEqualTo(25)
 ```
 
-## Performing Request using StackMobQuery
+## Performing Requests using StackMobQuery
 
 Now let's use `StackMobQuery` to make a REST API call.  This query represents all `myobject` objects named "object1" or "object2" that were created between 10 and 50 milliseconds ago (inclusive)
 
@@ -162,7 +162,7 @@ Now let's use `StackMobQuery` to make a REST API call.  This query represents al
 long curTime = System.currentTimeMillis();
 StackMobQuery q = new StackMobQuery("myobject")
     .field("objectName").in(Arrays.asList("object1", "object2"))
-    .field("createddate").isLessThanOrEqualTo(curTime - 10).isGreaterThanOrEqualTo(curTime - 50);
+    .field("createddate").isGreaterThanOrEqualTo(curTime - 50).isLessThanOrEqualTo(curTime - 10);
 
 stackmob.get(q, new StackMobCallback() {
     @Override public void success(String responseBody) {
