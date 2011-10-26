@@ -52,7 +52,9 @@ import com.stackmob.sdk.net.HttpRedirectHelper;
 
 public class StackMobRequest {
 
-    public static final String DEFAULT_URL_FORMAT = "api.mob1.stackmob.com";
+    public static final String DEFAULT_URL_FORMAT = "mob1.stackmob.com";
+    public static final String DEFAULT_API_URL_FORMAT = "api." + DEFAULT_URL_FORMAT;
+    public static final String DEFAULT_PUSH_URL_FORMAT = "push." + DEFAULT_URL_FORMAT;
     protected static final String SECURE_SCHEME = "https";
     protected static final String REGULAR_SCHEME = "http";
 
@@ -63,7 +65,8 @@ public class StackMobRequest {
     protected final String sessionSecret;
 
     protected String methodName;
-    protected String urlFormat = DEFAULT_URL_FORMAT;
+    protected String urlFormat = DEFAULT_API_URL_FORMAT;
+
     protected Boolean isSecure = false;
     protected HttpVerb httpMethod = HttpVerb.GET;
     protected Map<String, String> params;

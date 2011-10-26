@@ -346,7 +346,6 @@ public class StackMobTests extends StackMobTestCommon {
         objectOnServer.delete();
     }
 
-    @Ignore("push doesn't support new style URLs yet")
     @Test public void registerToken() throws Exception {
         final String username = "testUser";
         final String password = "password";
@@ -371,5 +370,27 @@ public class StackMobTests extends StackMobTestCommon {
         });
         asserter.assertLatchFinished(latch);
         objectOnServer.delete();
+    }
+
+    @Test public void getTokensForUsers() throws Exception {
+        final String username = "testUser";
+        final List<String> usernames = new ArrayList<String>();
+        usernames.add(username);
+        final CountDownLatch latch = latchOne();
+        final MultiThreadAsserter asserter = new MultiThreadAsserter();
+
+        stackmob.getTokensForUsers(usernames, new StackMobCallback() {
+            @Override
+            public void success(String responseBody) {
+                asserter.markNotJsonError(responseBody);
+                latch.countDown();
+            }
+
+            @Override
+            public void failure(StackMobException e) {
+                asserter.markException(e);
+            }
+        });
+        asserter.assertLatchFinished(latch);
     }
 }
