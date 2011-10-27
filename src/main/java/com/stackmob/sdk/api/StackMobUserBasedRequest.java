@@ -22,13 +22,13 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 public class StackMobUserBasedRequest extends StackMobRequest {
-    public StackMobUserBasedRequest(ExecutorService executor, StackMobSession session, String method, StackMobCallback callback, StackMobRedirectedCallback redirCB) {
-        super(executor, session, method, callback, redirCB);
+    public StackMobUserBasedRequest(ExecutorService executor, StackMobSession session, String method, StackMobCallback callback, StackMobRedirectedCallback cb) {
+        super(executor, session, method, callback, cb);
         isSecure = true;
     }
 
-    public StackMobUserBasedRequest(ExecutorService executor, StackMobSession session, String method, Map<String, String> params, StackMobCallback callback, StackMobRedirectedCallback redirCB) {
-        super(executor, session, method, params, callback, redirCB);
+    public StackMobUserBasedRequest(ExecutorService executor, StackMobSession session, String method, Map<String, String> params, StackMobCallback callback, StackMobRedirectedCallback cb) {
+        super(executor, session, method, params, callback, cb);
         isSecure = true;
     }
 

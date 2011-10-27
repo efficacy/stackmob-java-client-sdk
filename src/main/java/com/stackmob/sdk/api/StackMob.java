@@ -360,7 +360,7 @@ public class StackMob {
         }
         Map<String, String> params = new HashMap<String, String>();
         params.put("userIds", userIds.toString());
-        postGet("get_tokens_for_users_universal", params, callback);
+        getPush("get_tokens_for_users_universal", params, callback);
     }
 
     /**
@@ -445,6 +445,10 @@ public class StackMob {
         this.get(query.getQuery(), callback);
     }
 
+    private void getPush(String path, Map<String, String> arguments, StackMobCallback callback) {
+        new StackMobRequest(this.executor, this.session, path, HttpVerb.GET, arguments, callback, this.redirectedCallback).setUrlFormat(this.pushUrlFormat).sendRequest();
+    }
+
     /**
      * do a post request on the StackMob platform
      * @param path the path to get
@@ -453,10 +457,6 @@ public class StackMob {
      */
     public void post(String path, Object requestObject, StackMobCallback callback) {
         new StackMobRequest(this.executor, this.session, path, HttpVerb.POST, requestObject, callback, this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
-    }
-
-    private void postGet(String path, Map<String, String> arguments, StackMobCallback callback) {
-        new StackMobRequest(this.executor, this.session, path, HttpVerb.GET, arguments, callback, this.redirectedCallback).setUrlFormat(this.pushUrlFormat).sendRequest();
     }
 
     private void postPush(String path, Object requestObject, StackMobCallback callback) {

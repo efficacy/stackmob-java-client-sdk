@@ -157,7 +157,7 @@ public class StackMobRequest {
                 query = formatQueryString(getParamsForRequest());
             }
 
-            URI uri = createURI(getScheme(), getHost(), getPath(), query);
+            URI uri = createURI(getScheme(), urlFormat, getPath(), query);
             OAuthRequest req = getOAuthRequest(HttpVerb.GET, uri.toString());
             sendRequest(req);
         }
@@ -174,7 +174,7 @@ public class StackMobRequest {
 
     private void sendPostRequest() throws StackMobException {
         try {
-            URI uri = createURI(getScheme(), getHost(), getPath(), "");
+            URI uri = createURI(getScheme(), urlFormat, getPath(), "");
             String payload = getPayload();
             OAuthRequest req = getOAuthRequest(HttpVerb.POST, uri.toString(), payload);
             sendRequest(req);
@@ -192,7 +192,7 @@ public class StackMobRequest {
 
     private void sendPutRequest() throws StackMobException {
         try {
-            URI uri = createURI(getScheme(), getHost(), getPath(), "");
+            URI uri = createURI(getScheme(), urlFormat, getPath(), "");
             String payload = getPayload();
             OAuthRequest req = getOAuthRequest(HttpVerb.PUT, uri.toString(), payload);
             sendRequest(req);
@@ -215,7 +215,7 @@ public class StackMobRequest {
                 query = formatQueryString(getParamsForRequest());
             }
 
-            URI uri = createURI(getScheme(), getHost(), getPath(), query);
+            URI uri = createURI(getScheme(), urlFormat, getPath(), query);
             OAuthRequest req = getOAuthRequest(HttpVerb.DELETE, uri.toString());
             sendRequest(req);
         }
@@ -260,10 +260,6 @@ public class StackMobRequest {
         else {
             return REGULAR_SCHEME;
         }
-    }
-
-    private String getHost() {
-        return urlFormat;
     }
 
     private String percentEncode(String s) throws UnsupportedEncodingException {
