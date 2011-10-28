@@ -1,5 +1,8 @@
 # Stackmob Java SDK (Release Notes)
 
+### 0.1.7 (10/27/2011)
+* Added change to start using new-style (push.mob1.stackmob.com) push URLs
+
 ### 0.1.6 (10/25/2011)
 * Added functionality to do HTTP requests in the background. callbacks (both redirect and normal) will now be called in a different thread than the original function call
 
