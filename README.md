@@ -183,8 +183,8 @@ We use Github to track issues with the SDK. If you find any issues, please repor
 ## Contributing
 We encourage contributions to the StackMob SDK. If you'd like to contribute, fork this repository and make your changes. Before you submit a pull request to us with your changes, though, please keep the following in mind:
 
-1. We strive to maintain Android compatability. Please make a best effort to ensure that your code runs on Android.
-2. Be sure to test your code against live StackMob servers. To do, use com.stackmob.sdk.StackMobTestCommon in your tests so that you can change your API keys in one place.
+1. Please be sure that your code runs on Android 2.2 and above.
+2. Please be sure to test your code against live StackMob servers. To do, use com.stackmob.sdk.StackMobTestCommon in your tests so that you can change your API keys in one place.
 3. If your tests must run with a specific server configuration (ie: specific object model, etc...), please include a descr
 
 # Copyright
