@@ -298,7 +298,6 @@ public class StackMobTests extends StackMobTestCommon {
         g2OnServer.delete();
     }
 
-    @Ignore("Range header does not work. Can use X-StackMob-Range, but it is going to be deprecated immediately after Range works")
     @Test public void getWithRange() throws Exception {
         List<String> players = Arrays.asList("one", "two");
         final Game g1 = new Game(players, "gamea");
