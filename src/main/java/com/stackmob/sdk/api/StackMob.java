@@ -28,7 +28,7 @@ import java.util.concurrent.Executors;
 
 import com.stackmob.sdk.callback.StackMobRedirectedCallback;
 import com.stackmob.sdk.callback.StackMobCallback;
-import com.stackmob.sdk.net.HttpVerb;
+import com.stackmob.sdk.net.*;
 import com.stackmob.sdk.push.StackMobPushToken;
 
 public class StackMob {
@@ -173,7 +173,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      */
     public void logout(StackMobCallback callback) {
-        new StackMobUserBasedRequest(this.executor, this.session, "logout", callback, this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+        new StackMobUserBasedRequest(this.executor, this.session, "logout", StackMobRequest.EmptyParams, callback, this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
     /**
@@ -181,7 +181,14 @@ public class StackMob {
      * @param callback callback to call when the method completes
      */
     public void startSession(StackMobCallback callback) {
-        new StackMobRequest(this.executor, this.session, "startsession", HttpVerb.POST, callback, redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+        new StackMobRequestWithoutPayload(this.executor,
+                                          this.session,
+                                          HttpVerbWithoutPayload.GET,
+                                          StackMobRequest.EmptyHeaders,
+                                          StackMobRequest.EmptyParams,
+                                          "startsession",
+                                          callback,
+                                          this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
     ////////////////////
@@ -424,21 +431,40 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      */
     public void get(String path, StackMobCallback callback) {
-        new StackMobRequest(this.executor, this.session, path, callback, this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+        new StackMobRequestWithoutPayload(this.executor,
+                                          this.session,
+                                          HttpVerbWithoutPayload.GET,
+                                          StackMobRequest.EmptyHeaders,
+                                          StackMobRequest.EmptyParams,
+                                          path,
+                                          callback,
+                                          this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
     /**
      * do a get request on the StackMob platform
      * @param path the path to get
      * @param arguments arguments to be encoded into the query string of the get request
+     * @param headers any additional headers to send
      * @param callback callback to be called when the server returns. may execute in a separate thread
      */
+    public void get(String path, Map<String, String> arguments, Map<String, String> headers, StackMobCallback callback) {
+        new StackMobRequestWithoutPayload(this.executor,
+                                          this.session,
+                                          HttpVerbWithoutPayload.GET,
+                                          headers,
+                                          arguments,
+                                          path,
+                                          callback,
+                                          this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+    }
+
     public void get(String path, Map<String, String> arguments, StackMobCallback callback) {
-        new StackMobRequest(this.executor, this.session, path, arguments, callback, this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+        this.get(path, arguments, StackMobRequest.EmptyHeaders, callback);
     }
 
     public void get(StackMobQuery query, StackMobCallback callback) {
-        this.get("/"+query.getObjectName(), query.getArguments(), callback);
+        this.get("/"+query.getObjectName(), query.getArguments(), query.getHeaders(), callback);
     }
 
     public void get(StackMobQueryWithField query, StackMobCallback callback) {
@@ -446,7 +472,14 @@ public class StackMob {
     }
 
     private void getPush(String path, Map<String, String> arguments, StackMobCallback callback) {
-        new StackMobRequest(this.executor, this.session, path, HttpVerb.GET, arguments, callback, this.redirectedCallback).setUrlFormat(this.pushUrlFormat).sendRequest();
+        new StackMobRequestWithoutPayload(this.executor,
+                                          this.session,
+                                          HttpVerbWithoutPayload.GET,
+                                          StackMobRequest.EmptyHeaders,
+                                          arguments,
+                                          path,
+                                          callback,
+                                          this.redirectedCallback).setUrlFormat(this.pushUrlFormat).sendRequest();
     }
 
     /**
@@ -456,11 +489,27 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      */
     public void post(String path, Object requestObject, StackMobCallback callback) {
-        new StackMobRequest(this.executor, this.session, path, HttpVerb.POST, requestObject, callback, this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+        new StackMobRequestWithPayload(this.executor,
+                                       this.session,
+                                       HttpVerbWithPayload.POST,
+                                       StackMobRequest.EmptyHeaders,
+                                       StackMobRequest.EmptyParams,
+                                       requestObject,
+                                       path,
+                                       callback,
+                                       this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
     private void postPush(String path, Object requestObject, StackMobCallback callback) {
-        new StackMobRequest(this.executor, this.session, path, HttpVerb.POST, requestObject, callback, this.redirectedCallback).setUrlFormat(this.pushUrlFormat).sendRequest();
+        new StackMobRequestWithPayload(this.executor,
+                                       this.session,
+                                       HttpVerbWithPayload.POST,
+                                       StackMobRequest.EmptyHeaders,
+                                       StackMobRequest.EmptyParams,
+                                       requestObject,
+                                       path,
+                                       callback,
+                                       this.redirectedCallback).setUrlFormat(this.pushUrlFormat).sendRequest();
     }
 
     /**
@@ -471,7 +520,15 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      */
     public void put(String path, String id, Object requestObject, StackMobCallback callback) {
-        new StackMobRequest(this.executor, this.session, path + "/" + id, HttpVerb.PUT, requestObject, callback, this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+        new StackMobRequestWithPayload(this.executor,
+                            this.session,
+                            HttpVerbWithPayload.PUT,
+                            StackMobRequest.EmptyHeaders,
+                            StackMobRequest.EmptyParams,
+                            requestObject,
+                            path + "/" + id,
+                            callback,
+                            this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
     /**
@@ -481,7 +538,14 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      */
     public void delete(String path, String id, StackMobCallback callback) {
-        new StackMobRequest(this.executor, this.session, path + "/" + id, HttpVerb.DELETE, callback, this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+        new StackMobRequestWithoutPayload(this.executor,
+                                          this.session,
+                                          HttpVerbWithoutPayload.DELETE,
+                                          StackMobRequest.EmptyHeaders,
+                                          StackMobRequest.EmptyParams,
+                                          path + "/" + id,
+                                          callback,
+                                          this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
     /**

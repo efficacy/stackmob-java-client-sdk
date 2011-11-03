@@ -133,4 +133,9 @@ public class StackMobQueryWithField {
     public StackMobQueryWithField isGreaterThanOrEqualTo(Boolean val) {
         return isGreaterThanOrEqualTo(val.toString());
     }
+
+    public StackMobQueryWithField isOrderedBy(StackMobQuery.Ordering ordering) {
+        this.q = this.q.fieldIsOrderedBy(this.field, ordering);
+        return this;
+    }
 }

@@ -20,21 +20,18 @@ import com.google.gson.Gson;
 import com.stackmob.sdk.api.StackMob;
 import com.stackmob.sdk.callback.StackMobCallback;
 import com.stackmob.sdk.callback.StackMobRedirectedCallback;
+import com.stackmob.sdk.concurrencyutils.MultiThreadAsserter;
 import com.stackmob.sdk.exception.StackMobException;
 import com.stackmob.sdk.testobjects.Error;
-
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.lang.reflect.Type;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-
 import com.google.gson.reflect.TypeToken;
 import com.stackmob.sdk.testobjects.StackMobObject;
-import com.stackmob.sdk.util.Pair;
 import com.stackmob.sdk.testobjects.StackMobObjectOnServer;
-import static com.stackmob.sdk.concurrencyutils.CountDownLatchUtils.*;
 
 import static org.junit.Assert.*;
 
@@ -55,8 +52,6 @@ public class StackMobTestCommon {
 
     protected static final Gson gson = new Gson();
     protected final StackMob stackmob;
-
-    private static final Type hashMapStringStringType = new TypeToken<HashMap<String, String>>() {}.getType();
 
     public StackMobTestCommon() {
         String apiKey = API_KEY;
@@ -99,46 +94,37 @@ public class StackMobTestCommon {
         return err.error != null;
     }
 
-    private Pair<Boolean, String> getErrorFromJson(String json) {
-        HashMap<String, String> hm = getHashMapFromJson(json);
-        if(hm.get("error") != null) {
-            return new Pair<Boolean, String>(true, hm.get("error"));
-        }
-        return new Pair<Boolean, String>(false, "");
+    protected String getRandomString() {
+        return UUID.randomUUID().toString();
     }
 
-    private HashMap<String, String> getHashMapFromJson(String json) {
-        return gson.fromJson(json, hashMapStringStringType);
-    }
-
-    protected <T extends StackMobObject> StackMobObjectOnServer<T> createOnServer(final T obj) throws StackMobException, InterruptedException {
-        final AtomicBoolean errorBool = new AtomicBoolean();
-        final AtomicReference<StackMobException> exception = new AtomicReference<StackMobException>(null);
+    protected <T extends StackMobObject> StackMobObjectOnServer<T> createOnServer(final T obj, final Class<T> cls) throws StackMobException, InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
+        final MultiThreadAsserter asserter = new MultiThreadAsserter();
+
         final AtomicReference<String> ref = new AtomicReference<String>(null);
 
-        stackmob.post(obj.getName(), this, new StackMobCallback() {
+        stackmob.post(obj.getName(), obj, new StackMobCallback() {
             @Override public void success(String responseBody) {
-                Pair<Boolean, String> err = getErrorFromJson(responseBody);
-                if(err.getFirst()) {
-                    errorBool.set(true);
-                    exception.set(new StackMobException(err.getSecond()));
-                }
-                else {
-                    HashMap<String, String> hm = getHashMapFromJson(responseBody);
-                    ref.set(hm.get(obj.getIdFieldName()));
+                if(!asserter.markNotJsonError(responseBody)) {
+                    try {
+                        T obj = gson.fromJson(responseBody, cls);
+                        String idField = obj.getIdField();
+                        ref.set(idField);
+                    }
+                    catch(Throwable e) {
+                        asserter.markException(e);
+                    }
                 }
                 latch.countDown();
             }
 
             @Override public void failure(StackMobException e) {
-                errorBool.set(true);
-                exception.set(e);
-                latch.countDown();
+                asserter.markException(e);
             }
         });
 
-        assertLatchFinished(latch, errorBool, exception);
+        asserter.assertLatchFinished(latch);
         return new StackMobObjectOnServer<T>(stackmob, ref.get(), obj);
     }
 }

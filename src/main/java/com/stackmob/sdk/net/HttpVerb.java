@@ -16,6 +16,9 @@
 
 package com.stackmob.sdk.net;
 
-public enum HttpVerb {
-    GET, POST, PUT, DELETE
-}
+import com.stackmob.sdk.exception.StackMobException;
+
+import static com.stackmob.sdk.net.HttpVerbWithoutPayload.*;
+import static com.stackmob.sdk.net.HttpVerbWithPayload.*;
+
+public interface HttpVerb {}

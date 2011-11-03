@@ -27,6 +27,7 @@ public class Game extends StackMobObject {
         this.name = name;
     }
 
+    @Override public String getIdField() { return game_id; }
     @Override public String getIdFieldName() { return "game_id"; }
     @Override public String getName() { return "game"; }
 }

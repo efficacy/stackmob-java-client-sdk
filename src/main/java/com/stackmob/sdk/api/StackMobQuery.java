@@ -47,7 +47,27 @@ import java.util.Map;
 public class StackMobQuery {
 
     private String objectName;
+    private Map<String, String> headers = new HashMap<String, String>();
     private Map<String, String> args = new HashMap<String, String>();
+
+    //TODO: change this to Range, after new API is deployed
+    private static final String RangeHeader = "Range";
+    private static final String ExpandHeader = "X-StackMob-Expand";
+    private static final String OrderByHeader = "X-StackMob-OrderBy";
+
+    public static enum Ordering {
+        DESCENDING("desc"),
+        ASCENDING("asc");
+
+        private String name;
+        Ordering(String name) {
+            this.name = name;
+        }
+
+        public String toString() {
+            return name;
+        }
+    }
 
     public static enum Operator {
         LT("lt"),
@@ -71,12 +91,20 @@ public class StackMobQuery {
         this.objectName = objectName;
     }
 
+    public static StackMobQuery objects(String objectName) {
+        return new StackMobQuery(objectName);
+    }
+
     public String getObjectName() {
         return objectName;
     }
 
+    public Map<String, String> getHeaders() {
+        return this.headers;
+    }
+
     public Map<String, String> getArguments() {
-        return args;
+        return this.args;
     }
 
     public StackMobQueryWithField field(String field) {
@@ -157,13 +185,54 @@ public class StackMobQuery {
     }
 
     /**
+     * add an "ORDER BY" to your query
+     * @param field the field to order by
+     * @param ordering the ordering of that field
+     * @return the new query that resulted from adding this operation
+     */
+    public StackMobQuery fieldIsOrderedBy(String field, Ordering ordering) {
+        String buf = headers.get(OrderByHeader);
+        if(buf != null) {
+            buf += ",";
+        }
+        else {
+            buf = "";
+        }
+        buf += field+":"+ordering.toString();
+        headers.put(OrderByHeader, buf);
+        return this;
+    }
+
+    /**
      * set the expand depth of this query. the expand depth instructs the StackMob platform to detect relationships and automatically replace those
      * relationship IDs with the values that they point to.
      * @param i the expand depth. at time of writing, StackMob restricts expand depth to maximum 3
      * @return the new query that resulted from adding this operation
      */
     public StackMobQuery expandDepthIs(Integer i) {
-        args.put("_expand", i.toString());
+        headers.put(ExpandHeader, i.toString());
+        return this;
+    }
+
+    /**
+     * this method lets you add a "LIMIT" and "SKIP" to your query at once. Can be used to implement pagination in your app.
+     * @param start the starting object number (inclusive)
+     * @param end the ending object number (inclusive)
+     * @return the new query that resulted from adding this operation
+     */
+    public StackMobQuery isInRange(Integer start, Integer end) {
+        headers.put(RangeHeader, "objects="+start.toString()+"-"+end.toString());
+        return this;
+    }
+
+    /**
+     * same thing as {@link #isInRange(Integer, Integer)}, except does not specify an end to the range.
+     * instead, gets all objects from a starting point (including)
+     * @param start the starting object number
+     * @return the new query that resulted from adding this operation
+     */
+    public StackMobQuery isInRange(Integer start) {
+        headers.put(RangeHeader, "objects="+start.toString()+"-");
         return this;
     }
 

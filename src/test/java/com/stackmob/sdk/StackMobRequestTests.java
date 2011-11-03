@@ -16,18 +16,14 @@
 
 package com.stackmob.sdk;
 
-import com.stackmob.sdk.api.StackMobRequest;
-import com.stackmob.sdk.api.StackMobSession;
+import com.stackmob.sdk.api.*;
 import com.stackmob.sdk.callback.StackMobRedirectedCallback;
+import com.stackmob.sdk.net.*;
 import com.stackmob.sdk.testobjects.Error;
 import org.junit.Test;
-import org.junit.Ignore;
 import static org.junit.Assert.*;
-
 import com.stackmob.sdk.callback.StackMobCallback;
 import com.stackmob.sdk.exception.StackMobException;
-import com.stackmob.sdk.net.HttpVerb;
-
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -43,9 +39,8 @@ public class StackMobRequestTests extends StackMobTestCommon {
     private StackMobSession session = stackmob.getSession();
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
-    @Ignore("currently fails with Internal Server Error")
     @Test public void testListapiSecureGetRequest() {
-        StackMobRequest request = new StackMobRequest(executor, session, "lisapi", new StackMobCallback() {
+        StackMobRequest request = new StackMobRequestWithoutPayload(executor, session, HttpVerbWithoutPayload.GET, "listapi", new StackMobCallback() {
             @Override
             public void success(String responseBody) {
                 assertNotNull(responseBody);
@@ -59,9 +54,8 @@ public class StackMobRequestTests extends StackMobTestCommon {
         request.sendRequest();
     }
 
-    @Test
-    public void testListapiSecurePostRequest() {
-        StackMobRequest request = new StackMobRequest(executor, session, "listapi", HttpVerb.POST, new StackMobCallback() {
+    @Test public void testListapiSecurePostRequest() {
+        StackMobRequest request = new StackMobRequestWithPayload(executor, session, HttpVerbWithPayload.POST, "listapi", new StackMobCallback() {
             @Override
             public void success(String responseBody) {
                 assertNotNull(responseBody);
@@ -77,7 +71,7 @@ public class StackMobRequestTests extends StackMobTestCommon {
 
     @Test
     public void testListapiRegularGetRequest() {
-        StackMobRequest request = new StackMobRequest(executor, session, "listapi", new StackMobCallback() {
+        StackMobRequest request = new StackMobRequestWithoutPayload(executor, session, HttpVerbWithoutPayload.GET, "listapi", new StackMobCallback() {
             @Override
             public void success(String responseBody) {
                 assertNotNull(responseBody);
@@ -93,7 +87,7 @@ public class StackMobRequestTests extends StackMobTestCommon {
 
     @Test
     public void testListapiRegularPostRequest() {
-        StackMobRequest request = new StackMobRequest(executor, session, "listapi", HttpVerb.POST, new StackMobCallback() {
+        StackMobRequest request = new StackMobRequestWithPayload(executor, session, HttpVerbWithPayload.POST, "listapi", new StackMobCallback() {
             @Override
             public void success(String responseBody) {
                 assertNotNull(responseBody);
@@ -109,7 +103,7 @@ public class StackMobRequestTests extends StackMobTestCommon {
 
     @Test
     public void testInexistentMethodShouldFail() {
-        StackMobRequest request = new StackMobRequest(executor, session, "nonexistent", new StackMobCallback() {
+        StackMobRequest request = new StackMobRequestWithoutPayload(executor, session, HttpVerbWithoutPayload.GET, "nonexistent", new StackMobCallback() {
             @Override
             public void success(String responseBody) {
                 Error err = gson.fromJson(responseBody, Error.class);

@@ -35,6 +35,7 @@ import static org.junit.Assert.*;
 
 public abstract class StackMobObject {
 
+    public abstract String getIdField();
     public abstract String getIdFieldName();
     public abstract String getName();
 

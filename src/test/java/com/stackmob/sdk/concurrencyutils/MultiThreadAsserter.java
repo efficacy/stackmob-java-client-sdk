@@ -75,8 +75,14 @@ public class MultiThreadAsserter {
         return false;
     }
 
-    public void markException(StackMobException e) {
-        setException(e);
+    public void markException(Throwable e) {
+        if(e instanceof StackMobException) {
+            StackMobException eCasted = (StackMobException)e;
+            setException(eCasted);
+        }
+        else {
+            setException(new StackMobException(e.getMessage()));
+        }
     }
 
     public void markFailure(String s) {
@@ -118,7 +124,9 @@ public class MultiThreadAsserter {
     }
 
     private void throwIfException() throws StackMobException {
-        if(bool.get()) throw exception.get();
+        if(bool.get()) {
+            throw exception.get();
+        }
     }
 
     public void assertLatchFinished(CountDownLatch latch) throws StackMobException, InterruptedException {

@@ -26,8 +26,8 @@ public class StackMobSessionTests extends StackMobTestCommon{
     @Test
     public void testSessionInitializedCorrectly() {
         StackMobSession session = stackmob.getSession();
-        assertEquals(StackMobTestCommon.API_KEY, session.getKey());
-        assertEquals(StackMobTestCommon.API_SECRET, session.getSecret());
+        assertNotNull(session.getKey());
+        assertNotNull(session.getSecret());
         assertEquals(StackMobTestCommon.USER_OBJECT_NAME, session.getUserObjectName());
         assertEquals(StackMobTestCommon.API_VERSION_NUM, new Integer(session.getApiVersionNumber()));
     }

@@ -18,17 +18,13 @@ package com.stackmob.sdk.api;
 
 import com.stackmob.sdk.callback.StackMobRedirectedCallback;
 import com.stackmob.sdk.callback.StackMobCallback;
+import com.stackmob.sdk.net.HttpVerbWithoutPayload;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
-public class StackMobUserBasedRequest extends StackMobRequest {
-    public StackMobUserBasedRequest(ExecutorService executor, StackMobSession session, String method, StackMobCallback callback, StackMobRedirectedCallback cb) {
-        super(executor, session, method, callback, cb);
-        isSecure = true;
-    }
-
-    public StackMobUserBasedRequest(ExecutorService executor, StackMobSession session, String method, Map<String, String> params, StackMobCallback callback, StackMobRedirectedCallback cb) {
-        super(executor, session, method, params, callback, cb);
+public class StackMobUserBasedRequest extends StackMobRequestWithoutPayload {
+    public StackMobUserBasedRequest(ExecutorService executor, StackMobSession session, String method, Map<String, String> params, StackMobCallback cb, StackMobRedirectedCallback redirCb) {
+        super(executor, session, HttpVerbWithoutPayload.GET, StackMobRequest.EmptyHeaders, params, method, cb, redirCb);
         isSecure = true;
     }
 
