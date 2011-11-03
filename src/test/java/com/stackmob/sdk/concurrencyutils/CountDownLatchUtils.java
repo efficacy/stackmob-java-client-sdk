@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.junit.Assert.fail;
 
 public class CountDownLatchUtils {
-    public static final Pair<Long, TimeUnit> MAX_LATCH_WAIT_TIME = new Pair<Long, TimeUnit>(2000L, TimeUnit.MILLISECONDS);
+    public static final Pair<Long, TimeUnit> MAX_LATCH_WAIT_TIME = new Pair<Long, TimeUnit>(4000L, TimeUnit.MILLISECONDS);
 
     public static boolean wasLatchFinished(CountDownLatch latch) throws InterruptedException {
         return latch.await(MAX_LATCH_WAIT_TIME.getFirst(), MAX_LATCH_WAIT_TIME.getSecond());
