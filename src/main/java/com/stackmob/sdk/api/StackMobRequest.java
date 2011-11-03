@@ -35,7 +35,7 @@ import com.stackmob.sdk.net.*;
 import com.stackmob.sdk.push.StackMobPushToken;
 import com.stackmob.sdk.push.StackMobPushTokenDeserializer;
 import com.stackmob.sdk.push.StackMobPushTokenSerializer;
-import com.stackmob.sdk.util.Pair;
+import com.stackmob.sdk.util.*;
 
 import com.google.gson.Gson;
 import com.stackmob.sdk.callback.StackMobCallback;
@@ -315,7 +315,20 @@ public abstract class StackMobRequest {
                     }
                 }
                 else {
-                    cb.success(ret.getBody());
+                    //try to fetch the error
+                    try {
+                        JsonError err = gson.fromJson(ret.getBody(), JsonError.class);
+                        if(err.error != null) {
+                            cb.failure(new StackMobException(err.error));
+                        }
+                        else {
+                            cb.success(ret.getBody());
+                        }
+                    }
+                    //if we failed to fetch an error, win
+                    catch(Throwable e) {
+                        cb.success(ret.getBody());
+                    }
                 }
                 return null;
             }
