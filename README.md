@@ -125,6 +125,7 @@ Get an object with `username` equals to "johndoe1" or "johndoe2":
 ```java
 StackMobQuery q = new StackMobQuery("user")
     .field("username").in(Arrays.asList("johndoe1", "johndoe2"))
+	.getQuery();
 ```
 
 Querying for an array field will also match on the contents of the array.  The following will return `users` who're friends with "johndoe" OR "maryjane":
@@ -132,18 +133,20 @@ Querying for an array field will also match on the contents of the array.  The f
 ```java
 StackMobQuery q = new StackMobQuery("user")
     .field("friends").in(Arrays.asList("johndoe", "maryjane"))
+	.getQuery();
 ```
 
 
 ## Inequality Queries
 
-Your StackMob API allows you to perform range queries using the `less than`, `less than or equal to`, `greater than`, and `greater than or equal to` operators.
+The StackMob API allows you to perform range queries using the `less than`, `less than or equal to`, `greater than`, and `greater than or equal to` operators.
 
 Here's a query for an object with age less than "21":
 
 ```java
 StackMobQuery q = new StackMobQuery("user")
     .field("age").isLessThan(21)
+	.getQuery();
 ```
 
 Here's a query for an object with age greater than "20" and less than or equal to "25":
@@ -151,6 +154,27 @@ Here's a query for an object with age greater than "20" and less than or equal t
 ```java
 StackMobQuery q = new StackMobQuery("user")
     .field("age").isGreaterThan(20).isLessThanOrEqualTo(25)
+	.getQuery();
+```
+
+## ORDER BY Queries
+
+StackMobQuery also gives the ability to order results, similar to SQL's ORDER BY. Here's a query that orders users by when they joined:
+
+```java
+StackMobQuery q = new StackMobQuery("user")
+	.field("createddate").isOrderedBy(StackMobQuery.Ordering.DESCENDING)
+	.getQuery();
+```
+
+## Range Queries
+
+You can also perform range queries similar to those you could perform in SQL using LIMIT and OFFSET. Here's code that builds on ORDER BY to get the 10 most recent users that joined:
+
+```java
+StackMobQuery q = new StackMobQuery("user")
+	.field("createddate").isOrderedBy(StackMobQuery.Ordering.DESCENDING)
+	.getQuery().isInRange(0, 9); //this range is inclusive
 ```
 
 ## Performing Requests using StackMobQuery
