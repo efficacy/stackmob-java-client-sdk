@@ -50,7 +50,6 @@ public class StackMobQuery {
     private Map<String, String> headers = new HashMap<String, String>();
     private Map<String, String> args = new HashMap<String, String>();
 
-    //TODO: change this to Range, after new API is deployed
     private static final String RangeHeader = "Range";
     private static final String ExpandHeader = "X-StackMob-Expand";
     private static final String OrderByHeader = "X-StackMob-OrderBy";
