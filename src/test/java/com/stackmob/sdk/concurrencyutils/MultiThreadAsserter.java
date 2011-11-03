@@ -59,6 +59,14 @@ public class MultiThreadAsserter {
         return markFalse(!bool);
     }
 
+    public boolean markEquals(int i1, int i2) {
+        if(i1 != i2) {
+            setException(i1 + " was not equal to " + i2);
+            return true;
+        }
+        return false;
+    }
+
     public boolean markEquals(String s1, String s2) {
         if(!s1.equals(s2)) {
             setException(s1 + " was not equal to " + s2);
@@ -109,17 +117,19 @@ public class MultiThreadAsserter {
         return true;
     }
 
+    private void throwIfException() throws StackMobException {
+        if(bool.get()) throw exception.get();
+    }
+
     public void assertLatchFinished(CountDownLatch latch) throws StackMobException, InterruptedException {
-        if(bool.get()) {
-            throw exception.get();
-        }
+        throwIfException();
         CountDownLatchUtils.assertLatchFinished(latch, bool, exception);
+        throwIfException();
     }
 
     public void assertLatchFinished(CountDownLatch latch, Pair<Long, TimeUnit> waitTime) throws StackMobException, InterruptedException {
-        if(bool.get()) {
-            throw exception.get();
-        }
+        throwIfException();
         CountDownLatchUtils.assertLatchFinished(latch, waitTime, bool, exception);
+        throwIfException();
     }
 }
