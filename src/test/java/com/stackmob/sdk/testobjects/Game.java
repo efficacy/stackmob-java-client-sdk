@@ -1,5 +1,7 @@
 package com.stackmob.sdk.testobjects;
 
+import com.google.gson.reflect.TypeToken;
+import java.lang.reflect.Type;
 import java.util.List;
 
 public class Game extends StackMobObject {
@@ -10,6 +12,8 @@ public class Game extends StackMobObject {
     public Long createddate;
     public Long lastmoddate;
     public String name;
+
+    public static final Type ListTypeToken = new TypeToken<List<Game>>() {}.getType();
 
     public Game(List<String> players, String gameId, long createdDate, long lastModDate, String name) {
         this(players, name);
