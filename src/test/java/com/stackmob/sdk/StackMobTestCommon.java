@@ -60,12 +60,14 @@ public class StackMobTestCommon {
         String envKey = System.getenv(ENVIRONMENT_KEY_KEY);
         String envSecret = System.getenv(ENVIRONMENT_SECRET_KEY);
         if(envKey != null && envSecret != null) {
+            System.out.println("found environment vars for key & secret. using these");
             apiKey = envKey;
             apiSecret = envSecret;
         }
         String vmKey = System.getProperty(ENVIRONMENT_KEY_KEY);
         String vmSecret = System.getProperty(ENVIRONMENT_SECRET_KEY);
         if(vmKey != null && vmSecret != null) {
+            System.out.println("found JVM args for key & secret. using these & overriding previous");
             apiKey = vmKey;
             apiSecret = vmSecret;
         }
