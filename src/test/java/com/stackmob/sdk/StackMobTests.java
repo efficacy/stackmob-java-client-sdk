@@ -20,6 +20,7 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import com.stackmob.sdk.api.StackMob;
 import com.stackmob.sdk.api.StackMobQuery;
 import com.stackmob.sdk.api.StackMobQueryWithField;
 import com.stackmob.sdk.concurrencyutils.MultiThreadAsserter;
@@ -363,7 +364,42 @@ public class StackMobTests extends StackMobTestCommon {
             }
         });
         asserter.assertLatchFinished(latch);
+    }
 
+    @Test public void postWithBinaryFile() throws Exception {
+        final String expectedAWSPrefix = "http://s3.amazonaws.com/test-stackmob/";
+        final String contentType = "text/plain";
+        final String fileName = "test3File";
+        final String content = "w00t";
+        final S3Object obj = new S3Object(contentType, fileName, content.getBytes());
+
+        final CountDownLatch latch = latchOne();
+        final MultiThreadAsserter asserter = new MultiThreadAsserter();
+
+        stackmob.post(obj.getName(), obj, new StackMobCallback() {
+            @Override
+            public void success(String responseBody) {
+                asserter.markNotJsonError(responseBody);
+                S3Object obj = gson.fromJson(responseBody, S3Object.class);
+                StackMobObjectOnServer<S3Object> objOnServer = new StackMobObjectOnServer<S3Object>(stackmob, obj.s3Object_id, obj);
+                try {
+                    objOnServer.delete();
+                }
+                catch (StackMobException e) {
+                    asserter.markException(e);
+                }
+
+
+                asserter.markEquals(expectedAWSPrefix + fileName, obj.blob);
+                latch.countDown();
+            }
+
+            @Override
+            public void failure(StackMobException e) {
+                asserter.markException(e);
+            }
+        });
+        asserter.assertLatchFinished(latch);
     }
 
     @Test public void deleteWithId() throws Exception {
