@@ -39,8 +39,12 @@ import static com.stackmob.sdk.concurrencyutils.CountDownLatchUtils.*;
 import static org.junit.Assert.*;
 
 public class StackMobTestCommon {
-    private static final String DEFAULT_API_KEY = "DEFAULT_API_KEY";
-    private static final String DEFAULT_API_SECRET = "DEFAULT_API_SECRET";
+
+    private static final String ENVIRONMENT_KEY_KEY = "STACKMOB_KEY";
+    private static final String ENVIRONMENT_SECRET_KEY = "STACKMOB_SECRET";
+
+    private static final String DEFAULT_API_KEY = "DEFAULT_API_KEY";//do not change this
+    private static final String DEFAULT_API_SECRET = "DEFAULT_API_SECRET";//do not change this
 
     public static final String API_KEY = DEFAULT_API_KEY;
     public static final String API_SECRET = DEFAULT_API_SECRET;
@@ -55,11 +59,26 @@ public class StackMobTestCommon {
     private static final Type hashMapStringStringType = new TypeToken<HashMap<String, String>>() {}.getType();
 
     public StackMobTestCommon() {
-        assertFalse("you forgot to set your API key", DEFAULT_API_KEY.equals(API_KEY));
-        assertFalse("you forgot to set your API secret", DEFAULT_API_SECRET.equals(API_SECRET));
-        stackmob = new StackMob(API_KEY, API_SECRET, USER_OBJECT_NAME, API_VERSION_NUM, API_URL_FORMAT, PUSH_URL_FORMAT, new StackMobRedirectedCallback() {
-            @Override
-            public void redirected(String originalUrl, Map<String, String> redirectHeaders, String redirectBody, String newURL) {
+        String apiKey = API_KEY;
+        String apiSecret = API_SECRET;
+
+        String envKey = System.getenv(ENVIRONMENT_KEY_KEY);
+        String envSecret = System.getenv(ENVIRONMENT_SECRET_KEY);
+        if(envKey != null && envSecret != null) {
+            apiKey = envKey;
+            apiSecret = envSecret;
+        }
+        String vmKey = System.getProperty(ENVIRONMENT_KEY_KEY);
+        String vmSecret = System.getProperty(ENVIRONMENT_SECRET_KEY);
+        if(vmKey != null && vmSecret != null) {
+            apiKey = vmKey;
+            apiSecret = vmSecret;
+        }
+
+        assertFalse("you forgot to set your API key", DEFAULT_API_KEY.equals(apiKey));
+        assertFalse("you forgot to set your API secret", DEFAULT_API_SECRET.equals(apiSecret));
+        stackmob = new StackMob(apiKey, apiSecret, USER_OBJECT_NAME, API_VERSION_NUM, API_URL_FORMAT, PUSH_URL_FORMAT, new StackMobRedirectedCallback() {
+            @Override public void redirected(String originalUrl, Map<String, String> redirectHeaders, String redirectBody, String newURL) {
                 //do nothing
             }
         });
@@ -92,8 +111,7 @@ public class StackMobTestCommon {
         return gson.fromJson(json, hashMapStringStringType);
     }
 
-
-    protected StackMobObjectOnServer createOnServer(final StackMobObject obj) throws StackMobException, InterruptedException {
+    protected <T extends StackMobObject> StackMobObjectOnServer<T> createOnServer(final T obj) throws StackMobException, InterruptedException {
         final AtomicBoolean errorBool = new AtomicBoolean();
         final AtomicReference<StackMobException> exception = new AtomicReference<StackMobException>(null);
         final CountDownLatch latch = new CountDownLatch(1);
@@ -121,6 +139,6 @@ public class StackMobTestCommon {
         });
 
         assertLatchFinished(latch, errorBool, exception);
-        return new StackMobObjectOnServer(stackmob, ref.get(), obj);
+        return new StackMobObjectOnServer<T>(stackmob, ref.get(), obj);
     }
 }

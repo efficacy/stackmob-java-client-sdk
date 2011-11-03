@@ -9,12 +9,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import static com.stackmob.sdk.concurrencyutils.CountDownLatchUtils.*;
 
-public class StackMobObjectOnServer {
-    private StackMobObject obj;
+public class StackMobObjectOnServer<T extends StackMobObject> {
+    private T obj;
     private String objectId;
     private StackMob stackmob;
 
-    public StackMobObjectOnServer(final StackMob stackmob, final String objectId, final StackMobObject obj) {
+    public StackMobObjectOnServer(final StackMob stackmob, final String objectId, final T obj) {
         this.objectId = objectId;
         this.obj = obj;
         this.stackmob = stackmob;
@@ -24,7 +24,7 @@ public class StackMobObjectOnServer {
         return this.objectId;
     }
 
-    public StackMobObject getObject() {
+    public T getObject() {
         return this.obj;
     }
 
