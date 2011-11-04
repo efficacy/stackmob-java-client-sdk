@@ -1,5 +1,12 @@
 # Stackmob Java SDK (Release Notes)
 
+### 0.2.0 (11/3/2011)
+* added support for functionality like ORDER BY, LIMIT and SKIP in queries
+* moved expand to headers
+* added rudimentary support for binary file uploads
+* added more complete error checking when requests are complete - the callback failure method will be called now when HTTP 200 is returned but there's an error in the JSON
+* removed CookieManager based cookie handling, which is android 2.2 compatible
+
 ### 0.1.7 (10/27/2011)
 * Added change to start using new-style (push.mob1.stackmob.com) push URLs
 
