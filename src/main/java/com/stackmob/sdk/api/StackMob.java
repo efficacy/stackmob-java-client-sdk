@@ -16,8 +16,6 @@
 
 package com.stackmob.sdk.api;
 
-import java.net.CookieHandler;
-import java.net.CookieManager;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
@@ -39,7 +37,6 @@ public class StackMob {
     private ExecutorService executor;
 
     private final Object urlFormatLock = new Object();
-    private final CookieManager cookieMgr = new CookieManager();
 
     protected static class RegistrationIDAndUser {
         public String userId;
@@ -91,7 +88,6 @@ public class StackMob {
      */
     public StackMob(String apiKey, String apiSecret, String userObjectName, String appName, Integer apiVersionNumber) {
         this.session = new StackMobSession(apiKey, apiSecret, userObjectName, appName, apiVersionNumber);
-        CookieHandler.setDefault(cookieMgr);
         this.executor = createNewExecutor();
     }
 
@@ -104,7 +100,6 @@ public class StackMob {
     */
     public StackMob(String apiKey, String apiSecret, String userObjectName, Integer apiVersionNumber) {
         this.session = new StackMobSession(apiKey, apiSecret, userObjectName, apiVersionNumber);
-        CookieHandler.setDefault(cookieMgr);
         this.executor = createNewExecutor();
     }
 

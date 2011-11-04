@@ -21,11 +21,9 @@ import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 
@@ -57,6 +55,9 @@ public abstract class StackMobRequest {
     public static final String DEFAULT_PUSH_URL_FORMAT = "push." + DEFAULT_URL_FORMAT;
     protected static final String SECURE_SCHEME = "https";
     protected static final String REGULAR_SCHEME = "http";
+
+    private static final ConcurrentHashMap<String, String> cookies = new ConcurrentHashMap<String, String>();
+    private static final String SetCookieHeaderKey = "Set-Cookie";
 
     protected final ExecutorService executor;
     protected final StackMobSession session;
@@ -269,15 +270,33 @@ public abstract class StackMobRequest {
         final String userAgent = userAgentIntermediate;
 
         List<Pair<String, String>> headerList = new ArrayList<Pair<String, String>>();
+
+        //build basic headers
+        headerList.add(new Pair<String, String>("Content-Type", contentType));
+        headerList.add(new Pair<String, String>("Accept", accept));
+        headerList.add(new Pair<String, String>("User-Agent", userAgent));
+
+        //build cookie header
+        Set<Map.Entry<String, String>> cookiesSet = cookies.entrySet();
+        StringBuilder cookieBuilder = new StringBuilder();
+        boolean first = true;
+        for(Map.Entry<String, String> c : cookiesSet) {
+            if(!first) {
+                cookieBuilder.append("; ");
+            }
+            first = false;
+            cookieBuilder.append(c.getKey()).append("=").append(c.getValue());
+        }
+        headerList.add(new Pair<String, String>("Cookie", cookieBuilder.toString()));
+
+        //build user headers
         if(this.headers != null) {
             for(String name : this.headers.keySet()) {
                 headerList.add(new Pair<String, String>(name, this.headers.get(name)));
             }
         }
-        headerList.add(new Pair<String, String>("Content-Type", contentType));
-        headerList.add(new Pair<String, String>("Accept", accept));
-        headerList.add(new Pair<String, String>("User-Agent", userAgent));
 
+        //add headers to request
         for(Pair<String, String> header: headerList) {
             oReq.addHeader(header.getFirst(), header.getSecond());
         }
@@ -290,6 +309,18 @@ public abstract class StackMobRequest {
         OAuthRequest req = getOAuthRequest(method, url);
         req.addPayload(payload);
         return req;
+    }
+
+    private void storeCookies(Response resp) {
+        for(String key: resp.getHeaders().keySet()) {
+            if(key != null && key.equalsIgnoreCase(SetCookieHeaderKey)) {
+                String val = resp.getHeaders().get(key);
+                List<String> valSplit = Arrays.asList(val.split("="));
+                if(valSplit.size() == 2) {
+                    cookies.put(valSplit.get(0), valSplit.get(1));
+                }
+            }
+        }
     }
 
     private void sendRequest(final OAuthRequest req) throws InterruptedException, ExecutionException {
@@ -322,11 +353,13 @@ public abstract class StackMobRequest {
                             cb.failure(new StackMobException(err.error));
                         }
                         else {
+                            storeCookies(ret);
                             cb.success(ret.getBody());
                         }
                     }
                     //if we failed to fetch an error, win
                     catch(Throwable e) {
+                        storeCookies(ret);
                         cb.success(ret.getBody());
                     }
                 }
