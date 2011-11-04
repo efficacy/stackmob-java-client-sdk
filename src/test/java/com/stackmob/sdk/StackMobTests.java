@@ -19,15 +19,12 @@ package com.stackmob.sdk;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
-import com.stackmob.sdk.api.StackMob;
 import com.stackmob.sdk.api.StackMobQuery;
 import com.stackmob.sdk.api.StackMobQueryWithField;
 import com.stackmob.sdk.concurrencyutils.MultiThreadAsserter;
 import com.stackmob.sdk.testobjects.*;
 import com.stackmob.sdk.util.Pair;
 import org.junit.*;
-
 import com.stackmob.sdk.callback.StackMobCallback;
 import com.stackmob.sdk.exception.StackMobException;
 import static org.junit.Assert.*;
@@ -75,14 +72,12 @@ public class StackMobTests extends StackMobTestCommon {
         final MultiThreadAsserter asserter = new MultiThreadAsserter();
 
         stackmob.login(params, new StackMobCallback() {
-            @Override
-            public void success(String responseBody) {
+            @Override public void success(String responseBody) {
                 asserter.markJsonError(responseBody);
                 latch.countDown();
             }
 
-            @Override
-            public void failure(StackMobException e) {
+            @Override public void failure(StackMobException e) {
                 fail("login was supposed to fail with a 200 but a JSON error");
             }
         });
