@@ -39,13 +39,9 @@ public class StackMobTests extends StackMobTestCommon {
         final StackMobObjectOnServer<User> objectOnServer = createOnServer(user, User.class);
         final MultiThreadAsserter asserter = new MultiThreadAsserter();
 
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("username", user.username);
-        params.put("password", user.password);
-
         final CountDownLatch latch = latchOne();
 
-        stackmob.login(params, new StackMobCallback() {
+        stackmob.login(user.username, user.password, new StackMobCallback() {
             @Override public void success(String responseBody) {
                 asserter.markNotNull(responseBody);
                 asserter.markNotJsonError(responseBody);
@@ -64,23 +60,43 @@ public class StackMobTests extends StackMobTestCommon {
         final String username = getRandomString();
         final String password = getRandomString();
 
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("username", username);
-        params.put("password", password);
-
         final CountDownLatch latch = latchOne();
         final MultiThreadAsserter asserter = new MultiThreadAsserter();
 
-        stackmob.login(params, new StackMobCallback() {
+        stackmob.login(username, password, new StackMobCallback() {
             @Override public void success(String responseBody) {
                 asserter.markJsonError(responseBody);
                 latch.countDown();
             }
 
             @Override public void failure(StackMobException e) {
-                fail("login was supposed to fail with a 200 but a JSON error");
+                asserter.markException(e);
             }
         });
+        asserter.assertLatchFinished(latch);
+    }
+
+    @Ignore("reset password is not yet enabled")
+    @Test public void resetPasswordShouldFail() throws Exception {
+        final String oldPassword = getRandomString();
+        final String newPassword = getRandomString();
+
+        final CountDownLatch latch = latchOne();
+        final MultiThreadAsserter asserter = new MultiThreadAsserter();
+
+        stackmob.resetPassword("password", oldPassword, newPassword, new StackMobCallback() {
+            @Override
+            public void success(String responseBody) {
+                asserter.markJsonError(responseBody);
+                latch.countDown();
+            }
+
+            @Override
+            public void failure(StackMobException e) {
+                asserter.markException(e);
+            }
+        });
+
         asserter.assertLatchFinished(latch);
     }
 
@@ -91,14 +107,10 @@ public class StackMobTests extends StackMobTestCommon {
         final User user = new User(username, password);
         final StackMobObjectOnServer<User> objectOnServer = createOnServer(user, User.class);
 
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("username", user.username);
-        params.put("password", user.password);
-
         final CountDownLatch loginLatch = latchOne();
         final MultiThreadAsserter asserter = new MultiThreadAsserter();
 
-        stackmob.login(params, new StackMobCallback() {
+        stackmob.login(user.username, user.password, new StackMobCallback() {
             @Override public void success(String responseBody) {
                 asserter.markNotJsonError(responseBody);
                 final CountDownLatch logoutLatch = latchOne();
@@ -379,8 +391,7 @@ public class StackMobTests extends StackMobTestCommon {
                 StackMobObjectOnServer<S3Object> objOnServer = new StackMobObjectOnServer<S3Object>(stackmob, obj.s3Object_id, obj);
                 try {
                     objOnServer.delete();
-                }
-                catch (StackMobException e) {
+                } catch (StackMobException e) {
                     asserter.markException(e);
                 }
 

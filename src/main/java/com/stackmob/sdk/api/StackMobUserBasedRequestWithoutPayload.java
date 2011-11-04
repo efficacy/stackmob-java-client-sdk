@@ -22,20 +22,20 @@ import com.stackmob.sdk.net.HttpVerbWithoutPayload;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
-public class StackMobUserBasedRequest extends StackMobRequestWithoutPayload {
-    public StackMobUserBasedRequest(ExecutorService executor, StackMobSession session, String method, Map<String, String> params, StackMobCallback cb, StackMobRedirectedCallback redirCb) {
-        super(executor, session, HttpVerbWithoutPayload.GET, StackMobRequest.EmptyHeaders, params, method, cb, redirCb);
+public class StackMobUserBasedRequestWithoutPayload extends StackMobRequestWithoutPayload {
+    public StackMobUserBasedRequestWithoutPayload(ExecutorService executor,
+                                                  StackMobSession session,
+                                                  HttpVerbWithoutPayload verb,
+                                                  String method,
+                                                  Map<String, String> params,
+                                                  StackMobCallback cb,
+                                                  StackMobRedirectedCallback redirectedCallback) {
+        super(executor, session, verb, StackMobRequest.EmptyHeaders, params, method, cb, redirectedCallback);
         isSecure = true;
     }
 
     @Override
     protected String getPath() {
         return "/" + session.getUserObjectName() + "/" + methodName;
-    }
-
-    @Override
-    public StackMobUserBasedRequest setUrlFormat(String urlFormat) {
-        this.urlFormat = urlFormat;
-        return this;
     }
 }
