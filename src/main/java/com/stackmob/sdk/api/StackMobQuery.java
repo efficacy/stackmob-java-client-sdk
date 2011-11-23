@@ -16,6 +16,8 @@
 
 package com.stackmob.sdk.api;
 
+import com.stackmob.sdk.util.GeoPoint;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +56,9 @@ public class StackMobQuery {
     private static final String ExpandHeader = "X-StackMob-Expand";
     private static final String OrderByHeader = "X-StackMob-OrderBy";
 
+    private static final double EarthRadiusInMi = 3956.6;
+    private static final double EarthRadiusInKm = 6367.5;
+
     public static enum Ordering {
         DESCENDING("desc"),
         ASCENDING("asc");
@@ -73,7 +78,9 @@ public class StackMobQuery {
         GT("gt"),
         LTE("lte"),
         GTE("gte"),
-        IN("in");
+        IN("in"),
+        NEAR("near"),
+        WITHIN("within");
 
         private String operator;
 
@@ -111,25 +118,99 @@ public class StackMobQuery {
     }
 
     /**
+     * add a "NEAR" to your query for the given GeoPoint field. Query results are automatically returned
+     * sorted by distance closest to the queried point
+     * @param field the GeoPoint field whose value to test
+     * @param point the lon/lat location to center the search
+     * @return the new query that resulted from adding this operation
+     */
+    public StackMobQuery fieldIsNear(String field, GeoPoint point) {
+        return putInMap(field, Operator.NEAR, join(point.asList()));
+    }
+
+    /**
+     * add a "NEAR" to your query for the given GeoPoint field. Query results are automatically returned
+     * sorted by distance closest to the queried point
+     * @param field the GeoPoint field whose value to test
+     * @param point the lon/lat location to center the search
+     * @param maxDistanceMi the maximum distance in miles a matched field can be from point.
+     * @return the new query that resulted from adding this operation
+     */
+    public StackMobQuery fieldIsNearWithinMi(String field, GeoPoint point, Double maxDistanceMi) {
+        List<String> arguments = point.asList();
+        arguments.add(new Double(maxDistanceMi / EarthRadiusInMi).toString()); //convert to radians
+        return putInMap(field, Operator.NEAR, join(arguments));
+    }
+
+    /**
+     * add a "NEAR" to your query for the given GeoPoint field. Query results are automatically returned
+     * sorted by distance closest to the queried point
+     * @param field the GeoPoint field whose value to test
+     * @param point the lon/lat location to center the search
+     * @param maxDistanceKm the maximum distance in kilometers a matched field can be from point.
+     * @return the new query that resulted from adding this operation
+     */
+    public StackMobQuery fieldIsNearWithinKm(String field, GeoPoint point, Double maxDistanceKm) {
+        List<String> arguments = point.asList();
+        arguments.add(new Double(maxDistanceKm / EarthRadiusInKm).toString()); //convert to radians
+        return putInMap(field, Operator.NEAR, join(arguments));
+    }
+
+    /**
+     * add a "WITHIN" to your query for the given GeoPoint field. Query results are not sorted by distance.
+     * @param field the GeoPoint field whose value to test
+     * @param point the lon/lat location to center the search
+     * @param radiusInMi the maximum distance in miles a matched field can be from point.
+     * @return the new query that resulted from adding this operation
+     */
+    public StackMobQuery fieldIsWithinRadiusInMi(String field, GeoPoint point, Double radiusInMi) {
+        List<String> arguments = point.asList();
+        arguments.add(new Double(radiusInMi / EarthRadiusInMi).toString()); //convert to radians
+        return putInMap(field, Operator.WITHIN, join(arguments));
+    }
+
+    /**
+     * add a "WITHIN" to your query for the given GeoPoint field. Query results are not sorted by distance.
+     * @param field the GeoPoint field whose value to test
+     * @param point the lon/lat location to center the search
+     * @param radiusInKm the maximum distance in kilometers a matched field can be from point.
+     * @return the new query that resulted from adding this operation
+     */
+    public StackMobQuery fieldIsWithinRadiusInKm(String field, GeoPoint point, Double radiusInKm) {
+        List<String> arguments = point.asList();
+        arguments.add(new Double(radiusInKm / EarthRadiusInMi).toString()); //convert to radians
+        return putInMap(field, Operator.WITHIN, join(arguments));
+    }
+
+    /**
+     * add a "WITHIN" to your query for the given GeoPoint field. Matched fields will be within the 2-dimensional bounds
+     * defined by the lowerLeft and upperRight GeoPoints given
+     * @param field the GeoPoint field whose value to test
+     * @param lowerLeft the lon/lat location of the lower left corner of the bounding box
+     * @param upperRight the lon/lat location of the upper right corner of the bounding box
+     * @return the new query that resulted from adding this operation
+     */
+    public StackMobQuery fieldIsWithinBox(String field, GeoPoint lowerLeft, GeoPoint upperRight) {
+        List<String> arguments = lowerLeft.asList();
+        arguments.addAll(upperRight.asList());
+        return putInMap(field, Operator.WITHIN, join(arguments));
+    }
+
+    /**
+     * add an "IN" to your query. test whether the given field's value is in the given list of possible values
+     * @param field the field whose value to test
+     * @param values the values against which to match
+     * @return the new query that resulted from adding this operation
+     */
+
+    /**
      * add an "IN" to your query. test whether the given field's value is in the given list of possible values
      * @param field the field whose value to test
      * @param values the values against which to match
      * @return the new query that resulted from adding this operation
      */
     public StackMobQuery fieldIsIn(String field, List<String> values) {
-        StringBuilder builder = new StringBuilder();
-        //equivalent of values.join(",");
-        boolean first = true;
-        for(String val: values) {
-            if(!first) {
-                builder.append(",");
-            }
-            first = false;
-            builder.append(val);
-        }
-
-        putInMap(field, Operator.IN, builder.toString());
-        return this;
+        return putInMap(field, Operator.IN, join(values));
     }
 
     /**
@@ -243,5 +324,23 @@ public class StackMobQuery {
     private StackMobQuery putInMap(String field, Operator operator, int value) {
         putInMap(field, operator, Integer.toString(value));
         return this;
+    }
+
+    private String join(List<String> values) {
+        return join(values, ",");
+    }
+
+    private String join(List<String> values, String separator) {
+        StringBuilder builder = new StringBuilder();
+        //equivalent of values.join(",");
+        boolean first = true;
+        for(String val: values) {
+            if(!first) {
+                builder.append(separator);
+            }
+            first = false;
+            builder.append(val);
+        }
+        return builder.toString();
     }
 }

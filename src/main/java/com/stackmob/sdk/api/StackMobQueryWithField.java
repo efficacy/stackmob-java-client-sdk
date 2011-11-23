@@ -16,6 +16,8 @@
 
 package com.stackmob.sdk.api;
 
+import com.stackmob.sdk.util.GeoPoint;
+
 import java.util.List;
 
 public class StackMobQueryWithField {
@@ -59,6 +61,36 @@ public class StackMobQueryWithField {
 
     public StackMobQueryWithField isEqualTo(Boolean val) {
         return this.isEqualTo(val.toString());
+    }
+
+    public StackMobQueryWithField isNear(GeoPoint point) {
+        this.q = this.q.fieldIsNear(this.field, point);
+        return this;
+    }
+
+    public StackMobQueryWithField isNearWithinMi(GeoPoint point, Double maxDistanceMi) {
+        this.q = this.q.fieldIsNearWithinMi(this.field, point, maxDistanceMi);
+        return this;
+    }
+
+    public StackMobQueryWithField isNearWithinKm(GeoPoint point, Double maxDistanceKm) {
+        this.q = this.q.fieldIsNearWithinKm(this.field, point, maxDistanceKm);
+        return this;
+    }
+
+    public StackMobQueryWithField isWithinMi(GeoPoint point, Double radiusMi) {
+        this.q = this.q.fieldIsWithinRadiusInMi(this.field, point, radiusMi);
+        return this;
+    }
+
+    public StackMobQueryWithField isWithinKm(GeoPoint point, Double radiusKm) {
+        this.q = this.q.fieldIsWithinRadiusInKm(this.field, point, radiusKm);
+        return this;
+    }
+
+    public StackMobQueryWithField isWithinBox(GeoPoint lowerLeft, GeoPoint upperRight) {
+        this.q = this.q.fieldIsWithinBox(this.field, lowerLeft, upperRight);
+        return this;
     }
 
     public StackMobQueryWithField isIn(List<String> values) {

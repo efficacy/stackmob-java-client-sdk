@@ -16,6 +16,7 @@
 
 package com.stackmob.sdk;
 
+import com.stackmob.sdk.util.GeoPoint;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import com.stackmob.sdk.api.StackMobQuery;
@@ -32,6 +33,7 @@ public class StackMobQueryTests extends StackMobTestCommon {
     final String otherField = "testField_Other";
     final String value = "testVal";
     final List<String> valueArr = Arrays.asList("one", "two", "three");
+    final GeoPoint origin = new GeoPoint(0d, 0d);
 
     //should return ArrayList so remove will work (many List implementations will throw otherwise)
     private ArrayList<String> getExpectedRelationalKeys() {
@@ -76,6 +78,40 @@ public class StackMobQueryTests extends StackMobTestCommon {
         String val = args.get(field+StackMobQuery.Operator.IN.getOperatorForURL());
         List<String> valSplit = Arrays.asList(val.split(","));
         assertEquals(valueArr, valSplit);
+    }
+
+    @Test public void nearQuery() {
+        StackMobQuery q = new StackMobQuery(object).fieldIsNearWithinMi(field, origin, 1d);
+        assertEquals(object, q.getObjectName());
+        Map<String, String> args = q.getArguments();
+        assertEquals(1, args.size());
+        assertTrue(args.containsKey(field + StackMobQuery.Operator.NEAR.getOperatorForURL()));
+        String val = args.get(field + StackMobQuery.Operator.NEAR.getOperatorForURL());
+        List<String> valSplit = Arrays.asList(val.split(","));
+        assertEquals(3, valSplit.size());
+    }
+
+    @Test public void withinRadiusQuery() {
+        StackMobQuery q = new StackMobQuery(object).fieldIsWithinRadiusInMi(field, origin, 1d);
+        assertEquals(object, q.getObjectName());
+        Map<String, String> args = q.getArguments();
+        assertEquals(1, args.size());
+        assertTrue(args.containsKey(field+StackMobQuery.Operator.WITHIN.getOperatorForURL()));
+        String val = args.get(field+StackMobQuery.Operator.WITHIN.getOperatorForURL());
+        List<String> valSplit = Arrays.asList(val.split(","));
+        assertEquals(3, valSplit.size());
+    }
+
+    @Test public void withinBoxQuery() {
+        StackMobQuery q = new StackMobQuery(object).fieldIsWithinBox(field, origin, new GeoPoint(1d, 1d));
+        assertEquals(object, q.getObjectName());
+        Map<String, String> args = q.getArguments();
+        assertEquals(1, args.size());
+        assertTrue(args.containsKey(field+StackMobQuery.Operator.WITHIN.getOperatorForURL()));
+        String val = args.get(field+StackMobQuery.Operator.WITHIN.getOperatorForURL());
+        List<String> valSplit = Arrays.asList(val.split(","));
+        List<String> expected = Arrays.asList("0.0", "0.0", "1.0", "1.0");
+        assertEquals(expected, valSplit);
     }
 
     @Test
