@@ -522,7 +522,6 @@ public class StackMobTests extends StackMobTestCommon {
             @Override
             public void success(String responseBody) {
                 asserter.markNotJsonError(responseBody);
-                System.out.println("putRelated response: " + responseBody);
                 Game jsonGame = gson.fromJson(responseBody, Game.class);
                 asserter.markTrue(jsonGame.moderators.contains("one") && jsonGame.moderators.contains("two"));
                 latch.countDown();

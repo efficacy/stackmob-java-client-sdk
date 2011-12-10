@@ -56,9 +56,6 @@ public class StackMobQuery {
     private static final String ExpandHeader = "X-StackMob-Expand";
     private static final String OrderByHeader = "X-StackMob-OrderBy";
 
-    private static final double EarthRadiusInMi = 3956.6;
-    private static final double EarthRadiusInKm = 6367.5;
-
     public static enum Ordering {
         DESCENDING("desc"),
         ASCENDING("asc");
@@ -138,7 +135,7 @@ public class StackMobQuery {
      */
     public StackMobQuery fieldIsNearWithinMi(String field, GeoPoint point, Double maxDistanceMi) {
         List<String> arguments = point.asList();
-        arguments.add(new Double(maxDistanceMi / EarthRadiusInMi).toString()); //convert to radians
+        arguments.add(GeoPoint.miToRadians(maxDistanceMi).toString()); //convert to radians
         return putInMap(field, Operator.NEAR, join(arguments));
     }
 
@@ -152,7 +149,7 @@ public class StackMobQuery {
      */
     public StackMobQuery fieldIsNearWithinKm(String field, GeoPoint point, Double maxDistanceKm) {
         List<String> arguments = point.asList();
-        arguments.add(new Double(maxDistanceKm / EarthRadiusInKm).toString()); //convert to radians
+        arguments.add(GeoPoint.kmToRadians(maxDistanceKm).toString()); //convert to radians
         return putInMap(field, Operator.NEAR, join(arguments));
     }
 
@@ -165,7 +162,7 @@ public class StackMobQuery {
      */
     public StackMobQuery fieldIsWithinRadiusInMi(String field, GeoPoint point, Double radiusInMi) {
         List<String> arguments = point.asList();
-        arguments.add(new Double(radiusInMi / EarthRadiusInMi).toString()); //convert to radians
+        arguments.add(GeoPoint.miToRadians(radiusInMi).toString()); //convert to radians
         return putInMap(field, Operator.WITHIN, join(arguments));
     }
 
@@ -178,7 +175,7 @@ public class StackMobQuery {
      */
     public StackMobQuery fieldIsWithinRadiusInKm(String field, GeoPoint point, Double radiusInKm) {
         List<String> arguments = point.asList();
-        arguments.add(new Double(radiusInKm / EarthRadiusInMi).toString()); //convert to radians
+        arguments.add(GeoPoint.kmToRadians(radiusInKm).toString()); //convert to radians
         return putInMap(field, Operator.WITHIN, join(arguments));
     }
 

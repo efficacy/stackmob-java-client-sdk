@@ -18,6 +18,9 @@ import java.util.*;
  * limitations under the License.
  */
 public class GeoPoint {
+  
+  private static final double EarthRadiusInMi = 3956.6;
+  private static final double EarthRadiusInKm = 6367.5;
 
   private Double lon = Double.NaN;
   private Double lat = Double.NaN;
@@ -40,5 +43,21 @@ public class GeoPoint {
     arguments.add(getLatitude().toString());
     arguments.add(getLongitude().toString());
     return arguments;
+  }
+  
+  public static Double radiansToMi(double radians) {
+    return radians * EarthRadiusInMi;
+  }
+  
+  public static Double radiansToKm(double radians) {
+    return radians * EarthRadiusInKm;
+  }
+  
+  public static Double miToRadians(double mi) {
+    return mi / EarthRadiusInMi;
+  }
+  
+  public static Double kmToRadians(double km) {
+    return km / EarthRadiusInKm;
   }
 }
