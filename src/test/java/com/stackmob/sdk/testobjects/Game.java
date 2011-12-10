@@ -17,7 +17,9 @@
 package com.stackmob.sdk.testobjects;
 
 import com.google.gson.reflect.TypeToken;
+
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Game extends StackMobObject {
@@ -28,6 +30,7 @@ public class Game extends StackMobObject {
     public Long createddate;
     public Long lastmoddate;
     public String name;
+    public List<String> moderators;
 
     public static final Type ListTypeToken = new TypeToken<List<Game>>() {}.getType();
 
@@ -36,6 +39,7 @@ public class Game extends StackMobObject {
         this.game_id = gameId;
         this.createddate = createdDate;
         this.lastmoddate = lastModDate;
+        this.moderators = new ArrayList<String>();
     }
 
     public Game(List<String> players, String name) {

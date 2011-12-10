@@ -16,19 +16,24 @@
 
 package com.stackmob.sdk;
 
+import com.stackmob.sdk.api.StackMobQuery;
+import com.stackmob.sdk.api.StackMobQueryWithField;
+import com.stackmob.sdk.callback.StackMobCallback;
+import com.stackmob.sdk.concurrencyutils.MultiThreadAsserter;
+import com.stackmob.sdk.exception.StackMobException;
+import com.stackmob.sdk.testobjects.Game;
+import com.stackmob.sdk.testobjects.S3Object;
+import com.stackmob.sdk.testobjects.StackMobObjectOnServer;
+import com.stackmob.sdk.testobjects.User;
+import com.stackmob.sdk.util.Pair;
+import org.junit.Test;
+
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import com.stackmob.sdk.api.StackMobQuery;
-import com.stackmob.sdk.api.StackMobQueryWithField;
-import com.stackmob.sdk.concurrencyutils.MultiThreadAsserter;
-import com.stackmob.sdk.testobjects.*;
-import com.stackmob.sdk.util.Pair;
-import org.junit.*;
-import com.stackmob.sdk.callback.StackMobCallback;
-import com.stackmob.sdk.exception.StackMobException;
-import static org.junit.Assert.*;
-import static com.stackmob.sdk.concurrencyutils.CountDownLatchUtils.*;
+
+import static com.stackmob.sdk.concurrencyutils.CountDownLatchUtils.latchOne;
+import static org.junit.Assert.fail;
 
 public class StackMobTests extends StackMobTestCommon {
 
@@ -448,6 +453,118 @@ public class StackMobTests extends StackMobTestCommon {
         });
         asserter.assertLatchFinished(latch);
         objectOnServer.delete();
+        
+    }
+  
+    @Test public void postBulk() throws Exception {
+        final Game game1 = new Game(Arrays.asList("one", "two"), "game1");
+        final Game game2 = new Game(Arrays.asList("one", "two"), "game2");
+        
+        List<Game> games = new ArrayList<Game>();
+        games.add(game1);
+        games.add(game2);
+        final CountDownLatch latch = latchOne();
+        final MultiThreadAsserter asserter = new MultiThreadAsserter();
+        stackmob.postBulk(game1.getName(), games, new StackMobCallback() {
+          @Override
+          public void success(String responseBody) {
+              asserter.markNotJsonError(responseBody);
+              latch.countDown();
+          }
+
+          @Override
+          public void failure(StackMobException e) {
+              asserter.markException(e);
+          }
+        });
+        asserter.assertLatchFinished(latch);
+    }
+  
+    @Test public void postRelated() throws Exception {
+        final String username = getRandomString();
+        final String password = getRandomString();
+  
+        User user = new User(username, password);
+
+        final Game game = new Game(new ArrayList<String>(), "gamepostrelated");
+        final StackMobObjectOnServer<Game> gameOnServer = createOnServer(game, Game.class);
+        
+        final CountDownLatch latch = latchOne();
+        final MultiThreadAsserter asserter = new MultiThreadAsserter();
+        
+        stackmob.postRelated(game.getName(), gameOnServer.getObjectId(), "moderators", user, new StackMobCallback() {
+            @Override
+            public void success(String responseBody) {
+                asserter.markNotJsonError(responseBody);
+                latch.countDown();
+            }
+    
+            @Override
+            public void failure(StackMobException e) {
+                asserter.markException(e);
+            }
+        });
+        asserter.assertLatchFinished(latch);
+        gameOnServer.delete();
+    }
+  
+    @Test public void putRelated() throws Exception {
+        
+        final Game game = new Game(new ArrayList<String>(), "gameputrelated");
+        final StackMobObjectOnServer<Game> gameOnServer = createOnServer(game, Game.class);
+        
+        final CountDownLatch latch = latchOne();
+        final MultiThreadAsserter asserter = new MultiThreadAsserter();
+      
+        List<String> newModerators = Arrays.asList("one","two");
+        
+        stackmob.putRelated(game.getName(), gameOnServer.getObjectId(), "moderators", newModerators, new StackMobCallback() {
+            @Override
+            public void success(String responseBody) {
+                asserter.markNotJsonError(responseBody);
+                System.out.println("putRelated response: " + responseBody);
+                Game jsonGame = gson.fromJson(responseBody, Game.class);
+                asserter.markTrue(jsonGame.moderators.contains("one") && jsonGame.moderators.contains("two"));
+                latch.countDown();
+            }
+    
+            @Override
+            public void failure(StackMobException e) {
+                asserter.markException(e);
+            }
+        });
+        asserter.assertLatchFinished(latch);
+        gameOnServer.delete();
+    }
+  
+    @Test public void deleteFromRelated() throws Exception {
+        
+        final Game game = new Game(new ArrayList<String>(), "gamedeleterelated");
+        game.moderators = Arrays.asList("one","two","three");
+        
+        final StackMobObjectOnServer<Game> gameOnServer = createOnServer(game, Game.class);
+        
+        final CountDownLatch latch = latchOne();
+        final MultiThreadAsserter asserter = new MultiThreadAsserter();
+      
+        List<String> idsToDelete = Arrays.asList("two","three");
+        stackmob.deleteIdsFrom(game.getName(), gameOnServer.getObjectId(), "moderators", idsToDelete, false, new StackMobCallback() {
+            @Override
+            public void success(String responseBody) {
+                asserter.markNotJsonError(responseBody);
+                Game jsonGame = gson.fromJson(responseBody, Game.class);
+                asserter.markTrue(jsonGame.moderators.contains("one") && !jsonGame.moderators.contains("two")
+                 && !jsonGame.moderators.contains("three"));
+                latch.countDown();
+            }
+    
+            @Override
+            public void failure(StackMobException e) {
+                asserter.markException(e);
+            }
+        });
+        asserter.assertLatchFinished(latch);
+        gameOnServer.delete();
     }
 
     @Test public void registerToken() throws Exception {

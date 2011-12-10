@@ -16,6 +16,24 @@
 
 package com.stackmob.sdk.api;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.stackmob.sdk.callback.StackMobCallback;
+import com.stackmob.sdk.callback.StackMobRedirectedCallback;
+import com.stackmob.sdk.exception.StackMobException;
+import com.stackmob.sdk.net.*;
+import com.stackmob.sdk.push.StackMobPushToken;
+import com.stackmob.sdk.push.StackMobPushTokenDeserializer;
+import com.stackmob.sdk.push.StackMobPushTokenSerializer;
+import com.stackmob.sdk.util.JsonError;
+import com.stackmob.sdk.util.Pair;
+import org.scribe.builder.ServiceBuilder;
+import org.scribe.model.OAuthRequest;
+import org.scribe.model.Response;
+import org.scribe.model.Token;
+import org.scribe.model.Verb;
+import org.scribe.oauth.OAuthService;
+
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Modifier;
 import java.net.URI;
@@ -26,24 +44,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-
-import com.google.gson.GsonBuilder;
-import com.stackmob.sdk.callback.StackMobRedirectedCallback;
-import com.stackmob.sdk.net.*;
-import com.stackmob.sdk.push.StackMobPushToken;
-import com.stackmob.sdk.push.StackMobPushTokenDeserializer;
-import com.stackmob.sdk.push.StackMobPushTokenSerializer;
-import com.stackmob.sdk.util.*;
-
-import com.google.gson.Gson;
-import com.stackmob.sdk.callback.StackMobCallback;
-import com.stackmob.sdk.exception.StackMobException;
-import org.scribe.model.Response;
-import org.scribe.oauth.OAuthService;
-import org.scribe.model.OAuthRequest;
-import org.scribe.model.Token;
-import org.scribe.model.Verb;
-import org.scribe.builder.ServiceBuilder;
 
 public abstract class StackMobRequest {
 

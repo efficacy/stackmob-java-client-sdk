@@ -16,18 +16,19 @@
 
 package com.stackmob.sdk.api;
 
+import com.stackmob.sdk.callback.StackMobCallback;
+import com.stackmob.sdk.callback.StackMobRedirectedCallback;
+import com.stackmob.sdk.net.HttpVerbWithPayload;
+import com.stackmob.sdk.net.HttpVerbWithoutPayload;
+import com.stackmob.sdk.push.StackMobPushToken;
+
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import com.stackmob.sdk.callback.StackMobRedirectedCallback;
-import com.stackmob.sdk.callback.StackMobCallback;
-import com.stackmob.sdk.net.*;
-import com.stackmob.sdk.push.StackMobPushToken;
 
 public class StackMob {
 
@@ -478,7 +479,7 @@ public class StackMob {
     }
 
     /**
-     * do a post request on the StackMob platform
+     * do a post request on the StackMob platform for a single object
      * @param path the path to get
      * @param requestObject the object to serialize and send in the POST body. this object will be serialized with Gson
      * @param callback callback to be called when the server returns. may execute in a separate thread
@@ -493,6 +494,56 @@ public class StackMob {
                                        path,
                                        callback,
                                        this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+    }
+
+    /**
+     * do a post request on the StackMob platform with a list of objects
+     * @param path the path to get
+     * @param requestObjects List of objects to serialize and send in the POST body. the list will be serialized with Gson
+     * @param callback callback to be called when the server returns. may execute in a separate thread
+     */
+    public <T> void postBulk(String path, List<T> requestObjects, StackMobCallback callback) {
+        new StackMobRequestWithPayload(this.executor,
+                                       this.session,
+                                       HttpVerbWithPayload.POST,
+                                       StackMobRequest.EmptyHeaders,
+                                       StackMobRequest.EmptyParams,
+                                       requestObjects,
+                                       path,
+                                       callback,
+                                       this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+    }
+
+  /**
+   * post a new related object to an existing object. the relation of the root object is updated
+   * @param path the path to get
+   * @param primaryId id of the object with the relation
+   * @param relatedField name of the relation
+   * @param relatedObject related object to post
+   * @param callback callback to be called when the server returns. may execute in a separate thread
+   */
+    public void postRelated(String path, String primaryId, String relatedField, Object relatedObject, StackMobCallback callback) {
+      new StackMobRequestWithPayload(this.executor,
+                                             this.session,
+                                             HttpVerbWithPayload.POST,
+                                             StackMobRequest.EmptyHeaders,
+                                             StackMobRequest.EmptyParams,
+                                             relatedObject,
+                                             String.format("%s/%s/%s", path, primaryId, relatedField),
+                                             callback,
+                                             this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+    }
+
+  /**
+   * post a list of new related objects to an existing object. the relation of the root object is updated
+   * @param path the path to get
+   * @param primaryId id of the object with the relation
+   * @param relatedField name of the relation
+   * @param relatedObjects list of related objects to post. the list will be serialized with Gson
+   * @param callback callback to be called when the server returns. may execute in a separate thread
+   */
+    public <T> void postRelatedBulk(String path, String primaryId, String relatedField, List<T> relatedObjects, StackMobCallback callback) {
+        postRelated(path, primaryId, relatedField, relatedObjects, callback);
     }
 
     private void postPush(String path, Object requestObject, StackMobCallback callback) {
@@ -527,6 +578,28 @@ public class StackMob {
     }
 
     /**
+     * do a an atomic put request on the StackMob platform with the contents of the has-many relation
+     * @param path the path to get
+     * @param primaryId id of the object with the relation
+     * @param relatedField name of the relation
+     * @param relatedIds list of ids to atomically add to the relation. The type should be the same type as the primary
+     *                   key field of the related object
+     * @param callback callback to be called when the server returns. may execute in a separate thread
+     */
+    public <T> void putRelated(String path, String primaryId, String relatedField, List<T> relatedIds, StackMobCallback callback) {
+        new StackMobRequestWithPayload(this.executor,
+                            this.session,
+                            HttpVerbWithPayload.PUT,
+                            StackMobRequest.EmptyHeaders,
+                            StackMobRequest.EmptyParams,
+                            relatedIds,
+                            String.format("%s/%s/%s", path, primaryId, relatedField),
+                            callback,
+                            this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+    }
+
+
+    /**
      * do a delete request to the stackmob platform
      * @param path the path to delete
      * @param id the id of the object to put
@@ -541,6 +614,65 @@ public class StackMob {
                                           path + "/" + id,
                                           callback,
                                           this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+    }
+
+    /**
+     * atomically remove elements from an array or has many relationship
+     * @param path the path to get
+     * @param primaryId id of the object with the relation
+     * @param field name of the relation or array field to delete from
+     * @param idsToDelete list of ids to atomically remove from field.
+     *                    ids should be same type as the primary id of the related type (most likely String or Integer)
+     * @param cascadeDeletes true if related objects specified in idsToDelete should also be deleted
+     * @param callback callback to be called when the server returns. may execute in a separate thread
+     */
+    public <T> void deleteIdsFrom(String path, String primaryId, String field, List<T> idsToDelete,
+                              boolean cascadeDeletes, StackMobCallback callback) {
+        StringBuilder ids = new StringBuilder();
+        for (int i = 0; i < idsToDelete.size(); i++) {
+            ids.append(idsToDelete.get(i).toString());
+            if (i < idsToDelete.size() - 1) {
+                ids.append(",");  
+            }
+        }
+        Map<String, String> headers = new HashMap<String, String>();
+        if (cascadeDeletes) {
+            headers.put("X-StackMob-CascadeDelete", "true");
+        }
+        new StackMobRequestWithoutPayload(this.executor,
+                                          this.session,
+                                          HttpVerbWithoutPayload.DELETE,
+                                          headers,
+                                          StackMobRequest.EmptyParams,
+                                          String.format("%s/%s/%s/%s", path, primaryId, field, ids.toString()),
+                                          callback,
+                                          this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+    }
+  
+    /**
+     * atomically remove elements from an array or has many relationship
+     * @param path the path to get
+     * @param primaryId id of the object with the relation
+     * @param field name of the relation or array field to delete from
+     * @param idToDelete id to atomically remove from field.
+     *                   should be same type as the primary id of the related type (most likely String or Integer)
+     * @param cascadeDelete true if related object specified in idToDelete should also be deleted
+     * @param callback callback to be called when the server returns. may execute in a separate thread
+     */
+    public <T> void deleteIdFrom(String path, String primaryId, String field, T idToDelete,
+                              boolean cascadeDelete, StackMobCallback callback) {
+      Map<String, String> headers = new HashMap<String, String>();
+      if (cascadeDelete) {
+          headers.put("X-StackMob-CascadeDelete", "true");
+      }
+      new StackMobRequestWithoutPayload(this.executor,
+                                                this.session,
+                                                HttpVerbWithoutPayload.DELETE,
+                                                headers,
+                                                StackMobRequest.EmptyParams,
+                                                String.format("%s/%s/%s/%s", path, primaryId, field, idToDelete),
+                                                callback,
+                                                this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
     /**
