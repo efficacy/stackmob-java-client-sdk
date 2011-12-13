@@ -1,11 +1,17 @@
 # Stackmob Java SDK (Release Notes)
 
+### 0.3.0 (12/13/2011
+* Added GeoPoint support and Geospatial NEAR and WITHIN queries
+* Advanced Relations support: post related object(s), add/delete items to relatioships and array-type fields
+* Improved session cookie support
+* Minor bug fixes
+
 ### 0.2.0 (11/3/2011)
-* added support for functionality like ORDER BY, LIMIT and SKIP in queries
-* moved expand to headers
-* added rudimentary support for binary file uploads
-* added more complete error checking when requests are complete - the callback failure method will be called now when HTTP 200 is returned but there's an error in the JSON
-* removed CookieManager based cookie handling, which is android 2.2 compatible
+* Added support for functionality like ORDER BY, LIMIT and SKIP in queries
+* Moved expand to headers
+* Added rudimentary support for binary file uploads
+* Added more complete error checking when requests are complete - the callback failure method will be called now when HTTP 200 is returned but there's an error in the JSON
+* Removed CookieManager based cookie handling, which is android 2.2 compatible
 
 ### 0.1.7 (10/27/2011)
 * Added change to start using new-style (push.mob1.stackmob.com) push URLs
@@ -29,15 +35,15 @@
 * Simplified redirect handling
 
 ### 0.1.1 (10/6/2011)
-* idential functionality to 0.1.0. this release was done to correct a problem with the previous release
+* Idential functionality to 0.1.0. this release was done to correct a problem with the previous release
 
 ### 0.1.0 (10/6/2011)
 * Initial version of the StackMob Java SDK
   * Basic GET, POST, PUT, DELETE functionality
   * login/logout functionality
   * Twitter & Facebook functionality
-  * ability to follow cluster redirects given by the StackMob platform
-  * ability to cache cluster redirects given by the StackMob platform
+  * Ability to follow cluster redirects given by the StackMob platform
+  * Ability to cache cluster redirects given by the StackMob platform
 
 
 
