@@ -19,21 +19,19 @@ package com.stackmob.sdk;
 import com.stackmob.sdk.api.StackMobQuery;
 import com.stackmob.sdk.api.StackMobQueryWithField;
 import com.stackmob.sdk.callback.StackMobCallback;
+import com.stackmob.sdk.concurrencyutils.CountDownLatchUtils;
 import com.stackmob.sdk.concurrencyutils.MultiThreadAsserter;
 import com.stackmob.sdk.exception.StackMobException;
 import com.stackmob.sdk.testobjects.Game;
 import com.stackmob.sdk.testobjects.S3Object;
 import com.stackmob.sdk.testobjects.StackMobObjectOnServer;
 import com.stackmob.sdk.testobjects.User;
-import com.stackmob.sdk.util.Pair;
 import org.junit.Test;
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import static com.stackmob.sdk.concurrencyutils.CountDownLatchUtils.latchOne;
-import static org.junit.Assert.fail;
 
 public class StackMobTests extends StackMobTestCommon {
 
@@ -83,7 +81,8 @@ public class StackMobTests extends StackMobTestCommon {
             }
 
             @Override public void failure(StackMobException e) {
-                fail("login was supposed to fail with a 200 but a JSON error");
+                asserter.markTrue(e.getMessage().contains("Invalid"));
+                latch.countDown();
             }
         });
         asserter.assertLatchFinished(latch);
@@ -132,7 +131,7 @@ public class StackMobTests extends StackMobTestCommon {
             }
         });
 
-        asserter.assertLatchFinished(loginLatch, new Pair<Long, TimeUnit>(4L, TimeUnit.SECONDS));
+        asserter.assertLatchFinished(loginLatch, CountDownLatchUtils.MAX_LATCH_WAIT_TIME);
         objectOnServer.delete();
     }
 
@@ -202,6 +201,7 @@ public class StackMobTests extends StackMobTestCommon {
             @Override
             public void failure(StackMobException e) {
                 asserter.markException(e);
+                latch.countDown();
             }
         });
         asserter.assertLatchFinished(latch);
@@ -495,13 +495,13 @@ public class StackMobTests extends StackMobTestCommon {
         stackmob.postRelated(game.getName(), gameOnServer.getObjectId(), "moderators", user, new StackMobCallback() {
             @Override
             public void success(String responseBody) {
-                asserter.markNotJsonError(responseBody);
-                latch.countDown();
+              asserter.markNotJsonError(responseBody);
+              latch.countDown();
             }
-    
+
             @Override
             public void failure(StackMobException e) {
-                asserter.markException(e);
+              asserter.markException(e);
             }
         });
         asserter.assertLatchFinished(latch);
@@ -551,9 +551,6 @@ public class StackMobTests extends StackMobTestCommon {
             @Override
             public void success(String responseBody) {
                 asserter.markNotJsonError(responseBody);
-                Game jsonGame = gson.fromJson(responseBody, Game.class);
-                asserter.markTrue(jsonGame.moderators.contains("one") && !jsonGame.moderators.contains("two")
-                 && !jsonGame.moderators.contains("three"));
                 latch.countDown();
             }
     

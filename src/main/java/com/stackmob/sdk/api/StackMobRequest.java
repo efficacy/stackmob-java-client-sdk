@@ -18,6 +18,8 @@ package com.stackmob.sdk.api;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonSyntaxException;
 import com.stackmob.sdk.callback.StackMobCallback;
 import com.stackmob.sdk.callback.StackMobRedirectedCallback;
 import com.stackmob.sdk.exception.StackMobException;
@@ -39,6 +41,9 @@ import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -56,8 +61,10 @@ public abstract class StackMobRequest {
     protected static final String SECURE_SCHEME = "https";
     protected static final String REGULAR_SCHEME = "http";
 
-    private static final ConcurrentHashMap<String, String> cookies = new ConcurrentHashMap<String, String>();
+    private static final ConcurrentHashMap<String, Pair<String, Date>> cookies = new ConcurrentHashMap<String, Pair<String, Date>>();
     private static final String SetCookieHeaderKey = "Set-Cookie";
+    private static final DateFormat cookieDateFormat = new SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss z");
+    private static final String EXPIRES = "Expires";
 
     protected final ExecutorService executor;
     protected final StackMobSession session;
@@ -277,15 +284,19 @@ public abstract class StackMobRequest {
         headerList.add(new Pair<String, String>("User-Agent", userAgent));
 
         //build cookie header
-        Set<Map.Entry<String, String>> cookiesSet = cookies.entrySet();
+        Set<Map.Entry<String, Pair<String, Date>>> cookiesSet = cookies.entrySet();
         StringBuilder cookieBuilder = new StringBuilder();
         boolean first = true;
-        for(Map.Entry<String, String> c : cookiesSet) {
+        for(Map.Entry<String, Pair<String, Date>> c : cookiesSet) {
             if(!first) {
                 cookieBuilder.append("; ");
             }
             first = false;
-            cookieBuilder.append(c.getKey()).append("=").append(c.getValue());
+            Date expires = c.getValue().getSecond();
+            if (expires == null || new Date().compareTo(expires)  ==  1) {
+                //only use unexpired cookies
+                cookieBuilder.append(c.getKey()).append("=").append(c.getValue().getFirst());
+            }
         }
         headerList.add(new Pair<String, String>("Cookie", cookieBuilder.toString()));
 
@@ -315,9 +326,29 @@ public abstract class StackMobRequest {
         for(String key: resp.getHeaders().keySet()) {
             if(key != null && key.equalsIgnoreCase(SetCookieHeaderKey)) {
                 String val = resp.getHeaders().get(key);
-                List<String> valSplit = Arrays.asList(val.split("="));
-                if(valSplit.size() == 2) {
-                    cookies.put(valSplit.get(0), valSplit.get(1));
+                String[] valSplit = val.split(";");
+                if (valSplit.length == 1) {
+                    //cookie only
+                    String[] cookieSplit = val.split("=");
+                    if (cookieSplit.length == 2) {
+                        cookies.put(valSplit[0], new Pair<String, Date>(valSplit[1], null));     
+                    }
+                }
+                else if(valSplit.length == 2) {
+                    //cookie and expires
+                    String[] cookieSplit = valSplit[0].split("=");
+                    String[] expiresSplit = valSplit[1].split("=");
+                    Date expires = null;
+                    if (expiresSplit.length == 2 && cookieSplit.length == 2) {
+                        if (expiresSplit[0].equals(EXPIRES)) {
+                          try {
+                            expires = cookieDateFormat.parse(expiresSplit[1]);
+                          } catch (ParseException e) {
+
+                          }
+                        }
+                        cookies.put(cookieSplit[0], new Pair<String, Date>(cookieSplit[1], expires));
+                    }
                 }
             }
         }
@@ -347,18 +378,20 @@ public abstract class StackMobRequest {
                 }
                 else {
                     //try to fetch the error
+                    JsonError err = null;
                     try {
-                        JsonError err = gson.fromJson(ret.getBody(), JsonError.class);
-                        if(err.error != null) {
-                            cb.failure(new StackMobException(err.error));
-                        }
-                        else {
-                            storeCookies(ret);
-                            cb.success(ret.getBody());
-                        }
+                        err = gson.fromJson(ret.getBody(), JsonError.class);
                     }
-                    //if we failed to fetch an error, win
-                    catch(Throwable e) {
+                    catch (JsonSyntaxException e) {
+                        //not an error response
+                    }
+                    catch (JsonParseException e) {
+                        //not an error response
+                    }
+                    if(err != null && err.error != null) {
+                        cb.failure(new StackMobException(err.error));
+                    }
+                    else {
                         storeCookies(ret);
                         cb.success(ret.getBody());
                     }
