@@ -302,6 +302,14 @@ public class StackMob {
         get("getFacebookUserInfo", callback);
     }
 
+    /**
+     * get twitter user info for the current user. this method will return nothing if there is no currently logged in twitter user
+     * @param callback callback to be called when the server returns. may execute in a separate thread
+     */
+    public void getTwitterUserInfo(StackMobCallback callback) {
+        get("getTwitterUserInfo", callback);
+    }
+
     ////////////////////
     //Push Notifications
     ////////////////////
