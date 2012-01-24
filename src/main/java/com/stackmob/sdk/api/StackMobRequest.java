@@ -61,10 +61,10 @@ public abstract class StackMobRequest {
     protected static final String SECURE_SCHEME = "https";
     protected static final String REGULAR_SCHEME = "http";
 
-    private static final ConcurrentHashMap<String, Pair<String, Date>> cookies = new ConcurrentHashMap<String, Pair<String, Date>>();
-    private static final String SetCookieHeaderKey = "Set-Cookie";
-    private static final DateFormat cookieDateFormat = new SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss z");
-    private static final String EXPIRES = "Expires";
+    protected static final ConcurrentHashMap<String, Pair<String, Date>> cookies = new ConcurrentHashMap<String, Pair<String, Date>>();
+    protected static final String SetCookieHeaderKey = "Set-Cookie";
+    protected static final DateFormat cookieDateFormat = new SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss z");
+    protected static final String EXPIRES = "Expires";
 
     protected final ExecutorService executor;
     protected final StackMobSession session;
@@ -136,7 +136,7 @@ public abstract class StackMobRequest {
         }
     }
 
-    private void sendGetRequest() throws StackMobException {
+    protected void sendGetRequest() throws StackMobException {
         try {
             String query = formatQueryString(this.params);
             URI uri = createURI(getScheme(), urlFormat, getPath(), query);
@@ -154,7 +154,7 @@ public abstract class StackMobRequest {
         }
     }
 
-    private void sendPostRequest() throws StackMobException {
+    protected void sendPostRequest() throws StackMobException {
         try {
             URI uri = createURI(getScheme(), urlFormat, getPath(), "");
             String payload = getRequestBody();
@@ -172,7 +172,7 @@ public abstract class StackMobRequest {
         }
     }
 
-    private void sendPutRequest() throws StackMobException {
+    protected void sendPutRequest() throws StackMobException {
         try {
             URI uri = createURI(getScheme(), urlFormat, getPath(), "");
             String payload = getRequestBody();
@@ -190,7 +190,7 @@ public abstract class StackMobRequest {
         }
     }
 
-    private void sendDeleteRequest() throws StackMobException {
+    protected void sendDeleteRequest() throws StackMobException {
         try {
             String query = formatQueryString(this.params);
             URI uri = createURI(getScheme(), urlFormat, getPath(), query);
@@ -208,7 +208,7 @@ public abstract class StackMobRequest {
         }
     }
 
-    private URI createURI(String scheme, String host, String path, String query) throws URISyntaxException {
+    protected URI createURI(String scheme, String host, String path, String query) throws URISyntaxException {
         StringBuilder uriBuilder = new StringBuilder().append(scheme).append("://").append(host);
         if(!path.startsWith("/")) {
             uriBuilder.append("/");
@@ -231,7 +231,7 @@ public abstract class StackMobRequest {
         }
     }
 
-    private String getScheme() {
+    protected String getScheme() {
         if (isSecure) {
             return SECURE_SCHEME;
         }
@@ -240,7 +240,7 @@ public abstract class StackMobRequest {
         }
     }
 
-    private static String percentEncode(String s) throws UnsupportedEncodingException {
+    protected static String percentEncode(String s) throws UnsupportedEncodingException {
         return URLEncoder.encode(s, "UTF-8").replace("+", "%20");
     }
 
@@ -265,7 +265,7 @@ public abstract class StackMobRequest {
 
 
 
-    private OAuthRequest getOAuthRequest(HttpVerb method, String url) {
+    protected OAuthRequest getOAuthRequest(HttpVerb method, String url) {
         OAuthRequest oReq = new OAuthRequest(Verb.valueOf(method.toString()), url);
         int apiVersion = session.getApiVersionNumber();
         final String contentType = "application/vnd.stackmob+json;";
@@ -316,13 +316,13 @@ public abstract class StackMobRequest {
         return oReq;
     }
 
-    private OAuthRequest getOAuthRequest(HttpVerb method, String url, String payload) {
+    protected OAuthRequest getOAuthRequest(HttpVerb method, String url, String payload) {
         OAuthRequest req = getOAuthRequest(method, url);
         req.addPayload(payload);
         return req;
     }
 
-    private void storeCookies(Response resp) {
+    protected void storeCookies(Response resp) {
         for(String key: resp.getHeaders().keySet()) {
             if(key != null && key.equalsIgnoreCase(SetCookieHeaderKey)) {
                 String val = resp.getHeaders().get(key);
@@ -354,7 +354,7 @@ public abstract class StackMobRequest {
         }
     }
 
-    private void sendRequest(final OAuthRequest req) throws InterruptedException, ExecutionException {
+    protected void sendRequest(final OAuthRequest req) throws InterruptedException, ExecutionException {
         final StackMobCallback cb = this.callback;
         executor.submit(new Callable<Object>() {
             @Override

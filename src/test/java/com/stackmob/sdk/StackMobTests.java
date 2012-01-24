@@ -367,11 +367,11 @@ public class StackMobTests extends StackMobTestCommon {
     }
 
     @Test public void postWithBinaryFile() throws Exception {
-        final String expectedAWSPrefix = "http://s3.amazonaws.com/test-stackmob/";
         final String contentType = "text/plain";
-        final String fileName = "test3File";
+        final String fileName = "testS3File";
         final String content = "w00t";
         final S3Object obj = new S3Object(contentType, fileName, content.getBytes());
+        final String expectedAWSPrefix = "http://s3.amazonaws.com/test-stackmob/" + obj.getName() + ".blob";
 
         final CountDownLatch latch = latchOne();
         final MultiThreadAsserter asserter = new MultiThreadAsserter();
@@ -388,9 +388,9 @@ public class StackMobTests extends StackMobTestCommon {
                 catch (StackMobException e) {
                     asserter.markException(e);
                 }
+                asserter.markTrue(obj.blob.startsWith(expectedAWSPrefix));
+                asserter.markTrue(obj.blob.endsWith(fileName));
 
-
-                asserter.markEquals(expectedAWSPrefix + fileName, obj.blob);
                 latch.countDown();
             }
 
