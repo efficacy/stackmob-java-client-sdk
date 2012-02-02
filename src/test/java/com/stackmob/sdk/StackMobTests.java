@@ -480,6 +480,37 @@ public class StackMobTests extends StackMobTestCommon {
         asserter.assertLatchFinished(latch);
     }
   
+    @Test public void postRelatedBulk() throws Exception {
+        final String username = getRandomString();
+        final String password = getRandomString();
+        
+        User user = new User(username, password);
+        List<Object> users = new ArrayList<Object>();
+        users.add(user);
+
+        final Game game = new Game(new ArrayList<String>(), "gamepostrelatedbulk");
+        final StackMobObjectOnServer<Game> gameOnServer = createOnServer(game, Game.class);
+
+        final CountDownLatch latch = latchOne();
+        final MultiThreadAsserter asserter = new MultiThreadAsserter();
+        
+        stackmob.postRelatedBulk(game.getName(), gameOnServer.getObjectId(), "moderators", users, new StackMobCallback() {
+            @Override
+            public void success(String responseBody) {
+                asserter.markNotJsonError(responseBody);
+                latch.countDown();
+            }
+
+            @Override
+            public void failure(StackMobException e) {
+                asserter.markException(e);
+            }
+        });
+
+        asserter.assertLatchFinished(latch);
+        gameOnServer.delete();
+    }
+    
     @Test public void postRelated() throws Exception {
         final String username = getRandomString();
         final String password = getRandomString();

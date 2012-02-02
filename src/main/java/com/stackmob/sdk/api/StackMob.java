@@ -532,14 +532,14 @@ public class StackMob {
    */
     public void postRelated(String path, String primaryId, String relatedField, Object relatedObject, StackMobCallback callback) {
       new StackMobRequestWithPayload(this.executor,
-                                             this.session,
-                                             HttpVerbWithPayload.POST,
-                                             StackMobRequest.EmptyHeaders,
-                                             StackMobRequest.EmptyParams,
-                                             relatedObject,
-                                             String.format("%s/%s/%s", path, primaryId, relatedField),
-                                             callback,
-                                             this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+                                     this.session,
+                                     HttpVerbWithPayload.POST,
+                                     StackMobRequest.EmptyHeaders,
+                                     StackMobRequest.EmptyParams,
+                                     relatedObject,
+                                     String.format("%s/%s/%s", path, primaryId, relatedField),
+                                     callback,
+                                     this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
   /**
