@@ -299,7 +299,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      */
     public void getFacebookUserInfo(StackMobCallback callback) {
-        get("getFacebookUserInfo", callback);
+        new StackMobUserBasedRequest(this.executor, this.session, "getFacebookUserInfo", new HashMap<String, String>(), callback, this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
     /**
@@ -307,7 +307,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      */
     public void getTwitterUserInfo(StackMobCallback callback) {
-        get("getTwitterUserInfo", callback);
+        new StackMobUserBasedRequest(this.executor, this.session, "getTwitterUserInfo", new HashMap<String, String>(), callback, this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
     ////////////////////
