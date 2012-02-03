@@ -159,7 +159,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean login(Map<String, String> params,
+    public StackMobRequestSendResult login(Map<String, String> params,
                       StackMobRawCallback callback) {
         return new StackMobUserBasedRequest(this.executor,
                                             this.session,
@@ -174,7 +174,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean logout(StackMobRawCallback callback) {
+    public StackMobRequestSendResult logout(StackMobRawCallback callback) {
         return new StackMobUserBasedRequest(this.executor,
                                      this.session,
                                      "logout",
@@ -188,7 +188,7 @@ public class StackMob {
      * @param callback callback to call when the method completes
      * @return true if the request was sent, false otherwise
      */
-    public boolean startSession(StackMobRawCallback callback) {
+    public StackMobRequestSendResult startSession(StackMobRawCallback callback) {
         return new StackMobRequestWithoutPayload(this.executor,
                                           this.session,
                                           HttpVerbWithoutPayload.GET,
@@ -210,7 +210,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean twitterLogin(String token,
+    public StackMobRequestSendResult twitterLogin(String token,
                              String secret,
                              StackMobRawCallback callback) {
         Map<String, String> params = new HashMap<String, String>();
@@ -230,7 +230,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean twitterStatusUpdate(String message,
+    public StackMobRequestSendResult twitterStatusUpdate(String message,
                                     StackMobRawCallback callback) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("tw_st", message);
@@ -250,7 +250,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean registerWithTwitterToken(String token,
+    public StackMobRequestSendResult registerWithTwitterToken(String token,
                                          String secret,
                                          String username,
                                          StackMobRawCallback callback) {
@@ -273,7 +273,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean linkUserWithTwitterToken(String token,
+    public StackMobRequestSendResult linkUserWithTwitterToken(String token,
                                          String secret,
                                          StackMobRawCallback callback) {
         Map<String, String> params = new HashMap<String, String>();
@@ -294,7 +294,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean facebookLogin(String token,
+    public StackMobRequestSendResult facebookLogin(String token,
                               StackMobRawCallback callback) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("fb_at", token);
@@ -314,7 +314,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean registerWithFacebookToken(String token,
+    public StackMobRequestSendResult registerWithFacebookToken(String token,
                                           String username,
                                           StackMobRawCallback callback) {
         Map<String, String> params = new HashMap<String, String>();
@@ -335,7 +335,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean linkUserWithFacebookToken(String token,
+    public StackMobRequestSendResult linkUserWithFacebookToken(String token,
                                           StackMobRawCallback callback) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("fb_at", token);
@@ -354,7 +354,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean facebookPostMessage(String msg,
+    public StackMobRequestSendResult facebookPostMessage(String msg,
                                     StackMobRawCallback callback) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("message", msg);
@@ -372,7 +372,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean getFacebookUserInfo(StackMobRawCallback callback) {
+    public StackMobRequestSendResult getFacebookUserInfo(StackMobRawCallback callback) {
         return get("getFacebookUserInfo", callback);
     }
 
@@ -381,7 +381,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean getTwitterUserInfo(StackMobRawCallback callback) {
+    public StackMobRequestSendResult getTwitterUserInfo(StackMobRawCallback callback) {
         return get("getTwitterUserInfo", callback);
     }
 
@@ -396,7 +396,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean pushToTokens(Map<String, String> payload,
+    public StackMobRequestSendResult pushToTokens(Map<String, String> payload,
                              List<StackMobPushToken> tokens,
                              StackMobRawCallback callback) {
         Map<String, Object> finalPayload = new HashMap<String, Object>();
@@ -415,7 +415,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean pushToUsers(Map<String, String> payload,
+    public StackMobRequestSendResult pushToUsers(Map<String, String> payload,
                             List<String> userIds,
                             StackMobRawCallback callback) {
         Map<String, Object> finalPayload = new HashMap<String, Object>();
@@ -431,7 +431,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean registerForPushWithUser(String username,
+    public StackMobRequestSendResult registerForPushWithUser(String username,
                                         String registrationID,
                                         StackMobRawCallback callback) {
         RegistrationIDAndUser tokenAndUser = new RegistrationIDAndUser(registrationID, username);
@@ -444,7 +444,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean getTokensForUsers(List<String> usernames,
+    public StackMobRequestSendResult getTokensForUsers(List<String> usernames,
                                   StackMobRawCallback callback) {
         final StringBuilder userIds = new StringBuilder();
         boolean first = true;
@@ -466,7 +466,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean broadcastPushNotification(Map<String, String> payload,
+    public StackMobRequestSendResult broadcastPushNotification(Map<String, String> payload,
                                           StackMobRawCallback callback) {
         Map<String, Object> finalPayload = new HashMap<String, Object>();
         finalPayload.put("kvPairs", payload);
@@ -479,7 +479,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    private boolean getExpiredPushTokens(Boolean clear,
+    private StackMobRequestSendResult getExpiredPushTokens(Boolean clear,
                                       StackMobRawCallback callback) {
         Map<String, Object> finalPayload = new HashMap<String, Object>();
         finalPayload.put("clear", clear);
@@ -491,7 +491,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean getAndClearExpiredPushTokens(StackMobRawCallback callback) {
+    public StackMobRequestSendResult getAndClearExpiredPushTokens(StackMobRawCallback callback) {
         return getExpiredPushTokens(true, callback);
     }
 
@@ -500,7 +500,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean getExpiredPushTokens(StackMobRawCallback callback) {
+    public StackMobRequestSendResult getExpiredPushTokens(StackMobRawCallback callback) {
         return getExpiredPushTokens(false, callback);
     }
 
@@ -511,7 +511,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean removePushToken(String tokenString,
+    public StackMobRequestSendResult removePushToken(String tokenString,
                                 StackMobPushToken.TokenType tokenType,
                                 StackMobRawCallback callback) {
         Map<String, Object> finalPayload = new HashMap<String, Object>();
@@ -530,7 +530,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean get(String path,
+    public StackMobRequestSendResult get(String path,
                     StackMobRawCallback callback) {
         return new StackMobRequestWithoutPayload(this.executor,
                                           this.session,
@@ -550,7 +550,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean get(String path,
+    public StackMobRequestSendResult get(String path,
                     Map<String, String> arguments,
                     Map<String, String> headerMap,
                     StackMobRawCallback callback) {
@@ -570,7 +570,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean get(String path,
+    public StackMobRequestSendResult get(String path,
                     Map<String, String> arguments,
                     List<Map.Entry<String, String>> headers,
                     StackMobRawCallback callback) {
@@ -591,7 +591,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean get(String path,
+    public StackMobRequestSendResult get(String path,
                     Map<String, String> arguments,
                     StackMobRawCallback callback) {
         return this.get(path, arguments, StackMobRequest.EmptyHeaders, callback);
@@ -603,7 +603,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean get(StackMobQuery query,
+    public StackMobRequestSendResult get(StackMobQuery query,
                        StackMobRawCallback callback) {
         return this.get("/"+query.getObjectName(), query.getArguments(), query.getHeaders(), callback);
     }
@@ -614,12 +614,12 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean get(StackMobQueryWithField query,
+    public StackMobRequestSendResult get(StackMobQueryWithField query,
                     StackMobRawCallback callback) {
         return this.get(query.getQuery(), callback);
     }
 
-    private boolean getPush(String path,
+    private StackMobRequestSendResult getPush(String path,
                          Map<String, String> arguments,
                          StackMobRawCallback callback) {
         return new StackMobRequestWithoutPayload(this.executor,
@@ -639,7 +639,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean post(String path,
+    public StackMobRequestSendResult post(String path,
                      Object requestObject,
                      StackMobRawCallback callback) {
         return new StackMobRequestWithPayload(this.executor,
@@ -660,7 +660,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public <T> boolean postBulk(String path,
+    public <T> StackMobRequestSendResult postBulk(String path,
                              List<T> requestObjects,
                              StackMobRawCallback callback) {
         return new StackMobRequestWithPayload(this.executor,
@@ -683,7 +683,7 @@ public class StackMob {
    * @param callback callback to be called when the server returns. may execute in a separate thread
    * @return true if the request was sent, false otherwise
    */
-    public boolean postRelated(String path,
+    public StackMobRequestSendResult postRelated(String path,
                             String primaryId,
                             String relatedField,
                             Object relatedObject,
@@ -708,7 +708,7 @@ public class StackMob {
    * @param callback callback to be called when the server returns. may execute in a separate thread
    * @return true if the request was sent, false otherwise
    */
-    public <T> boolean postRelatedBulk(String path,
+    public <T> StackMobRequestSendResult postRelatedBulk(String path,
                                     String primaryId,
                                     String relatedField,
                                     List<T> relatedObjects,
@@ -716,7 +716,7 @@ public class StackMob {
         return postRelated(path, primaryId, relatedField, relatedObjects, callback);
     }
 
-    private boolean postPush(String path,
+    private StackMobRequestSendResult postPush(String path,
                           Object requestObject,
                           StackMobRawCallback callback) {
         return new StackMobRequestWithPayload(this.executor,
@@ -738,7 +738,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean put(String path,
+    public StackMobRequestSendResult put(String path,
                     String id,
                     Object requestObject,
                     StackMobRawCallback callback) {
@@ -763,7 +763,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public <T> boolean putRelated(String path,
+    public <T> StackMobRequestSendResult putRelated(String path,
                                String primaryId,
                                String relatedField,
                                List<T> relatedIds,
@@ -787,7 +787,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public boolean delete(String path,
+    public StackMobRequestSendResult delete(String path,
                        String id,
                        StackMobRawCallback callback) {
         return new StackMobRequestWithoutPayload(this.executor,
@@ -811,7 +811,7 @@ public class StackMob {
      * @param callback callback to be called when the server returns. may execute in a separate thread
      * @return true if the request was sent, false otherwise
      */
-    public <T> boolean deleteIdsFrom(String path,
+    public <T> StackMobRequestSendResult deleteIdsFrom(String path,
                                   String primaryId,
                                   String field,
                                   List<T> idsToDelete,
@@ -848,7 +848,7 @@ public class StackMob {
      * @param cascadeDelete true if related object specified in idToDelete should also be deleted
      * @param callback callback to be called when the server returns. may execute in a separate thread
      */
-    public <T> boolean deleteIdFrom(String path,
+    public <T> StackMobRequestSendResult deleteIdFrom(String path,
                                  String primaryId,
                                  String field,
                                  T idToDelete,

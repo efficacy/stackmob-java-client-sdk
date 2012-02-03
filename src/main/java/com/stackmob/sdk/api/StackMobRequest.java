@@ -118,7 +118,7 @@ public abstract class StackMobRequest {
 
     protected abstract String getRequestBody();
 
-    public boolean sendRequest() {
+    public StackMobRequestSendResult sendRequest() {
         try {
             if(HttpVerbWithoutPayload.GET == httpVerb) {
                 sendGetRequest();
@@ -133,12 +133,13 @@ public abstract class StackMobRequest {
                 sendDeleteRequest();
             }
             else {
-                return false;
+                StackMobException ex = new StackMobException("The StackMob SDK doesn't support the HTTP verb %s at this time");
+                return new StackMobRequestSendResult(StackMobRequestSendResult.RequestSendStatus.FAILED, ex);
             }
-            return true;
+            return new StackMobRequestSendResult();
         }
         catch(StackMobException e) {
-            return false;
+            return new StackMobRequestSendResult(StackMobRequestSendResult.RequestSendStatus.FAILED, e);
         }
     }
 

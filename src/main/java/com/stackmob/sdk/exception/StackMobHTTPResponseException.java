@@ -22,10 +22,26 @@ import java.util.List;
 import java.util.Map;
 
 public class StackMobHTTPResponseException extends StackMobException {
-    public StackMobHTTPResponseException(Integer respCode, List<Map.Entry<String, String>> headers, byte[] body) {
-        super(String.format("call failed with HTTP response code %s, headers %s, body %s",
-                respCode.toString(),
-                ListHelpers.join(headers, ", "),
-                new String(body)));
+    private Integer code;
+    private List<Map.Entry<String, String>> headers;
+    private byte[] body;
+
+    public StackMobHTTPResponseException(Integer code, List<Map.Entry<String, String>> headers, byte[] body) {
+        super(String.format("call failed with HTTP response code %s, headers %s, body %s", code.toString(), ListHelpers.join(headers, ", "), new String(body)));
+        this.code = code;
+        this.headers = headers;
+        this.body = body;
+    }
+
+    public Integer getCode() {
+        return code;
+    }
+    
+    public List<Map.Entry<String, String>> getHeaders() {
+        return headers;
+    }
+
+    public byte[] getBody() {
+        return body;
     }
 }
