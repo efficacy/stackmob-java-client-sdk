@@ -17,8 +17,29 @@
 package com.stackmob.sdk.callback;
 
 import com.stackmob.sdk.exception.StackMobException;
+import com.stackmob.sdk.exception.StackMobHTTPResponseException;
+import com.stackmob.sdk.net.HttpVerb;
+import com.stackmob.sdk.util.Http;
 
-public interface StackMobCallback {
-    void success(String responseBody);
-    void failure(StackMobException e);
+import java.util.List;
+import java.util.Map;
+
+public abstract class StackMobCallback implements StackMobRawCallback {
+    @Override public void done(HttpVerb requestVerb,
+                               String requestURL,
+                               List<Map.Entry<String, String>> requestHeaders,
+                               String requestBody,
+                               Integer responseStatusCode,
+                               List<Map.Entry<String, String>> responseHeaders,
+                               byte[] responseBody) {
+        if(Http.isSuccess(responseStatusCode)) {
+            success(new String(responseBody));
+        }
+        else {
+            failure(new StackMobHTTPResponseException(responseStatusCode, responseHeaders, responseBody));
+        }
+    }
+
+    abstract public void success(String responseBody);
+    abstract public void failure(StackMobException e);
 }

@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package com.stackmob.sdk.testobjects;
+package com.stackmob.sdk.exception;
 
-public abstract class StackMobObject {
+import com.stackmob.sdk.util.ListHelpers;
 
-    public abstract String getIdField();
-    public abstract String getIdFieldName();
-    public abstract String getName();
+import java.util.List;
+import java.util.Map;
 
-    public String toString() {
-        return "<"+getName()+">";
+public class StackMobHTTPResponseException extends StackMobException {
+    public StackMobHTTPResponseException(Integer respCode, List<Map.Entry<String, String>> headers, byte[] body) {
+        super(String.format("call failed with HTTP response code %s, headers %s, body %s",
+                respCode.toString(),
+                ListHelpers.join(headers, ", "),
+                new String(body)));
     }
-
-
 }

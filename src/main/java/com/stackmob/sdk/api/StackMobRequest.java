@@ -18,17 +18,14 @@ package com.stackmob.sdk.api;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonSyntaxException;
-import com.stackmob.sdk.callback.StackMobCallback;
+import com.stackmob.sdk.callback.StackMobRawCallback;
 import com.stackmob.sdk.callback.StackMobRedirectedCallback;
 import com.stackmob.sdk.exception.StackMobException;
 import com.stackmob.sdk.net.*;
 import com.stackmob.sdk.push.StackMobPushToken;
 import com.stackmob.sdk.push.StackMobPushTokenDeserializer;
 import com.stackmob.sdk.push.StackMobPushTokenSerializer;
-import com.stackmob.sdk.util.JsonError;
-import com.stackmob.sdk.util.Pair;
+import com.stackmob.sdk.util.Http;
 import org.scribe.builder.ServiceBuilder;
 import org.scribe.model.OAuthRequest;
 import org.scribe.model.Response;
@@ -44,15 +41,20 @@ import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.Date;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 
 public abstract class StackMobRequest {
-
-    public static final Map<String, String> EmptyHeaders = new HashMap<String, String>();
+    
+    public static final List<Map.Entry<String, String>> EmptyHeaders = new ArrayList<Map.Entry<String, String>>();
     public static final Map<String, String> EmptyParams = new HashMap<String, String>();
 
     public static final String DEFAULT_URL_FORMAT = "mob1.stackmob.com";
@@ -61,14 +63,14 @@ public abstract class StackMobRequest {
     protected static final String SECURE_SCHEME = "https";
     protected static final String REGULAR_SCHEME = "http";
 
-    protected static final ConcurrentHashMap<String, Pair<String, Date>> cookies = new ConcurrentHashMap<String, Pair<String, Date>>();
+    protected static final ConcurrentHashMap<String, Map.Entry<String, Date>> cookies = new ConcurrentHashMap<String, Map.Entry<String, Date>>();
     protected static final String SetCookieHeaderKey = "Set-Cookie";
     protected static final DateFormat cookieDateFormat = new SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss z");
     protected static final String EXPIRES = "Expires";
 
     protected final ExecutorService executor;
     protected final StackMobSession session;
-    protected StackMobCallback callback;
+    protected StackMobRawCallback callback;
     protected final StackMobRedirectedCallback redirectedCallback;
 
     protected HttpVerb httpVerb;
@@ -76,8 +78,8 @@ public abstract class StackMobRequest {
 
     protected String urlFormat = DEFAULT_API_URL_FORMAT;
     protected Boolean isSecure = false;
-    protected Map<String, String> params;
-    protected Map<String, String> headers;
+    protected Map<String, String> params = new HashMap<String, String>();
+    protected List<Map.Entry<String, String>> headers = new ArrayList<Map.Entry<String, String>>();
 
     protected Gson gson;
 
@@ -86,10 +88,10 @@ public abstract class StackMobRequest {
     protected StackMobRequest(ExecutorService executor,
                               StackMobSession session,
                               HttpVerb verb,
-                              Map<String, String> headers,
+                              List<Map.Entry<String, String>> headers,
                               Map<String, String> params,
                               String method,
-                              StackMobCallback cb,
+                              StackMobRawCallback cb,
                               StackMobRedirectedCallback redirCb) {
         this.executor = executor;
         this.session = session;
@@ -116,7 +118,7 @@ public abstract class StackMobRequest {
 
     protected abstract String getRequestBody();
 
-    public void sendRequest() {
+    public boolean sendRequest() {
         try {
             if(HttpVerbWithoutPayload.GET == httpVerb) {
                 sendGetRequest();
@@ -130,9 +132,13 @@ public abstract class StackMobRequest {
             else if(HttpVerbWithoutPayload.DELETE == httpVerb) {
                 sendDeleteRequest();
             }
+            else {
+                return false;
+            }
+            return true;
         }
-        catch (StackMobException e) {
-            callback.failure(e);
+        catch(StackMobException e) {
+            return false;
         }
     }
 
@@ -276,40 +282,39 @@ public abstract class StackMobRequest {
         }
         final String userAgent = userAgentIntermediate;
 
-        List<Pair<String, String>> headerList = new ArrayList<Pair<String, String>>();
+        List<Map.Entry<String, String>> headerList = new ArrayList<Map.Entry<String, String>>();
 
         //build basic headers
-        headerList.add(new Pair<String, String>("Content-Type", contentType));
-        headerList.add(new Pair<String, String>("Accept", accept));
-        headerList.add(new Pair<String, String>("User-Agent", userAgent));
+        headerList.add(new AbstractMap.SimpleEntry<String, String>("Content-Type", contentType));
+        headerList.add(new AbstractMap.SimpleEntry<String, String>("Accept", accept));
+        headerList.add(new AbstractMap.SimpleEntry<String, String>("User-Agent", userAgent));
 
         //build cookie header
-        Set<Map.Entry<String, Pair<String, Date>>> cookiesSet = cookies.entrySet();
         StringBuilder cookieBuilder = new StringBuilder();
         boolean first = true;
-        for(Map.Entry<String, Pair<String, Date>> c : cookiesSet) {
+        for(Map.Entry<String, Map.Entry<String, Date>> c : cookies.entrySet()) {
             if(!first) {
                 cookieBuilder.append("; ");
             }
             first = false;
-            Date expires = c.getValue().getSecond();
+            Date expires = c.getValue().getValue();
             if (expires == null || new Date().compareTo(expires)  ==  1) {
                 //only use unexpired cookies
-                cookieBuilder.append(c.getKey()).append("=").append(c.getValue().getFirst());
+                cookieBuilder.append(c.getKey()).append("=").append(c.getValue().getKey());
             }
         }
-        headerList.add(new Pair<String, String>("Cookie", cookieBuilder.toString()));
+        headerList.add(new AbstractMap.SimpleEntry<String, String>("Cookie", cookieBuilder.toString()));
 
         //build user headers
         if(this.headers != null) {
-            for(String name : this.headers.keySet()) {
-                headerList.add(new Pair<String, String>(name, this.headers.get(name)));
+            for(Map.Entry<String, String> header : this.headers) {
+                headerList.add(new AbstractMap.SimpleEntry<String, String>(header.getKey(), header.getValue()));
             }
         }
 
         //add headers to request
-        for(Pair<String, String> header: headerList) {
-            oReq.addHeader(header.getFirst(), header.getSecond());
+        for(Map.Entry<String, String> header: headerList) {
+            oReq.addHeader(header.getKey(), header.getValue());
         }
 
         oAuthService.signRequest(new Token("", ""), oReq);
@@ -331,7 +336,7 @@ public abstract class StackMobRequest {
                     //cookie only
                     String[] cookieSplit = val.split("=");
                     if (cookieSplit.length == 2) {
-                        cookies.put(valSplit[0], new Pair<String, Date>(valSplit[1], null));     
+                        cookies.put(valSplit[0], new AbstractMap.SimpleEntry<String, Date>(valSplit[1], null));
                     }
                 }
                 else if(valSplit.length == 2) {
@@ -344,24 +349,41 @@ public abstract class StackMobRequest {
                           try {
                             expires = cookieDateFormat.parse(expiresSplit[1]);
                           } catch (ParseException e) {
-
+                              //do nothing
                           }
                         }
-                        cookies.put(cookieSplit[0], new Pair<String, Date>(cookieSplit[1], expires));
+                        cookies.put(cookieSplit[0], new AbstractMap.SimpleEntry<String, Date>(cookieSplit[1], expires));
                     }
                 }
             }
         }
     }
 
+    protected static HttpVerb getRequestVerb(OAuthRequest req) {
+        HttpVerb requestVerb = HttpVerbWithoutPayload.GET;
+        if(req.getVerb() == Verb.POST) requestVerb = HttpVerbWithPayload.POST;
+        else if(req.getVerb() == Verb.PUT) requestVerb = HttpVerbWithPayload.PUT;
+        else if(req.getVerb() == Verb.DELETE) requestVerb = HttpVerbWithoutPayload.DELETE;
+        return requestVerb;
+    }
+    
+    protected static List<Map.Entry<String, String>> getRequestHeaders(OAuthRequest req) {
+        List<Map.Entry<String, String>> requestHeaders = new ArrayList<Map.Entry<String, String>>();
+        for(Map.Entry<String, String> header : req.getHeaders().entrySet()) {
+            requestHeaders.add(header);
+        }
+        return requestHeaders;
+    }
+    
     protected void sendRequest(final OAuthRequest req) throws InterruptedException, ExecutionException {
-        final StackMobCallback cb = this.callback;
+        final StackMobRawCallback cb = this.callback;
+
         executor.submit(new Callable<Object>() {
             @Override
             public String call() throws Exception {
-                Response ret = req.send();
-                if(HttpRedirectHelper.isRedirected(ret.getCode())) {
-                    try {
+                try {
+                    Response ret = req.send();
+                    if(HttpRedirectHelper.isRedirected(ret.getCode())) {
                         String newLocation = HttpRedirectHelper.getNewLocation(ret.getHeaders());
                         HttpVerb verb = HttpVerbHelper.valueOf(req.getVerb().toString());
                         OAuthRequest newReq = getOAuthRequest(verb, newLocation);
@@ -372,29 +394,31 @@ public abstract class StackMobRequest {
                         redirectedCallback.redirected(req.getUrl(), ret.getHeaders(), ret.getBody(), newReq.getUrl());
                         sendRequest(newReq);
                     }
-                    catch(Exception e) {
-                        callback.failure(new StackMobException(e.getMessage()));
+                    else {
+                        List<Map.Entry<String, String>> headers = new ArrayList<Map.Entry<String, String>>();
+                        for(Map.Entry<String, String> header : req.getHeaders().entrySet()) {
+                            headers.add(header);
+                        }
+                        cb.done(getRequestVerb(req),
+                                req.getUrl(),
+                                getRequestHeaders(req),
+                                req.getBodyContents(),
+                                ret.getCode(),
+                                headers,
+                                ret.getBody().getBytes());
+                        if(Http.isSuccess(ret.getCode())) {
+                            storeCookies(ret);
+                        }
                     }
                 }
-                else {
-                    //try to fetch the error
-                    JsonError err = null;
-                    try {
-                        err = gson.fromJson(ret.getBody(), JsonError.class);
-                    }
-                    catch (JsonSyntaxException e) {
-                        //not an error response
-                    }
-                    catch (JsonParseException e) {
-                        //not an error response
-                    }
-                    if(err != null && err.error != null) {
-                        cb.failure(new StackMobException(err.error));
-                    }
-                    else {
-                        storeCookies(ret);
-                        cb.success(ret.getBody());
-                    }
+                catch(Throwable t) {
+                    cb.done(getRequestVerb(req),
+                            req.getUrl(),
+                            getRequestHeaders(req),
+                            req.getBodyContents(),
+                            -1,
+                            EmptyHeaders,
+                            t.getMessage().getBytes());
                 }
                 return null;
             }

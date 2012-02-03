@@ -4,9 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.stackmob.sdk.exception.StackMobException;
 import com.stackmob.sdk.testobjects.Error;
-import com.stackmob.sdk.util.Pair;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -135,7 +135,7 @@ public class MultiThreadAsserter {
         throwIfException();
     }
 
-    public void assertLatchFinished(CountDownLatch latch, Pair<Long, TimeUnit> waitTime) throws StackMobException, InterruptedException {
+    public void assertLatchFinished(CountDownLatch latch, Map.Entry<Long, TimeUnit> waitTime) throws StackMobException, InterruptedException {
         throwIfException();
         CountDownLatchUtils.assertLatchFinished(latch, waitTime, bool, exception);
         throwIfException();
