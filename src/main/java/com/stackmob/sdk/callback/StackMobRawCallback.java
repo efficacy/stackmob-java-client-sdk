@@ -18,10 +18,11 @@ package com.stackmob.sdk.callback;
 
 import com.stackmob.sdk.net.HttpVerb;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public interface StackMobRawCallback {
+public abstract class StackMobRawCallback {
     /**
      * the method that will be called when the call to StackMob is complete. may be executed in a background thread
      * @param requestVerb the HTTP verb that was requested
@@ -32,11 +33,51 @@ public interface StackMobRawCallback {
      * @param responseHeaders the response headers from StackMob
      * @param responseBody the response body from StackMob
      */
-    void done(HttpVerb requestVerb,
+    abstract void done(HttpVerb requestVerb,
               String requestURL,
               List<Map.Entry<String, String>> requestHeaders,
               String requestBody,
               Integer responseStatusCode,
               List<Map.Entry<String, String>> responseHeaders,
               byte[] responseBody);
+
+    /**
+     * get the total number of items from the Content-Range header
+     * @param responseHeaders the headers that were returned in the response
+     * @return the total number of items returned in the Content-Range header, -1 if there was no Content-Range header
+     * or it was malformed, -2 if the Content-Length header was present and well formed but the instance length was "*"
+     */
+    public static Integer getTotalNumberOfItemsFromContentRange(List<Map.Entry<String, String>> responseHeaders) {
+        Map.Entry<String, String> contentLengthHeader = null;
+
+        for(Map.Entry<String, String> header: responseHeaders) {
+            if(header.getKey().toLowerCase().equals("content-length")) {
+                contentLengthHeader = header;
+            }
+        }
+
+        if(contentLengthHeader != null) {
+            List<String> hyphenSplit = Arrays.asList(contentLengthHeader.getValue().split("\\-"));
+            if(hyphenSplit.size() != 2) {
+                return -1;
+            }
+            List<String> slashSplit = Arrays.asList(hyphenSplit.get(1).split("/"));
+            if(slashSplit.size() != 2) {
+                return -1;
+            }
+            String instanceLengthString = slashSplit.get(1).trim();
+            if(instanceLengthString.equals("*")) {
+                return -2;
+            }
+            try {
+                return Integer.parseInt(instanceLengthString);
+            }
+            catch(Throwable t) {
+                return -1;
+            }
+        }
+        else {
+            return -1;
+        }
+    }
 }
