@@ -157,7 +157,7 @@ public class StackMob {
      * call the login method on StackMob
      * @param params parameters to pass to the login method
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult login(Map<String, String> params,
                       StackMobRawCallback callback) {
@@ -172,7 +172,7 @@ public class StackMob {
     /**
      * call the logout method on StackMob
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult logout(StackMobRawCallback callback) {
         return new StackMobUserBasedRequest(this.executor,
@@ -186,7 +186,7 @@ public class StackMob {
     /**
      * call the startsession method on StackMob
      * @param callback callback to call when the method completes
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult startSession(StackMobRawCallback callback) {
         return new StackMobRequestWithoutPayload(this.executor,
@@ -208,7 +208,7 @@ public class StackMob {
      * @param token the twitter session key (this is a per user key - different from the consumer key)
      * @param secret the twitter session secret (this is a per user secret - different from the consumer secret)
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult twitterLogin(String token,
                              String secret,
@@ -228,7 +228,7 @@ public class StackMob {
      * call the twitterStatusUpdate method on StackMob
      * @param message the message to send. must be <= 140 characters
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult twitterStatusUpdate(String message,
                                     StackMobRawCallback callback) {
@@ -248,7 +248,7 @@ public class StackMob {
      * @param secret the twitter session secret (this is a per user secret - different from the consumer secret)
      * @param username the username that the user should have
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult registerWithTwitterToken(String token,
                                          String secret,
@@ -271,7 +271,7 @@ public class StackMob {
      * @param token the twitter session key (this is a per user key - different from the consumer key)
      * @param secret the twitter session secret (this is a per user secret - different from the consumer secret)
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult linkUserWithTwitterToken(String token,
                                          String secret,
@@ -292,7 +292,7 @@ public class StackMob {
      * login into facebook on the StackMob platform
      * @param token the facebook user token
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult facebookLogin(String token,
                               StackMobRawCallback callback) {
@@ -312,7 +312,7 @@ public class StackMob {
      * @param token the facebook user token
      * @param username the StackMob username that the new user should have
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult registerWithFacebookToken(String token,
                                           String username,
@@ -333,7 +333,7 @@ public class StackMob {
      * link an existing StackMob user with a Facebook user
      * @param token the Facebook user token
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult linkUserWithFacebookToken(String token,
                                           StackMobRawCallback callback) {
@@ -352,7 +352,7 @@ public class StackMob {
      * post a message to facebook. this method will not post to FB and will return nothing if there is no user logged into FB
      * @param msg the message to post
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult facebookPostMessage(String msg,
                                     StackMobRawCallback callback) {
@@ -370,7 +370,7 @@ public class StackMob {
     /**
      * get facebook user info for the current user. this method will return nothing if there is no currently logged in FB user
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult getFacebookUserInfo(StackMobRawCallback callback) {
         return get("getFacebookUserInfo", callback);
@@ -379,7 +379,7 @@ public class StackMob {
     /**
      * get twitter user info for the current user. this method will return nothing if there is no currently logged in twitter user
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult getTwitterUserInfo(StackMobRawCallback callback) {
         return get("getTwitterUserInfo", callback);
@@ -394,7 +394,7 @@ public class StackMob {
      * @param payload the payload of the push notification to send
      * @param tokens the tokens to which to send
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult pushToTokens(Map<String, String> payload,
                              List<StackMobPushToken> tokens,
@@ -413,7 +413,7 @@ public class StackMob {
      * @param payload the payload to send
      * @param userIds the IDs of the users to which to send
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult pushToUsers(Map<String, String> payload,
                             List<String> userIds,
@@ -429,7 +429,7 @@ public class StackMob {
      * @param username the StackMob username to register
      * @param registrationID the C2DM registration ID. see http://code.google.com/android/c2dm/#registering for detail on how to get this ID
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult registerForPushWithUser(String username,
                                         String registrationID,
@@ -442,7 +442,7 @@ public class StackMob {
      * get all the tokens for the each of the given users
      * @param usernames the users whose tokens to get
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult getTokensForUsers(List<String> usernames,
                                   StackMobRawCallback callback) {
@@ -464,7 +464,7 @@ public class StackMob {
      * broadcast a push notification to all users of this app. use this method sparingly, especially if you have a large app
      * @param payload the payload to broadcast
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult broadcastPushNotification(Map<String, String> payload,
                                           StackMobRawCallback callback) {
@@ -477,7 +477,7 @@ public class StackMob {
      * get all expired push tokens for this app.
      * @param clear whether or not to clear the tokens after they've been returned
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     private StackMobRequestSendResult getExpiredPushTokens(Boolean clear,
                                       StackMobRawCallback callback) {
@@ -489,7 +489,7 @@ public class StackMob {
     /**
      * get all expired push tokens for this app, and clear them after they've been returned
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult getAndClearExpiredPushTokens(StackMobRawCallback callback) {
         return getExpiredPushTokens(true, callback);
@@ -498,7 +498,7 @@ public class StackMob {
     /**
      * get expired push tokens, but do not clear them after they've been returned
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult getExpiredPushTokens(StackMobRawCallback callback) {
         return getExpiredPushTokens(false, callback);
@@ -509,7 +509,7 @@ public class StackMob {
      * @param tokenString the token value
      * @param tokenType the type of the token
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult removePushToken(String tokenString,
                                 StackMobPushToken.TokenType tokenType,
@@ -528,7 +528,7 @@ public class StackMob {
      * do a get request on the StackMob platform
      * @param path the path to get
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult get(String path,
                     StackMobRawCallback callback) {
@@ -548,7 +548,7 @@ public class StackMob {
      * @param arguments arguments to be encoded into the query string of the get request
      * @param headerMap any additional headers to send
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult get(String path,
                     Map<String, String> arguments,
@@ -568,7 +568,7 @@ public class StackMob {
      * @param arguments arguments to be encoded into the query string of the get request
      * @param headers any additional headers to send
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult get(String path,
                     Map<String, String> arguments,
@@ -589,7 +589,7 @@ public class StackMob {
      * @param path the path to get
      * @param arguments the arguments to be encoded into the query string of the get request
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult get(String path,
                     Map<String, String> arguments,
@@ -601,7 +601,7 @@ public class StackMob {
      * do a get request on the StackMob platform
      * @param query the query to run
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult get(StackMobQuery query,
                        StackMobRawCallback callback) {
@@ -612,7 +612,7 @@ public class StackMob {
      * do a get request on the StackMob platform
      * @param query the query to run
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult get(StackMobQueryWithField query,
                     StackMobRawCallback callback) {
@@ -637,7 +637,7 @@ public class StackMob {
      * @param path the path to get
      * @param requestObject the object to serialize and send in the POST body. this object will be serialized with Gson
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult post(String path,
                      Object requestObject,
@@ -658,7 +658,7 @@ public class StackMob {
      * @param path the path to get
      * @param requestObjects List of objects to serialize and send in the POST body. the list will be serialized with Gson
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public <T> StackMobRequestSendResult postBulk(String path,
                              List<T> requestObjects,
@@ -681,7 +681,7 @@ public class StackMob {
    * @param relatedField name of the relation
    * @param relatedObject related object to post
    * @param callback callback to be called when the server returns. may execute in a separate thread
-   * @return true if the request was sent, false otherwise
+   * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
    */
     public StackMobRequestSendResult postRelated(String path,
                             String primaryId,
@@ -706,7 +706,7 @@ public class StackMob {
    * @param relatedField name of the relation
    * @param relatedObjects list of related objects to post. the list will be serialized with Gson
    * @param callback callback to be called when the server returns. may execute in a separate thread
-   * @return true if the request was sent, false otherwise
+   * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
    */
     public <T> StackMobRequestSendResult postRelatedBulk(String path,
                                     String primaryId,
@@ -736,7 +736,7 @@ public class StackMob {
      * @param id the id of the object to put
      * @param requestObject the object to serialize and send in the PUT body. this object will be serialized with Gson
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult put(String path,
                     String id,
@@ -761,7 +761,7 @@ public class StackMob {
      * @param relatedIds list of ids to atomically add to the relation. The type should be the same type as the primary
      *                   key field of the related object
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public <T> StackMobRequestSendResult putRelated(String path,
                                String primaryId,
@@ -785,7 +785,7 @@ public class StackMob {
      * @param path the path to delete
      * @param id the id of the object to put
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public StackMobRequestSendResult delete(String path,
                        String id,
@@ -809,7 +809,7 @@ public class StackMob {
      *                    ids should be same type as the primary id of the related type (most likely String or Integer)
      * @param cascadeDeletes true if related objects specified in idsToDelete should also be deleted
      * @param callback callback to be called when the server returns. may execute in a separate thread
-     * @return true if the request was sent, false otherwise
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
     public <T> StackMobRequestSendResult deleteIdsFrom(String path,
                                   String primaryId,
