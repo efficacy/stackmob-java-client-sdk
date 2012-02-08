@@ -16,6 +16,7 @@
 
 package com.stackmob.sdk;
 
+import com.stackmob.sdk.api.StackMobFile;
 import com.stackmob.sdk.api.StackMobQuery;
 import com.stackmob.sdk.api.StackMobQueryWithField;
 import com.stackmob.sdk.callback.StackMobCallback;
@@ -366,30 +367,42 @@ public class StackMobTests extends StackMobTestCommon {
         asserter.assertLatchFinished(latch);
     }
 
+
+   /*
+    * This test requires manual setup to pass. Your user2 schema must have a field "photo" of type binary.
+    * That should trigger it to upload the file to s3 rather than just storing the text
+    */
     @Test public void postWithBinaryFile() throws Exception {
         final String contentType = "text/plain";
-        final String fileName = "testS3File";
+        final String fileName = "test.jpg";
         final String content = "w00t";
-        final S3Object obj = new S3Object(contentType, fileName, content.getBytes());
-        final String expectedAWSPrefix = "http://s3.amazonaws.com/test-stackmob/" + obj.getName() + ".blob";
+        final String schema = "user2";
+        final String binaryField = "photo";
+        final StackMobFile obj = new StackMobFile(contentType, fileName, content.getBytes());
+        final String expectedAWSPrefix = "http://s3.amazonaws.com/upload-s3-test/" + schema + "." + binaryField;
+
+        Map<String, String> args = new HashMap<String, String>();
+        args.put("username", "bob");
+        args.put("photo", obj.toString());
 
         final CountDownLatch latch = latchOne();
         final MultiThreadAsserter asserter = new MultiThreadAsserter();
 
-        stackmob.post(obj.getName(), obj, new StackMobCallback() {
+        stackmob.post(schema, args, new StackMobCallback() {
             @Override
             public void success(String responseBody) {
                 asserter.markNotJsonError(responseBody);
                 S3Object obj = gson.fromJson(responseBody, S3Object.class);
-                StackMobObjectOnServer<S3Object> objOnServer = new StackMobObjectOnServer<S3Object>(stackmob, obj.s3Object_id, obj);
+                StackMobObjectOnServer<S3Object> objOnServer = new StackMobObjectOnServer<S3Object>(stackmob, obj.user_id, obj);
                 try {
                     objOnServer.delete();
                 }
                 catch (StackMobException e) {
                     asserter.markException(e);
                 }
-                asserter.markTrue(obj.blob.startsWith(expectedAWSPrefix));
-                asserter.markTrue(obj.blob.endsWith(fileName));
+                asserter.markFalse(obj.photo.startsWith("Content-Type:"));
+                asserter.markTrue(obj.photo.startsWith(expectedAWSPrefix));
+                asserter.markTrue(obj.photo.endsWith(fileName));
 
                 latch.countDown();
             }

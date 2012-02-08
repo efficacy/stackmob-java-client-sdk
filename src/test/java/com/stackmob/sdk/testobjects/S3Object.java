@@ -16,31 +16,30 @@
 
 package com.stackmob.sdk.testobjects;
 
-import java.util.List;
-import com.stackmob.sdk.util.BinaryFieldFormatter;
+import com.stackmob.sdk.api.StackMobFile;
 
 public class S3Object extends StackMobObject {
-    public String s3Object_id;
+    public String user_id;
+    public String username;
     public Long createddate;
     public Long lastmoddate;
-    public String blob;
+    public String photo;
 
     //for Gson
-    public S3Object(String s3ObjectId, long createddate, long lastmoddate, String s3FileName) {
-        this.s3Object_id = s3ObjectId;
+    public S3Object(String user_id, String username, long createddate, long lastmoddate, String s3FileName) {
+        this.user_id = user_id;
         this.createddate = createddate;
         this.lastmoddate = lastmoddate;
-        this.blob = s3FileName;
+        this.photo = s3FileName;
     }
 
     //for user
     public S3Object(String contentType, String s3FileName, byte[] bytes) {
-        BinaryFieldFormatter formatter = new BinaryFieldFormatter(contentType, s3FileName, bytes);
-        this.blob = formatter.getJsonValue();
+        this.photo = new StackMobFile(contentType, s3FileName, bytes).toString();
     }
 
-    @Override public String getIdField() { return s3Object_id; }
-    @Override public String getIdFieldName() { return "s3object_id"; }
-    @Override public String getName() { return "s3object"; }
+    @Override public String getIdField() { return user_id; }
+    @Override public String getIdFieldName() { return "user_id"; }
+    @Override public String getName() { return "user"; }
 
 }
