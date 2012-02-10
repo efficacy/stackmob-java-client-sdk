@@ -16,6 +16,7 @@
 
 package com.stackmob.sdk.api;
 
+import com.stackmob.sdk.callback.StackMobRawCallback;
 import com.stackmob.sdk.callback.StackMobRedirectedCallback;
 import com.stackmob.sdk.callback.StackMobCallback;
 import com.stackmob.sdk.net.HttpVerbWithoutPayload;
@@ -23,7 +24,22 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 public class StackMobUserBasedRequest extends StackMobRequestWithoutPayload {
-    public StackMobUserBasedRequest(ExecutorService executor, StackMobSession session, String method, Map<String, String> params, StackMobCallback cb, StackMobRedirectedCallback redirCb) {
+    public StackMobUserBasedRequest(ExecutorService executor,
+                                    StackMobSession session,
+                                    String method,
+                                    Map<String, String> params,
+                                    StackMobCallback cb,
+                                    StackMobRedirectedCallback redirCb) {
+        super(executor, session, HttpVerbWithoutPayload.GET, StackMobRequest.EmptyHeaders, params, method, cb, redirCb);
+        isSecure = true;
+    }
+
+    public StackMobUserBasedRequest(ExecutorService executor,
+                                    StackMobSession session,
+                                    String method,
+                                    Map<String, String> params,
+                                    StackMobRawCallback cb,
+                                    StackMobRedirectedCallback redirCb) {
         super(executor, session, HttpVerbWithoutPayload.GET, StackMobRequest.EmptyHeaders, params, method, cb, redirCb);
         isSecure = true;
     }

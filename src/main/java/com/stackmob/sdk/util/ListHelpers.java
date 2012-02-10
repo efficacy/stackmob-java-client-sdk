@@ -16,19 +16,19 @@
 
 package com.stackmob.sdk.util;
 
-public class Pair<T, U> {
-    private T one;
-    private U two;
-    public Pair(T one, U two) {
-        this.one = one;
-        this.two = two;
-    }
+import java.util.List;
 
-    public T getFirst() {
-        return one;
-    }
-
-    public U getSecond() {
-        return two;
+public class ListHelpers {
+    public static <T> String join(List<T> list, String sep) {
+        StringBuilder buf = new StringBuilder();
+        boolean first = true;
+        for(T elt : list) {
+            if(!first) {
+                buf.append(sep);
+            }
+            first = false;
+            buf.append(elt.toString());
+        }
+        return buf.toString();
     }
 }

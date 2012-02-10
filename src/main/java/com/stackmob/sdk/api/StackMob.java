@@ -16,7 +16,7 @@
 
 package com.stackmob.sdk.api;
 
-import com.stackmob.sdk.callback.StackMobCallback;
+import com.stackmob.sdk.callback.StackMobRawCallback;
 import com.stackmob.sdk.callback.StackMobRedirectedCallback;
 import com.stackmob.sdk.net.HttpVerbWithPayload;
 import com.stackmob.sdk.net.HttpVerbWithoutPayload;
@@ -24,9 +24,7 @@ import com.stackmob.sdk.push.StackMobPushToken;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -159,25 +157,39 @@ public class StackMob {
      * call the login method on StackMob
      * @param params parameters to pass to the login method
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void login(Map<String, String> params, StackMobCallback callback) {
-        new StackMobUserBasedRequest(this.executor, this.session, "login", params, callback, this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+    public StackMobRequestSendResult login(Map<String, String> params,
+                      StackMobRawCallback callback) {
+        return new StackMobUserBasedRequest(this.executor,
+                                            this.session,
+                                            "login",
+                                            params,
+                                            callback,
+                                            this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
     /**
      * call the logout method on StackMob
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void logout(StackMobCallback callback) {
-        new StackMobUserBasedRequest(this.executor, this.session, "logout", StackMobRequest.EmptyParams, callback, this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+    public StackMobRequestSendResult logout(StackMobRawCallback callback) {
+        return new StackMobUserBasedRequest(this.executor,
+                                     this.session,
+                                     "logout",
+                                     StackMobRequest.EmptyParams,
+                                     callback,
+                                     this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
     /**
      * call the startsession method on StackMob
      * @param callback callback to call when the method completes
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void startSession(StackMobCallback callback) {
-        new StackMobRequestWithoutPayload(this.executor,
+    public StackMobRequestSendResult startSession(StackMobRawCallback callback) {
+        return new StackMobRequestWithoutPayload(this.executor,
                                           this.session,
                                           HttpVerbWithoutPayload.GET,
                                           StackMobRequest.EmptyHeaders,
@@ -196,23 +208,38 @@ public class StackMob {
      * @param token the twitter session key (this is a per user key - different from the consumer key)
      * @param secret the twitter session secret (this is a per user secret - different from the consumer secret)
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void twitterLogin(String token, String secret, StackMobCallback callback) {
+    public StackMobRequestSendResult twitterLogin(String token,
+                             String secret,
+                             StackMobRawCallback callback) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("tw_tk", token);
         params.put("tw_ts", secret);
-        new StackMobUserBasedRequest(this.executor, this.session, "twitterlogin", params, callback, this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+        return new StackMobUserBasedRequest(this.executor,
+                                            this.session,
+                                            "twitterlogin",
+                                            params,
+                                            callback,
+                                            this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
     /**
      * call the twitterStatusUpdate method on StackMob
      * @param message the message to send. must be <= 140 characters
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void twitterStatusUpdate(String message, StackMobCallback callback) {
+    public StackMobRequestSendResult twitterStatusUpdate(String message,
+                                    StackMobRawCallback callback) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("tw_st", message);
-        new StackMobUserBasedRequest(this.executor, this.session, "twitterStatusUpdate", params, callback, this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+        return new StackMobUserBasedRequest(this.executor,
+                                            this.session,
+                                            "twitterStatusUpdate",
+                                            params,
+                                            callback,
+                                            this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
     /**
@@ -221,13 +248,22 @@ public class StackMob {
      * @param secret the twitter session secret (this is a per user secret - different from the consumer secret)
      * @param username the username that the user should have
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void registerWithTwitterToken(String token, String secret, String username, StackMobCallback callback) {
+    public StackMobRequestSendResult registerWithTwitterToken(String token,
+                                         String secret,
+                                         String username,
+                                         StackMobRawCallback callback) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("tw_tk", token);
         params.put("tw_ts", secret);
         params.put("username", username);
-        new StackMobUserBasedRequest(this.executor, this.session, "createUserWithTwitter", params, callback, this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+        return new StackMobUserBasedRequest(this.executor,
+                                            this.session,
+                                            "createUserWithTwitter",
+                                            params,
+                                            callback,
+                                            this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
     /**
@@ -235,25 +271,40 @@ public class StackMob {
      * @param token the twitter session key (this is a per user key - different from the consumer key)
      * @param secret the twitter session secret (this is a per user secret - different from the consumer secret)
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void linkUserWithTwitterToken(String token, String secret, StackMobCallback callback) {
+    public StackMobRequestSendResult linkUserWithTwitterToken(String token,
+                                         String secret,
+                                         StackMobRawCallback callback) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("tw_tk", token);
         params.put("tw_ts", secret);
 
-        new StackMobUserBasedRequest(this.executor, this.session, "linkUserWithTwitter", params, callback, this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+        return new StackMobUserBasedRequest(this.executor,
+                                            this.session,
+                                            "linkUserWithTwitter",
+                                            params,
+                                            callback,
+                                            this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
     /**
      * login into facebook on the StackMob platform
      * @param token the facebook user token
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void facebookLogin(String token, StackMobCallback callback) {
+    public StackMobRequestSendResult facebookLogin(String token,
+                              StackMobRawCallback callback) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("fb_at", token);
 
-        new StackMobUserBasedRequest(this.executor, this.session, "facebookLogin", params, callback, this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+        return new StackMobUserBasedRequest(this.executor,
+                                            this.session,
+                                            "facebookLogin",
+                                            params,
+                                            callback,
+                                            this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
     /**
@@ -261,53 +312,77 @@ public class StackMob {
      * @param token the facebook user token
      * @param username the StackMob username that the new user should have
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void registerWithFacebookToken(String token, String username, StackMobCallback callback) {
+    public StackMobRequestSendResult registerWithFacebookToken(String token,
+                                          String username,
+                                          StackMobRawCallback callback) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("fb_at", token);
         params.put("username", username);
 
-        new StackMobUserBasedRequest(this.executor, this.session, "createUserWithFacebook", params, callback, this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+        return new StackMobUserBasedRequest(this.executor,
+                                            this.session,
+                                            "createUserWithFacebook",
+                                            params,
+                                            callback,
+                                            this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
     /**
      * link an existing StackMob user with a Facebook user
      * @param token the Facebook user token
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void linkUserWithFacebookToken(String token, StackMobCallback callback) {
+    public StackMobRequestSendResult linkUserWithFacebookToken(String token,
+                                          StackMobRawCallback callback) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("fb_at", token);
 
-        new StackMobUserBasedRequest(this.executor, this.session, "linkUserWithFacebook", params, callback, this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+        return new StackMobUserBasedRequest(this.executor,
+                                            this.session,
+                                            "linkUserWithFacebook",
+                                            params,
+                                            callback,
+                                            this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
     /**
      * post a message to facebook. this method will not post to FB and will return nothing if there is no user logged into FB
      * @param msg the message to post
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void facebookPostMessage(String msg, StackMobCallback callback) {
+    public StackMobRequestSendResult facebookPostMessage(String msg,
+                                    StackMobRawCallback callback) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("message", msg);
 
-        new StackMobUserBasedRequest(this.executor, this.session, "postFacebookMessage", params, callback, this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+        return new StackMobUserBasedRequest(this.executor,
+                                            this.session,
+                                            "postFacebookMessage",
+                                            params,
+                                            callback,
+                                            this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
     /**
      * get facebook user info for the current user. this method will return nothing if there is no currently logged in FB user
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void getFacebookUserInfo(StackMobCallback callback) {
-        new StackMobUserBasedRequest(this.executor, this.session, "getFacebookUserInfo", new HashMap<String, String>(), callback, this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+    public StackMobRequestSendResult getFacebookUserInfo(StackMobRawCallback callback) {
+        return new StackMobUserBasedRequest(this.executor, this.session, "getFacebookUserInfo", new HashMap<String, String>(), callback, this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
     /**
      * get twitter user info for the current user. this method will return nothing if there is no currently logged in twitter user
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void getTwitterUserInfo(StackMobCallback callback) {
-        new StackMobUserBasedRequest(this.executor, this.session, "getTwitterUserInfo", new HashMap<String, String>(), callback, this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+    public StackMobRequestSendResult getTwitterUserInfo(StackMobRawCallback callback) {
+        return new StackMobUserBasedRequest(this.executor, this.session, "getTwitterUserInfo", new HashMap<String, String>(), callback, this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
     ////////////////////
@@ -319,15 +394,18 @@ public class StackMob {
      * @param payload the payload of the push notification to send
      * @param tokens the tokens to which to send
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void pushToTokens(Map<String, String> payload, List<StackMobPushToken> tokens, StackMobCallback callback) {
+    public StackMobRequestSendResult pushToTokens(Map<String, String> payload,
+                             List<StackMobPushToken> tokens,
+                             StackMobRawCallback callback) {
         Map<String, Object> finalPayload = new HashMap<String, Object>();
         Map<String, Object> payloadMap = new HashMap<String, Object>();
         payloadMap.put("kvPairs", payload);
         finalPayload.put("payload", payloadMap);
         finalPayload.put("tokens", tokens);
 
-        postPush("push_tokens_universal", finalPayload, callback);
+        return postPush("push_tokens_universal", finalPayload, callback);
     }
 
     /**
@@ -335,12 +413,15 @@ public class StackMob {
      * @param payload the payload to send
      * @param userIds the IDs of the users to which to send
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void pushToUsers(Map<String, String> payload, List<String> userIds, StackMobCallback callback) {
+    public StackMobRequestSendResult pushToUsers(Map<String, String> payload,
+                            List<String> userIds,
+                            StackMobRawCallback callback) {
         Map<String, Object> finalPayload = new HashMap<String, Object>();
         finalPayload.put("kvPairs", payload);
         finalPayload.put("userIds", userIds);
-        postPush("push_users_universal", finalPayload, callback);
+        return postPush("push_users_universal", finalPayload, callback);
     }
 
     /**
@@ -348,18 +429,23 @@ public class StackMob {
      * @param username the StackMob username to register
      * @param registrationID the C2DM registration ID. see http://code.google.com/android/c2dm/#registering for detail on how to get this ID
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void registerForPushWithUser(String username, String registrationID, StackMobCallback callback) {
+    public StackMobRequestSendResult registerForPushWithUser(String username,
+                                        String registrationID,
+                                        StackMobRawCallback callback) {
         RegistrationIDAndUser tokenAndUser = new RegistrationIDAndUser(registrationID, username);
-        postPush("register_device_token_universal", tokenAndUser, callback);
+        return postPush("register_device_token_universal", tokenAndUser, callback);
     }
 
     /**
      * get all the tokens for the each of the given users
      * @param usernames the users whose tokens to get
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void getTokensForUsers(List<String> usernames, StackMobCallback callback) {
+    public StackMobRequestSendResult getTokensForUsers(List<String> usernames,
+                                  StackMobRawCallback callback) {
         final StringBuilder userIds = new StringBuilder();
         boolean first = true;
         for(String username : usernames) {
@@ -371,45 +457,51 @@ public class StackMob {
         }
         Map<String, String> params = new HashMap<String, String>();
         params.put("userIds", userIds.toString());
-        getPush("get_tokens_for_users_universal", params, callback);
+        return getPush("get_tokens_for_users_universal", params, callback);
     }
 
     /**
      * broadcast a push notification to all users of this app. use this method sparingly, especially if you have a large app
      * @param payload the payload to broadcast
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void broadcastPushNotification(Map<String, String> payload, StackMobCallback callback) {
+    public StackMobRequestSendResult broadcastPushNotification(Map<String, String> payload,
+                                          StackMobRawCallback callback) {
         Map<String, Object> finalPayload = new HashMap<String, Object>();
         finalPayload.put("kvPairs", payload);
-        postPush("push_broadcast", finalPayload, callback);
+        return postPush("push_broadcast", finalPayload, callback);
     }
 
     /**
      * get all expired push tokens for this app.
      * @param clear whether or not to clear the tokens after they've been returned
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    private void getExpiredPushTokens(Boolean clear, StackMobCallback callback) {
+    private StackMobRequestSendResult getExpiredPushTokens(Boolean clear,
+                                      StackMobRawCallback callback) {
         Map<String, Object> finalPayload = new HashMap<String, Object>();
         finalPayload.put("clear", clear);
-        postPush("get_expired_tokens_universal", finalPayload, callback);
+        return postPush("get_expired_tokens_universal", finalPayload, callback);
     }
 
     /**
      * get all expired push tokens for this app, and clear them after they've been returned
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void getAndClearExpiredPushTokens(StackMobCallback callback) {
-        getExpiredPushTokens(true, callback);
+    public StackMobRequestSendResult getAndClearExpiredPushTokens(StackMobRawCallback callback) {
+        return getExpiredPushTokens(true, callback);
     }
 
     /**
      * get expired push tokens, but do not clear them after they've been returned
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void getExpiredPushTokens(StackMobCallback callback) {
-        getExpiredPushTokens(false, callback);
+    public StackMobRequestSendResult getExpiredPushTokens(StackMobRawCallback callback) {
+        return getExpiredPushTokens(false, callback);
     }
 
     /**
@@ -417,12 +509,15 @@ public class StackMob {
      * @param tokenString the token value
      * @param tokenType the type of the token
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void removePushToken(String tokenString, StackMobPushToken.TokenType tokenType, StackMobCallback callback) {
+    public StackMobRequestSendResult removePushToken(String tokenString,
+                                StackMobPushToken.TokenType tokenType,
+                                StackMobRawCallback callback) {
         Map<String, Object> finalPayload = new HashMap<String, Object>();
         finalPayload.put("token", tokenString);
         finalPayload.put("type", tokenType.toString());
-        postPush("remove_push_token_universal", finalPayload, callback);
+        return postPush("remove_push_token_universal", finalPayload, callback);
     }
 
     ////////////////////
@@ -433,9 +528,11 @@ public class StackMob {
      * do a get request on the StackMob platform
      * @param path the path to get
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void get(String path, StackMobCallback callback) {
-        new StackMobRequestWithoutPayload(this.executor,
+    public StackMobRequestSendResult get(String path,
+                    StackMobRawCallback callback) {
+        return new StackMobRequestWithoutPayload(this.executor,
                                           this.session,
                                           HttpVerbWithoutPayload.GET,
                                           StackMobRequest.EmptyHeaders,
@@ -449,34 +546,83 @@ public class StackMob {
      * do a get request on the StackMob platform
      * @param path the path to get
      * @param arguments arguments to be encoded into the query string of the get request
+     * @param headerMap any additional headers to send
+     * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
+     */
+    public StackMobRequestSendResult get(String path,
+                    Map<String, String> arguments,
+                    Map<String, String> headerMap,
+                    StackMobRawCallback callback) {
+        List<Map.Entry<String, String>> headers = new ArrayList<Map.Entry<String, String>>();
+        for(Map.Entry<String, String> header: headerMap.entrySet()) {
+            headers.add(header);
+        }
+
+        return get(path, arguments, headers, callback);
+    }
+
+    /**
+     * do a get request on the StackMob platform
+     * @param path the path to get
+     * @param arguments arguments to be encoded into the query string of the get request
      * @param headers any additional headers to send
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void get(String path, Map<String, String> arguments, Map<String, String> headers, StackMobCallback callback) {
-        new StackMobRequestWithoutPayload(this.executor,
-                                          this.session,
-                                          HttpVerbWithoutPayload.GET,
-                                          headers,
-                                          arguments,
-                                          path,
-                                          callback,
-                                          this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+    public StackMobRequestSendResult get(String path,
+                    Map<String, String> arguments,
+                    List<Map.Entry<String, String>> headers,
+                    StackMobRawCallback callback) {
+        return new StackMobRequestWithoutPayload(this.executor,
+                                                 this.session,
+                                                 HttpVerbWithoutPayload.GET,
+                                                 headers,
+                                                 arguments,
+                                                 path,
+                                                 callback,
+                                                 this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
-    public void get(String path, Map<String, String> arguments, StackMobCallback callback) {
-        this.get(path, arguments, StackMobRequest.EmptyHeaders, callback);
+    /**
+     * do a get request on the StackMob platform
+     * @param path the path to get
+     * @param arguments the arguments to be encoded into the query string of the get request
+     * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
+     */
+    public StackMobRequestSendResult get(String path,
+                    Map<String, String> arguments,
+                    StackMobRawCallback callback) {
+        return this.get(path, arguments, StackMobRequest.EmptyHeaders, callback);
     }
 
-    public void get(StackMobQuery query, StackMobCallback callback) {
-        this.get("/"+query.getObjectName(), query.getArguments(), query.getHeaders(), callback);
+    /**
+     * do a get request on the StackMob platform
+     * @param query the query to run
+     * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
+     */
+    public StackMobRequestSendResult get(StackMobQuery query,
+                       StackMobRawCallback callback) {
+        return this.get("/"+query.getObjectName(), query.getArguments(), query.getHeaders(), callback);
     }
 
-    public void get(StackMobQueryWithField query, StackMobCallback callback) {
-        this.get(query.getQuery(), callback);
+    /**
+     * do a get request on the StackMob platform
+     * @param query the query to run
+     * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
+     */
+    public StackMobRequestSendResult get(StackMobQueryWithField query,
+                    StackMobRawCallback callback) {
+        return this.get(query.getQuery(), callback);
     }
 
-    private void getPush(String path, Map<String, String> arguments, StackMobCallback callback) {
-        new StackMobRequestWithoutPayload(this.executor,
+    private StackMobRequestSendResult getPush(String path,
+                         Map<String, String> arguments,
+                         StackMobRawCallback callback) {
+        return new StackMobRequestWithoutPayload(this.executor,
                                           this.session,
                                           HttpVerbWithoutPayload.GET,
                                           StackMobRequest.EmptyHeaders,
@@ -491,17 +637,20 @@ public class StackMob {
      * @param path the path to get
      * @param requestObject the object to serialize and send in the POST body. this object will be serialized with Gson
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void post(String path, Object requestObject, StackMobCallback callback) {
-        new StackMobRequestWithPayload(this.executor,
-                                       this.session,
-                                       HttpVerbWithPayload.POST,
-                                       StackMobRequest.EmptyHeaders,
-                                       StackMobRequest.EmptyParams,
-                                       requestObject,
-                                       path,
-                                       callback,
-                                       this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+    public StackMobRequestSendResult post(String path,
+                     Object requestObject,
+                     StackMobRawCallback callback) {
+        return new StackMobRequestWithPayload(this.executor,
+                                              this.session,
+                                              HttpVerbWithPayload.POST,
+                                              StackMobRequest.EmptyHeaders,
+                                              StackMobRequest.EmptyParams,
+                                              requestObject,
+                                              path,
+                                              callback,
+                                              this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
     /**
@@ -509,17 +658,20 @@ public class StackMob {
      * @param path the path to get
      * @param requestObjects List of objects to serialize and send in the POST body. the list will be serialized with Gson
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public <T> void postBulk(String path, List<T> requestObjects, StackMobCallback callback) {
-        new StackMobRequestWithPayload(this.executor,
-                                       this.session,
-                                       HttpVerbWithPayload.POST,
-                                       StackMobRequest.EmptyHeaders,
-                                       StackMobRequest.EmptyParams,
-                                       requestObjects,
-                                       path,
-                                       callback,
-                                       this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+    public <T> StackMobRequestSendResult postBulk(String path,
+                             List<T> requestObjects,
+                             StackMobRawCallback callback) {
+        return new StackMobRequestWithPayload(this.executor,
+                                              this.session,
+                                              HttpVerbWithPayload.POST,
+                                              StackMobRequest.EmptyHeaders,
+                                              StackMobRequest.EmptyParams,
+                                              requestObjects,
+                                              path,
+                                              callback,
+                                              this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
   /**
@@ -529,17 +681,22 @@ public class StackMob {
    * @param relatedField name of the relation
    * @param relatedObject related object to post
    * @param callback callback to be called when the server returns. may execute in a separate thread
+   * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
    */
-    public void postRelated(String path, String primaryId, String relatedField, Object relatedObject, StackMobCallback callback) {
-      new StackMobRequestWithPayload(this.executor,
-                                     this.session,
-                                     HttpVerbWithPayload.POST,
-                                     StackMobRequest.EmptyHeaders,
-                                     StackMobRequest.EmptyParams,
-                                     relatedObject,
-                                     String.format("%s/%s/%s", path, primaryId, relatedField),
-                                     callback,
-                                     this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+    public StackMobRequestSendResult postRelated(String path,
+                            String primaryId,
+                            String relatedField,
+                            Object relatedObject,
+                            StackMobRawCallback callback) {
+      return new StackMobRequestWithPayload(this.executor,
+                                            this.session,
+                                            HttpVerbWithPayload.POST,
+                                            StackMobRequest.EmptyHeaders,
+                                            StackMobRequest.EmptyParams,
+                                            relatedObject,
+                                            String.format("%s/%s/%s", path, primaryId, relatedField),
+                                            callback,
+                                            this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
   /**
@@ -549,21 +706,28 @@ public class StackMob {
    * @param relatedField name of the relation
    * @param relatedObjects list of related objects to post. the list will be serialized with Gson
    * @param callback callback to be called when the server returns. may execute in a separate thread
+   * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
    */
-    public <T> void postRelatedBulk(String path, String primaryId, String relatedField, List<T> relatedObjects, StackMobCallback callback) {
-        postRelated(path, primaryId, relatedField, relatedObjects, callback);
+    public <T> StackMobRequestSendResult postRelatedBulk(String path,
+                                    String primaryId,
+                                    String relatedField,
+                                    List<T> relatedObjects,
+                                    StackMobRawCallback callback) {
+        return postRelated(path, primaryId, relatedField, relatedObjects, callback);
     }
 
-    private void postPush(String path, Object requestObject, StackMobCallback callback) {
-        new StackMobRequestWithPayload(this.executor,
-                                       this.session,
-                                       HttpVerbWithPayload.POST,
-                                       StackMobRequest.EmptyHeaders,
-                                       StackMobRequest.EmptyParams,
-                                       requestObject,
-                                       path,
-                                       callback,
-                                       this.redirectedCallback).setUrlFormat(this.pushUrlFormat).sendRequest();
+    private StackMobRequestSendResult postPush(String path,
+                          Object requestObject,
+                          StackMobRawCallback callback) {
+        return new StackMobRequestWithPayload(this.executor,
+                                              this.session,
+                                              HttpVerbWithPayload.POST,
+                                              StackMobRequest.EmptyHeaders,
+                                              StackMobRequest.EmptyParams,
+                                              requestObject,
+                                              path,
+                                              callback,
+                                              this.redirectedCallback).setUrlFormat(this.pushUrlFormat).sendRequest();
     }
 
     /**
@@ -572,9 +736,13 @@ public class StackMob {
      * @param id the id of the object to put
      * @param requestObject the object to serialize and send in the PUT body. this object will be serialized with Gson
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void put(String path, String id, Object requestObject, StackMobCallback callback) {
-        new StackMobRequestWithPayload(this.executor,
+    public StackMobRequestSendResult put(String path,
+                    String id,
+                    Object requestObject,
+                    StackMobRawCallback callback) {
+        return new StackMobRequestWithPayload(this.executor,
                             this.session,
                             HttpVerbWithPayload.PUT,
                             StackMobRequest.EmptyHeaders,
@@ -593,17 +761,22 @@ public class StackMob {
      * @param relatedIds list of ids to atomically add to the relation. The type should be the same type as the primary
      *                   key field of the related object
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public <T> void putRelated(String path, String primaryId, String relatedField, List<T> relatedIds, StackMobCallback callback) {
-        new StackMobRequestWithPayload(this.executor,
-                            this.session,
-                            HttpVerbWithPayload.PUT,
-                            StackMobRequest.EmptyHeaders,
-                            StackMobRequest.EmptyParams,
-                            relatedIds,
-                            String.format("%s/%s/%s", path, primaryId, relatedField),
-                            callback,
-                            this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+    public <T> StackMobRequestSendResult putRelated(String path,
+                               String primaryId,
+                               String relatedField,
+                               List<T> relatedIds,
+                               StackMobRawCallback callback) {
+        return new StackMobRequestWithPayload(this.executor,
+                                              this.session,
+                                              HttpVerbWithPayload.PUT,
+                                              StackMobRequest.EmptyHeaders,
+                                              StackMobRequest.EmptyParams,
+                                              relatedIds,
+                                              String.format("%s/%s/%s", path, primaryId, relatedField),
+                                              callback,
+                                              this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
 
@@ -612,16 +785,19 @@ public class StackMob {
      * @param path the path to delete
      * @param id the id of the object to put
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public void delete(String path, String id, StackMobCallback callback) {
-        new StackMobRequestWithoutPayload(this.executor,
-                                          this.session,
-                                          HttpVerbWithoutPayload.DELETE,
-                                          StackMobRequest.EmptyHeaders,
-                                          StackMobRequest.EmptyParams,
-                                          path + "/" + id,
-                                          callback,
-                                          this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+    public StackMobRequestSendResult delete(String path,
+                       String id,
+                       StackMobRawCallback callback) {
+        return new StackMobRequestWithoutPayload(this.executor,
+                                                 this.session,
+                                                 HttpVerbWithoutPayload.DELETE,
+                                                 StackMobRequest.EmptyHeaders,
+                                                 StackMobRequest.EmptyParams,
+                                                 path + "/" + id,
+                                                 callback,
+                                                 this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
 
     /**
@@ -633,9 +809,14 @@ public class StackMob {
      *                    ids should be same type as the primary id of the related type (most likely String or Integer)
      * @param cascadeDeletes true if related objects specified in idsToDelete should also be deleted
      * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
      */
-    public <T> void deleteIdsFrom(String path, String primaryId, String field, List<T> idsToDelete,
-                              boolean cascadeDeletes, StackMobCallback callback) {
+    public <T> StackMobRequestSendResult deleteIdsFrom(String path,
+                                  String primaryId,
+                                  String field,
+                                  List<T> idsToDelete,
+                                  boolean cascadeDeletes,
+                                  StackMobRawCallback callback) {
         StringBuilder ids = new StringBuilder();
         for (int i = 0; i < idsToDelete.size(); i++) {
             ids.append(idsToDelete.get(i).toString());
@@ -643,18 +824,18 @@ public class StackMob {
                 ids.append(",");  
             }
         }
-        Map<String, String> headers = new HashMap<String, String>();
+        List<Map.Entry<String, String>> headers = new ArrayList<Map.Entry<String, String>>();
         if (cascadeDeletes) {
-            headers.put("X-StackMob-CascadeDelete", "true");
+            headers.add(new AbstractMap.SimpleEntry<String, String>("X-StackMob-CascadeDelete", "true"));
         }
-        new StackMobRequestWithoutPayload(this.executor,
-                                          this.session,
-                                          HttpVerbWithoutPayload.DELETE,
-                                          headers,
-                                          StackMobRequest.EmptyParams,
-                                          String.format("%s/%s/%s/%s", path, primaryId, field, ids.toString()),
-                                          callback,
-                                          this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+        return new StackMobRequestWithoutPayload(this.executor,
+                                                 this.session,
+                                                 HttpVerbWithoutPayload.DELETE,
+                                                 headers,
+                                                 StackMobRequest.EmptyParams,
+                                                 String.format("%s/%s/%s/%s", path, primaryId, field, ids.toString()),
+                                                 callback,
+                                                 this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
   
     /**
@@ -667,21 +848,26 @@ public class StackMob {
      * @param cascadeDelete true if related object specified in idToDelete should also be deleted
      * @param callback callback to be called when the server returns. may execute in a separate thread
      */
-    public <T> void deleteIdFrom(String path, String primaryId, String field, T idToDelete,
-                              boolean cascadeDelete, StackMobCallback callback) {
-      Map<String, String> headers = new HashMap<String, String>();
-      if (cascadeDelete) {
-          headers.put("X-StackMob-CascadeDelete", "true");
-      }
-      new StackMobRequestWithoutPayload(this.executor,
-                                                this.session,
-                                                HttpVerbWithoutPayload.DELETE,
-                                                headers,
-                                                StackMobRequest.EmptyParams,
-                                                String.format("%s/%s/%s/%s", path, primaryId, field, idToDelete),
-                                                callback,
-                                                this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+    public <T> StackMobRequestSendResult deleteIdFrom(String path,
+                                 String primaryId,
+                                 String field,
+                                 T idToDelete,
+                                 boolean cascadeDelete,
+                                 StackMobRawCallback callback) {
+        List<Map.Entry<String, String>> headers = new ArrayList<Map.Entry<String, String>>();
+        if (cascadeDelete) {
+            headers.add(new AbstractMap.SimpleEntry<String, String>("X-StackMob-CascadeDelete", "true"));
+        }
+        return new StackMobRequestWithoutPayload(this.executor,
+                                                 this.session,
+                                                 HttpVerbWithoutPayload.DELETE,
+                                                 headers,
+                                                 StackMobRequest.EmptyParams,
+                                                 String.format("%s/%s/%s/%s", path, primaryId, field, idToDelete),
+                                                 callback,
+                                                 this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
+
 
     /**
      * get the session that this StackMob object contains

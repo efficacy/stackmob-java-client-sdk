@@ -16,23 +16,6 @@
 
 package com.stackmob.sdk.testobjects;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-import com.google.gson.reflect.TypeToken;
-import com.stackmob.sdk.api.StackMob;
-import com.stackmob.sdk.callback.StackMobCallback;
-import com.stackmob.sdk.exception.StackMobException;
-import com.stackmob.sdk.util.Pair;
-
-import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static org.junit.Assert.*;
-
 public abstract class StackMobObject {
 
     public abstract String getIdField();

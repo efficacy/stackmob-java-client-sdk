@@ -117,4 +117,22 @@ public class StackMobRequestTests extends StackMobTestCommon {
 
         request.sendRequest();
     }
+    
+    @Test
+    public void testRequestShouldReturnSendSuccess() {
+        StackMobRequest request = new StackMobRequestWithoutPayload(executor, session, HttpVerbWithoutPayload.GET, "listapi", new StackMobCallback() {
+            @Override
+            public void success(String responseBody) {
+                assertNotNull(responseBody);
+            }
+
+            @Override
+            public void failure(StackMobException e) {
+                fail(e.getMessage());
+            }
+        }, redirectedCallback);
+        StackMobRequestSendResult sendResult = request.setUrlFormat("nonexistent").sendRequest();
+        assertEquals(sendResult.getStatus(), StackMobRequestSendResult.RequestSendStatus.SENT);
+        assertNull(sendResult.getFailureReason());
+    }
 }

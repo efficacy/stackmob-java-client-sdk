@@ -16,26 +16,32 @@
 
 package com.stackmob.sdk.api;
 
-import com.stackmob.sdk.callback.StackMobCallback;
+import com.stackmob.sdk.callback.StackMobRawCallback;
 import com.stackmob.sdk.callback.StackMobRedirectedCallback;
 import com.stackmob.sdk.net.HttpVerbWithoutPayload;
 
 import java.util.concurrent.ExecutorService;
 import java.util.Map;
+import java.util.List;
 
 public class StackMobRequestWithoutPayload extends StackMobRequest {
     public StackMobRequestWithoutPayload(ExecutorService executor,
                                          StackMobSession session,
                                          HttpVerbWithoutPayload verb,
-                                         Map<String, String> headers,
+                                         List<Map.Entry<String, String>> headers,
                                          Map<String, String> params,
                                          String method,
-                                         StackMobCallback cb,
+                                         StackMobRawCallback cb,
                                          StackMobRedirectedCallback redirCb) {
         super(executor, session, verb, headers, params, method, cb, redirCb);
     }
 
-    public StackMobRequestWithoutPayload(ExecutorService executor, StackMobSession session, HttpVerbWithoutPayload verb, String method, StackMobCallback cb, StackMobRedirectedCallback redirCb) {
+    public StackMobRequestWithoutPayload(ExecutorService executor,
+                                         StackMobSession session,
+                                         HttpVerbWithoutPayload verb,
+                                         String method,
+                                         StackMobRawCallback cb,
+                                         StackMobRedirectedCallback redirCb) {
         this(executor, session, verb, StackMobRequest.EmptyHeaders, StackMobRequest.EmptyParams, method, cb, redirCb);
     }
 
