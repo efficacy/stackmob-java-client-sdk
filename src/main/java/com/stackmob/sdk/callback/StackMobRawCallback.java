@@ -33,13 +33,13 @@ public abstract class StackMobRawCallback {
      * @param responseHeaders the response headers from StackMob
      * @param responseBody the response body from StackMob
      */
-    abstract void done(HttpVerb requestVerb,
-              String requestURL,
-              List<Map.Entry<String, String>> requestHeaders,
-              String requestBody,
-              Integer responseStatusCode,
-              List<Map.Entry<String, String>> responseHeaders,
-              byte[] responseBody);
+    public abstract void done(HttpVerb requestVerb,
+                              String requestURL,
+                              List<Map.Entry<String, String>> requestHeaders,
+                              String requestBody,
+                              Integer responseStatusCode,
+                              List<Map.Entry<String, String>> responseHeaders,
+                              byte[] responseBody);
 
     /**
      * get the total number of items from the Content-Range header

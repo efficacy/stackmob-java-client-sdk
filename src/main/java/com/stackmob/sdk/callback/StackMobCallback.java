@@ -24,7 +24,7 @@ import com.stackmob.sdk.util.Http;
 import java.util.List;
 import java.util.Map;
 
-public abstract class StackMobCallback implements StackMobRawCallback {
+public abstract class StackMobCallback extends StackMobRawCallback {
     @Override public void done(HttpVerb requestVerb,
                                String requestURL,
                                List<Map.Entry<String, String>> requestHeaders,
