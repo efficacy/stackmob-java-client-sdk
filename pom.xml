@@ -146,7 +146,7 @@
               <version>2.10</version>
               <configuration>
                 <includes>
-                  <!--<include>**/*Tests.java</include>-->
+                  <include>**/*Tests.java</include>
                 </includes>
                 <argLine>-Xmx1024m</argLine>
                 <parallel>both</parallel>
