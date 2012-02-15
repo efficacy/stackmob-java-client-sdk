@@ -108,6 +108,11 @@ public class StackMobTests extends StackMobTestCommon {
                 asserter.markNotJsonError(responseBody);
                 final CountDownLatch logoutLatch = latchOne();
 
+                try {
+                    //Avoid a race condition with the server
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) { }
+
                 stackmob.logout(new StackMobCallback() {
                     @Override public void success(String responseBody2) {
                         asserter.markNotNull(responseBody2);
