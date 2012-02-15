@@ -384,7 +384,7 @@ public class StackMobTests extends StackMobTestCommon {
         final String schema = "user2";
         final String binaryField = "photo";
         final StackMobFile obj = new StackMobFile(contentType, fileName, content.getBytes());
-        final String expectedAWSPrefix = "http://s3.amazonaws.com/upload-s3-test/" + schema + "." + binaryField;
+        final String expectedAWSPrefix = "http://s3.amazonaws.com/test-stackmob/" + schema + "." + binaryField;
 
         Map<String, String> args = new HashMap<String, String>();
         args.put("username", "bob");
