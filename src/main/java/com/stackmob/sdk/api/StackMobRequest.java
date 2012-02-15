@@ -400,6 +400,9 @@ public abstract class StackMobRequest {
                         for(Map.Entry<String, String> header : req.getHeaders().entrySet()) {
                             headers.add(header);
                         }
+                        if(Http.isSuccess(ret.getCode())) {
+                            storeCookies(ret);
+                        }
                         cb.done(getRequestVerb(req),
                                 req.getUrl(),
                                 getRequestHeaders(req),
@@ -407,9 +410,6 @@ public abstract class StackMobRequest {
                                 ret.getCode(),
                                 headers,
                                 ret.getBody().getBytes());
-                        if(Http.isSuccess(ret.getCode())) {
-                            storeCookies(ret);
-                        }
                     }
                 }
                 catch(Throwable t) {
