@@ -403,13 +403,16 @@ public abstract class StackMobRequest {
                         if(Http.isSuccess(ret.getCode())) {
                             storeCookies(ret);
                         }
-                        cb.done(getRequestVerb(req),
-                                req.getUrl(),
-                                getRequestHeaders(req),
-                                req.getBodyContents(),
-                                ret.getCode(),
-                                headers,
-                                ret.getBody().getBytes());
+                        try {
+                            cb.done(getRequestVerb(req),
+                                    req.getUrl(),
+                                    getRequestHeaders(req),
+                                    req.getBodyContents(),
+                                    ret.getCode(),
+                                    headers,
+                                    ret.getBody().getBytes());
+                        }
+                        catch(Throwable t) {}
                     }
                 }
                 catch(Throwable t) {
