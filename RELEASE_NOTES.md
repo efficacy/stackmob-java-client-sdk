@@ -1,5 +1,9 @@
 # Stackmob Java SDK (Release Notes)
 
+### 0.3.2 (12/16/2011)
+* Added support for android binary file upload
+* Refactored StackMobCallback into StackMobRawCallback
+
 ### 0.3.0 (12/13/2011)
 * Added GeoPoint support and Geospatial NEAR and WITHIN queries
 * Advanced Relations support: post related object(s), add/delete items to relatioships and array-type fields
