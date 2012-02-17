@@ -20,10 +20,19 @@ public class User extends StackMobObject {
 
     public String username;
     public String password;
+    public String email;
     public Long createddate;
     public Long lastmoddate;
 
     //this ctor is used for gson deserialization
+    public User(String username, String password, String email, long createddate, long lastmoddate) {
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.createddate = createddate;
+        this.lastmoddate = lastmoddate;
+    }
+
     public User(String username, String password, long createddate, long lastmoddate) {
         this.username = username;
         this.password = password;
@@ -34,6 +43,12 @@ public class User extends StackMobObject {
     public User(String username, String password) {
         this.username = username;
         this.password = password;
+    }
+
+    public User(String username, String password, String email) {
+        this.username = username;
+        this.password = password;
+        this.email = email;
     }
 
     @Override public String getIdField() { return username; }

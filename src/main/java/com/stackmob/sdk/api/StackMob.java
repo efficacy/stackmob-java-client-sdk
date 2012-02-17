@@ -867,6 +867,62 @@ public class StackMob {
                                                  callback,
                                                  this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
     }
+    
+    //Forgot/reset password
+
+    /**
+     * send out a password reset email to a user who's forgotten their password
+     * @param username the user who's forgotten their password
+     * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
+     */
+
+    public StackMobRequestSendResult forgotPassword(String username,
+                                                   StackMobRawCallback callback) {
+
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("username", username);
+        return new StackMobUserBasedRequest(this.executor,
+                                            this.session,
+                                            HttpVerbWithPayload.POST,
+                                            StackMobRequest.EmptyHeaders,
+                                            StackMobRequest.EmptyParams,
+                                            params,
+                                            "forgotPassword",
+                                            callback,
+                                            this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+    }
+
+    /**
+     * reset the logged in user's password
+     * @param oldPassword the old temporary password
+     * @param newPassword the new password that the user just created
+     * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
+     */
+
+    public StackMobRequestSendResult resetPassword(String oldPassword,
+                                                   String newPassword,
+                                                   StackMobRawCallback callback) {
+
+        Map<String, Map<String, String>> params = new HashMap<String, Map<String, String>>();
+        Map<String, String> oldPW = new HashMap<String, String>();
+        oldPW.put("password", oldPassword);
+        Map<String, String> newPW = new HashMap<String, String>();
+        newPW.put("password", newPassword);
+        params.put("old", oldPW);
+        params.put("new", newPW);
+        return new StackMobUserBasedRequest(this.executor,
+                                            this.session,
+                                            HttpVerbWithPayload.POST,
+                                            StackMobRequest.EmptyHeaders,
+                                            StackMobRequest.EmptyParams,
+                                            params,
+                                            "resetPassword",
+                                            callback,
+                                            this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+    }
+
 
 
     /**

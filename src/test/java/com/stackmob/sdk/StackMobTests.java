@@ -29,6 +29,9 @@ import com.stackmob.sdk.testobjects.StackMobObjectOnServer;
 import com.stackmob.sdk.testobjects.User;
 import org.junit.Test;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
@@ -620,12 +623,14 @@ public class StackMobTests extends StackMobTestCommon {
         final MultiThreadAsserter asserter = new MultiThreadAsserter();
 
         stackmob.registerForPushWithUser(objectId, token, new StackMobCallback() {
-            @Override public void success(String responseBody) {
+            @Override
+            public void success(String responseBody) {
                 asserter.markNotJsonError(responseBody);
                 latch.countDown();
             }
 
-            @Override public void failure(StackMobException e) {
+            @Override
+            public void failure(StackMobException e) {
                 asserter.markException(e);
             }
         });
@@ -654,4 +659,107 @@ public class StackMobTests extends StackMobTestCommon {
         });
         asserter.assertLatchFinished(latch);
     }
+
+    /*
+     * uncomment once schemas are updated to support forgot and reset password
+    @Test public void forgotPassword() throws Exception {
+        final String username = getRandomString();
+        final String password = getRandomString();
+        final String email = getRandomString();
+        final User user = new User(username, password, email);
+        final StackMobObjectOnServer<User> objectOnServer = createOnServer(user, User.class);
+        final CountDownLatch latch = latchOne();
+        final MultiThreadAsserter asserter = new MultiThreadAsserter();
+        stackmob.forgotPassword(username, new StackMobCallback() {
+            @Override
+            public void success(String responseBody) {
+                asserter.markNotJsonError(responseBody);
+                latch.countDown();
+            }
+
+            @Override
+            public void failure(StackMobException e) {
+                asserter.markException(e);
+            }
+        });
+        asserter.assertLatchFinished(latch);
+    }
+
+    @Test public void loginAfterForgotPassword() throws Exception {
+        final String username = getRandomString();
+        final String password = getRandomString();
+        final String email = getRandomString();
+        final User user = new User(username, password, email);
+        final StackMobObjectOnServer<User> objectOnServer = createOnServer(user, User.class);
+        final CountDownLatch latch = latchOne();
+        final MultiThreadAsserter asserter = new MultiThreadAsserter();
+        stackmob.forgotPassword(username, new StackMobCallback() {
+            @Override
+            public void success(String responseBody) {
+                asserter.markNotJsonError(responseBody);
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("username", user.username);
+                params.put("password", user.password);
+                params.put("email", user.email);
+                stackmob.login(params, new StackMobCallback() {
+                    @Override
+                    public void success(String responseBody) {
+                        asserter.markNotJsonError(responseBody);
+                        latch.countDown();
+                    }
+
+                    @Override
+                    public void failure(StackMobException e) {
+                        asserter.markException(e);
+                    }
+                });
+            }
+
+            @Override
+            public void failure(StackMobException e) {
+                asserter.markException(e);
+            }
+        });
+        asserter.assertLatchFinished(latch);
+    }
+
+    @Test public void resetPassword() throws Exception {
+        final String username = getRandomString();
+        final String password = getRandomString();
+        final String email = getRandomString();
+        final User user = new User(username, password, email);
+        final StackMobObjectOnServer<User> objectOnServer = createOnServer(user, User.class);
+        final CountDownLatch latch = latchOne();
+        final MultiThreadAsserter asserter = new MultiThreadAsserter();
+
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("username", user.username);
+        params.put("password", user.password);
+        params.put("email", user.email);
+        stackmob.login(params, new StackMobCallback() {
+            @Override
+            public void success(String responseBody) {
+                asserter.markNotJsonError(responseBody);
+                stackmob.resetPassword(user.password, "foo", new StackMobCallback() {
+                    @Override
+                    public void success(String responseBody) {
+                        asserter.markNotJsonError(responseBody);
+                        latch.countDown();
+                    }
+
+                    @Override
+                    public void failure(StackMobException e) {
+                        asserter.markException(e);
+                    }
+                });
+            }
+
+            @Override
+            public void failure(StackMobException e) {
+                asserter.markException(e);
+            }
+        });
+        asserter.assertLatchFinished(latch);
+    }
+         */
 }

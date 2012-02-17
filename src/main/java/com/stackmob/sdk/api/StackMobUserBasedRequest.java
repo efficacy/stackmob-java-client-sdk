@@ -19,20 +19,17 @@ package com.stackmob.sdk.api;
 import com.stackmob.sdk.callback.StackMobRawCallback;
 import com.stackmob.sdk.callback.StackMobRedirectedCallback;
 import com.stackmob.sdk.callback.StackMobCallback;
+import com.stackmob.sdk.net.HttpVerb;
+import com.stackmob.sdk.net.HttpVerbWithPayload;
 import com.stackmob.sdk.net.HttpVerbWithoutPayload;
+
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
-public class StackMobUserBasedRequest extends StackMobRequestWithoutPayload {
-    public StackMobUserBasedRequest(ExecutorService executor,
-                                    StackMobSession session,
-                                    String method,
-                                    Map<String, String> params,
-                                    StackMobCallback cb,
-                                    StackMobRedirectedCallback redirCb) {
-        super(executor, session, HttpVerbWithoutPayload.GET, StackMobRequest.EmptyHeaders, params, method, cb, redirCb);
-        isSecure = true;
-    }
+public class StackMobUserBasedRequest extends StackMobRequest {
+
+    private Object requestObject;
 
     public StackMobUserBasedRequest(ExecutorService executor,
                                     StackMobSession session,
@@ -44,6 +41,20 @@ public class StackMobUserBasedRequest extends StackMobRequestWithoutPayload {
         isSecure = true;
     }
 
+    public StackMobUserBasedRequest(ExecutorService executor,
+                                    StackMobSession session,
+                                    HttpVerb verb,
+                                    List<Map.Entry<String, String>> headers,
+                                    Map<String, String> params,
+                                    Object requestObject,
+                                    String method,
+                                    StackMobRawCallback cb,
+                                    StackMobRedirectedCallback redirCb) {
+        super(executor, session, verb, headers, params, method, cb, redirCb);
+        this.isSecure = true;
+        this.requestObject = requestObject;
+    }
+
     @Override
     protected String getPath() {
         return "/" + session.getUserObjectName() + "/" + methodName;
@@ -53,5 +64,12 @@ public class StackMobUserBasedRequest extends StackMobRequestWithoutPayload {
     public StackMobUserBasedRequest setUrlFormat(String urlFormat) {
         this.urlFormat = urlFormat;
         return this;
+    }
+
+    @Override protected String getRequestBody() {
+        if(this.requestObject != null) {
+            return gson.toJson(this.requestObject);
+        }
+        return "";
     }
 }
