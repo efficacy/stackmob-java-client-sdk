@@ -78,7 +78,7 @@ public class StackMob {
     }
 
     public boolean isLoggedIn() {
-        return StackMobRequest.getCookieStore().getCookie("session_2979") != null;
+        return StackMobRequest.getCookieStore().hasSessionCookie();
     }
 
     /**
