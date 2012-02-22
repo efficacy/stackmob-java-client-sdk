@@ -5,6 +5,8 @@ import com.google.gson.JsonParseException;
 import com.stackmob.sdk.exception.StackMobException;
 import com.stackmob.sdk.testobjects.Error;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -19,7 +21,9 @@ public class MultiThreadAsserter {
     private Gson gson = new Gson();
 
     private void setException(String s) {
-        setException(new StackMobException(s));
+        StringWriter writer = new StringWriter();
+        new Throwable().printStackTrace(new PrintWriter(writer));
+        setException(new StackMobException(s + "\n" + writer.toString()));
     }
 
     private void setException(StackMobException s) {
