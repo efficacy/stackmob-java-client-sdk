@@ -38,17 +38,8 @@ import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.AbstractMap;
-import java.util.Date;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 
@@ -62,11 +53,15 @@ public abstract class StackMobRequest {
     public static final String DEFAULT_PUSH_URL_FORMAT = "push." + DEFAULT_URL_FORMAT;
     protected static final String SECURE_SCHEME = "https";
     protected static final String REGULAR_SCHEME = "http";
+    private static StackMobCookieStore cookieStore = new StackMobCookieStore();
 
-    protected static final ConcurrentHashMap<String, Map.Entry<String, Date>> cookies = new ConcurrentHashMap<String, Map.Entry<String, Date>>();
-    protected static final String SetCookieHeaderKey = "Set-Cookie";
-    protected static final DateFormat cookieDateFormat = new SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss z");
-    protected static final String EXPIRES = "Expires";
+    public static void setCookieStore(StackMobCookieStore store) {
+        cookieStore = store;
+    }
+
+    public static StackMobCookieStore getCookieStore() {
+        return cookieStore;
+    }
 
     protected final ExecutorService executor;
     protected final StackMobSession session;
@@ -289,22 +284,7 @@ public abstract class StackMobRequest {
         headerList.add(new AbstractMap.SimpleEntry<String, String>("Content-Type", contentType));
         headerList.add(new AbstractMap.SimpleEntry<String, String>("Accept", accept));
         headerList.add(new AbstractMap.SimpleEntry<String, String>("User-Agent", userAgent));
-
-        //build cookie header
-        StringBuilder cookieBuilder = new StringBuilder();
-        boolean first = true;
-        for(Map.Entry<String, Map.Entry<String, Date>> c : cookies.entrySet()) {
-            if(!first) {
-                cookieBuilder.append("; ");
-            }
-            first = false;
-            Date expires = c.getValue().getValue();
-            if (expires == null || new Date().compareTo(expires)  ==  1) {
-                //only use unexpired cookies
-                cookieBuilder.append(c.getKey()).append("=").append(c.getValue().getKey());
-            }
-        }
-        headerList.add(new AbstractMap.SimpleEntry<String, String>("Cookie", cookieBuilder.toString()));
+        headerList.add(new AbstractMap.SimpleEntry<String, String>("Cookie", cookieStore.cookieHeader()));
 
         //build user headers
         if(this.headers != null) {
@@ -326,38 +306,6 @@ public abstract class StackMobRequest {
         OAuthRequest req = getOAuthRequest(method, url);
         req.addPayload(payload);
         return req;
-    }
-
-    protected void storeCookies(Response resp) {
-        for(String key: resp.getHeaders().keySet()) {
-            if(key != null && key.equalsIgnoreCase(SetCookieHeaderKey)) {
-                String val = resp.getHeaders().get(key);
-                String[] valSplit = val.split(";");
-                if (valSplit.length == 1) {
-                    //cookie only
-                    String[] cookieSplit = val.split("=");
-                    if (cookieSplit.length == 2) {
-                        cookies.put(valSplit[0], new AbstractMap.SimpleEntry<String, Date>(valSplit[1], null));
-                    }
-                }
-                else if(valSplit.length == 2) {
-                    //cookie and expires
-                    String[] cookieSplit = valSplit[0].split("=");
-                    String[] expiresSplit = valSplit[1].split("=");
-                    Date expires = null;
-                    if (expiresSplit.length == 2 && cookieSplit.length == 2) {
-                        if (expiresSplit[0].equals(EXPIRES)) {
-                          try {
-                            expires = cookieDateFormat.parse(expiresSplit[1]);
-                          } catch (ParseException e) {
-                              //do nothing
-                          }
-                        }
-                        cookies.put(cookieSplit[0], new AbstractMap.SimpleEntry<String, Date>(cookieSplit[1], expires));
-                    }
-                }
-            }
-        }
     }
 
     protected static HttpVerb getRequestVerb(OAuthRequest req) {
@@ -401,7 +349,7 @@ public abstract class StackMobRequest {
                             headers.add(header);
                         }
                         if(Http.isSuccess(ret.getCode())) {
-                            storeCookies(ret);
+                            cookieStore.storeCookies(ret);
                         }
                         try {
                             cb.done(getRequestVerb(req),
