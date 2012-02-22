@@ -77,10 +77,6 @@ public class StackMob {
         return Executors.newCachedThreadPool();
     }
 
-    public boolean isLoggedIn() {
-        return StackMobRequest.getCookieStore().hasSessionCookie();
-    }
-
     /**
      * create a new StackMob object. this is the preferred constructor
      * @param apiKey the api key for your app

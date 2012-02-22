@@ -52,13 +52,10 @@ public class StackMobTests extends StackMobTestCommon {
 
         final CountDownLatch latch = latchOne();
 
-        asserter.markFalse(stackmob.isLoggedIn());
-
         stackmob.login(params, new StackMobCallback() {
             @Override public void success(String responseBody) {
                 asserter.markNotNull(responseBody);
                 asserter.markNotJsonError(responseBody);
-                asserter.markTrue(stackmob.isLoggedIn());
                 latch.countDown();
             }
 

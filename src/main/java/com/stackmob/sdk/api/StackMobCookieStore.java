@@ -69,17 +69,6 @@ public class StackMobCookieStore {
     protected void storeCookie(String key, String value, Date expiry) {
         cookies.put(key, new AbstractMap.SimpleEntry<String, Date>(value, expiry));
     }
-    
-    public boolean hasSessionCookie() {
-        return hasCookieForPrefix("session_");
-    }
-    
-    public boolean hasCookieForPrefix(String prefix) {
-        for(String key : cookies.keySet()) {
-            if(key.startsWith(prefix) && isUnexpired(cookies.get(key))) return true;
-        }
-        return false;
-    }
 
     private boolean isUnexpired(Map.Entry<String, Date> values) {
         Date expires = values.getValue();
