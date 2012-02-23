@@ -1,5 +1,10 @@
 # Stackmob Java SDK (Release Notes)
 
+### 0.3.3 (02/23/2012)
+* Factored out cookie management
+* Forgot/reset password support
+* Minor bug fixes
+
 ### 0.3.2 (12/16/2011)
 * Added support for android binary file upload
 * Refactored StackMobCallback into StackMobRawCallback
