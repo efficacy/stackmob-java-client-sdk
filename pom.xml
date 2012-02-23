@@ -26,7 +26,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.stackmob</groupId>
     <artifactId>stackmob-java-client-sdk</artifactId>
-    <version>0.3.3-SNAPSHOT</version>
+    <version>0.3.3</version>
     <packaging>jar</packaging>
     <name>Stackmob Java SDK</name>
     <description>The Stackmob Java SDK.</description>
@@ -140,6 +140,7 @@
                     <target>1.6</target>
                 </configuration>
             </plugin>
+			<!--
             <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-surefire-plugin</artifactId>
@@ -152,6 +153,7 @@
                 <parallel>both</parallel>
               </configuration>
             </plugin>
+			-->
 
         </plugins>
     </build>
