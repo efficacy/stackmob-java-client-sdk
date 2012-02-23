@@ -517,7 +517,7 @@ public class StackMob {
         Map<String, Object> finalPayload = new HashMap<String, Object>();
         finalPayload.put("token", tokenString);
         finalPayload.put("type", tokenType.toString());
-        return postPush("remove_push_token_universal", finalPayload, callback);
+        return postPush("remove_token_universal", finalPayload, callback);
     }
 
     ////////////////////
