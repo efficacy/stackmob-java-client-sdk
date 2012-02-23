@@ -37,12 +37,20 @@ public class StackMobCookieStore {
 
 
     public void storeCookies(Response resp) {
-        String val = resp.getHeaders().get(SetCookieHeaderKey);
-        if(val != null) {
-            String[] valSplit = val.split(";");
+        storeCookie(resp.getHeaders().get(SetCookieHeaderKey));
+
+    }
+    
+    protected void storeCookie(String cookieString) {
+        addToCookieMap(cookieString);
+    }
+    
+    protected void addToCookieMap(String cookieString) {
+        if(cookieString != null) {
+            String[] valSplit = cookieString.split(";");
             if (valSplit.length == 1) {
                 //cookie only
-                String[] cookieSplit = val.split("=");
+                String[] cookieSplit = cookieString.split("=");
                 if (cookieSplit.length == 2) {
                     storeCookie(valSplit[0], valSplit[1], null);
                 }
