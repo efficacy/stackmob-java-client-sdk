@@ -77,13 +77,13 @@ public class StackMobCookieStore {
         //build cookie header
         StringBuilder cookieBuilder = new StringBuilder();
         boolean first = true;
-        for(Map.Entry<String, Map.Entry<String, Date>> c : map.entrySet()) {
-            if(!first) {
-                cookieBuilder.append("; ");
-            }
-            first = false;
+        for(Map.Entry<String, Map.Entry<String, Date>> c : cookies.entrySet()) {
+            //only use unexpired cookies
             if (isUnexpired(c.getValue())) {
-                //only use unexpired cookies
+                if(!first) {
+                    cookieBuilder.append("; ");
+                }
+                first = false;
                 cookieBuilder.append(c.getKey()).append("=").append(c.getValue().getKey());
             }
         }
