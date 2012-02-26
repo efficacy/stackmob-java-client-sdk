@@ -55,6 +55,7 @@ public class StackMobQuery {
     private static final String RangeHeader = "Range";
     private static final String ExpandHeader = "X-StackMob-Expand";
     private static final String OrderByHeader = "X-StackMob-OrderBy";
+    private static final String SelectHeader = "X-StackMob-Select";
 
     public static enum Ordering {
         DESCENDING("desc"),
@@ -310,6 +311,11 @@ public class StackMobQuery {
      */
     public StackMobQuery isInRange(Integer start) {
         headers.put(RangeHeader, "objects="+start.toString()+"-");
+        return this;
+    }
+    
+    public StackMobQuery select(List<String> fields) {
+        headers.put(SelectHeader,join(fields));
         return this;
     }
 
