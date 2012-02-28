@@ -272,18 +272,13 @@ public abstract class StackMobRequest {
         int apiVersion = session.getApiVersionNumber();
         final String contentType = "application/vnd.stackmob+json;";
         final String accept = contentType + " version="+apiVersion;
-        String userAgentIntermediate = "StackMob Java Client; " + apiVersion;
-        if(session.getAppName() != null) {
-            userAgentIntermediate += "/"+session.getAppName();
-        }
-        final String userAgent = userAgentIntermediate;
 
         List<Map.Entry<String, String>> headerList = new ArrayList<Map.Entry<String, String>>();
 
         //build basic headers
         headerList.add(new AbstractMap.SimpleEntry<String, String>("Content-Type", contentType));
         headerList.add(new AbstractMap.SimpleEntry<String, String>("Accept", accept));
-        headerList.add(new AbstractMap.SimpleEntry<String, String>("User-Agent", userAgent));
+        headerList.add(new AbstractMap.SimpleEntry<String, String>("User-Agent", StackMob.getUserAgent(session.getAppName())));
         headerList.add(new AbstractMap.SimpleEntry<String, String>("Cookie", cookieStore.cookieHeader()));
 
         //build user headers
