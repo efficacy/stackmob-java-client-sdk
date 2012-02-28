@@ -38,21 +38,20 @@ public class StackMobCookieStore {
 
     public void storeCookies(Response resp) {
         storeCookie(resp.getHeaders().get(SetCookieHeaderKey));
-
     }
     
     protected void storeCookie(String cookieString) {
-        addToCookieMap(cookieString);
+        addToCookieMap(cookies, cookieString);
     }
     
-    protected void addToCookieMap(String cookieString) {
+    protected void addToCookieMap(Map<String,Map.Entry<String,Date>> map, String cookieString) {
         if(cookieString != null) {
             String[] valSplit = cookieString.split(";");
             if (valSplit.length == 1) {
                 //cookie only
                 String[] cookieSplit = cookieString.split("=");
                 if (cookieSplit.length == 2) {
-                    storeCookie(valSplit[0], valSplit[1], null);
+                    map.put(valSplit[0], new AbstractMap.SimpleEntry<String, Date>( valSplit[1], null));
                 }
             }
             else if(valSplit.length == 2) {
@@ -68,14 +67,27 @@ public class StackMobCookieStore {
                             //do nothing
                         }
                     }
-                    storeCookie(cookieSplit[0], cookieSplit[1], expires);
+                    map.put(cookieSplit[0], new AbstractMap.SimpleEntry<String, Date>( cookieSplit[1], expires));
                 }
             }
         }
     }
-
-    protected void storeCookie(String key, String value, Date expiry) {
-        cookies.put(key, new AbstractMap.SimpleEntry<String, Date>(value, expiry));
+    
+    protected String cookieMapToHeaderString(Map<String,Map.Entry<String,Date>> map) {
+        //build cookie header
+        StringBuilder cookieBuilder = new StringBuilder();
+        boolean first = true;
+        for(Map.Entry<String, Map.Entry<String, Date>> c : map.entrySet()) {
+            if(!first) {
+                cookieBuilder.append("; ");
+            }
+            first = false;
+            if (isUnexpired(c.getValue())) {
+                //only use unexpired cookies
+                cookieBuilder.append(c.getKey()).append("=").append(c.getValue().getKey());
+            }
+        }
+        return cookieBuilder.toString();
     }
 
     private boolean isUnexpired(Map.Entry<String, Date> values) {
@@ -88,20 +100,7 @@ public class StackMobCookieStore {
     }
 
     public String cookieHeader() {
-        //build cookie header
-        StringBuilder cookieBuilder = new StringBuilder();
-        boolean first = true;
-        for(Map.Entry<String, Map.Entry<String, Date>> c : cookies.entrySet()) {
-            if(!first) {
-                cookieBuilder.append("; ");
-            }
-            first = false;
-            if (isUnexpired(c.getValue())) {
-                //only use unexpired cookies
-                cookieBuilder.append(c.getKey()).append("=").append(c.getValue().getKey());
-            }
-        }
-        return cookieBuilder.toString();
+        return cookieMapToHeaderString(cookies);
     }
 }
 
