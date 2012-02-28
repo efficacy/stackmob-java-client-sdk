@@ -51,7 +51,7 @@ public class StackMob {
     private static String userAgentName = "Java Client";
     
     protected static String getUserAgent(String appName) {
-        return String.format("StackMob (%s; %s)/%s", userAgentName,
+        return String.format("StackMob (%s; %s)%s", userAgentName,
                                                      StackMobVersion.SDK_VERSION,
                                                      (appName == null) ? "" : "/" + appName);
     }
