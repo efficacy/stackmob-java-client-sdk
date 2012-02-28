@@ -22,6 +22,7 @@ import com.stackmob.sdk.net.HttpVerbWithPayload;
 import com.stackmob.sdk.net.HttpVerbWithoutPayload;
 import com.stackmob.sdk.push.StackMobPushToken;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -48,12 +49,26 @@ public class StackMob {
         }
     }
     
+    private static final String versionKey= "sdk_version";
     private static String userAgentName = "Java Client";
+    private static String version = null;
     
     protected static String getUserAgent(String appName) {
+        if(version == null ) {
+            version = "";
+            Properties props = new Properties();
+            try {
+                props.load(StackMob.class.getResourceAsStream("build.properties"));
+            } catch (IOException e) { }
+            if( props.containsKey(versionKey) && props.get(versionKey) != null) {
+                version = props.getProperty(versionKey);
+                //This should be replaced by a real version in maven builds
+                if("${version}".equals(version)) version = "dev";
+            }
+        }
         return String.format("StackMob (%s; %s)%s", userAgentName,
-                                                     StackMobVersion.SDK_VERSION,
-                                                     (appName == null) ? "" : "/" + appName);
+                                                    version,
+                                                    (appName == null) ? "" : "/" + appName);
     }
     
     public static void setUserAgentName(String name) {
