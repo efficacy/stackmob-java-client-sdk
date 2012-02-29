@@ -49,7 +49,7 @@ public class StackMob {
         }
     }
     
-    private static final String versionKey= "sdk_version";
+    private static final String versionKey= "sdk.version";
     private static String userAgentName = "Java Client";
     private static String version = null;
     
