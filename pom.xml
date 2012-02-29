@@ -132,18 +132,11 @@
     <build>
    		<resources>
    		  <resource>
-   		    <directory>src</directory>
+   		    <directory>src/main/java</directory>
    		    <filtering>true</filtering>
    		    <includes>
-   		      <include>**/*.properties</include>
+   		      <include>*.properties</include>
    		    </includes>
-   		  </resource>
-   		  <resource>
-   		    <directory>src/main/resources</directory>
-   		    <filtering>false</filtering>
-   		    <excludes>
-   		      <exclude>**/*.properties</exclude>
-   		    </excludes>
    		  </resource>
    		</resources>
         <plugins>

@@ -58,8 +58,9 @@ public class StackMob {
             version = "";
             Properties props = new Properties();
             try {
-                props.load(StackMob.class.getResourceAsStream("build.properties"));
-            } catch (IOException e) { }
+                props.load(StackMob.class.getClassLoader().getResourceAsStream("build.properties"));
+            } catch (IOException e) {
+            } catch (NullPointerException e) { }
             if( props.containsKey(versionKey) && props.get(versionKey) != null) {
                 version = props.getProperty(versionKey);
                 //This should be replaced by a real version in maven builds
