@@ -25,7 +25,22 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 public class StackMobRequestWithPayload extends StackMobRequest {
+    private String body;
     private Object requestObject;
+
+    public StackMobRequestWithPayload(ExecutorService executor,
+                                      StackMobSession session,
+                                      HttpVerbWithPayload verb,
+                                      List<Map.Entry<String, String>> headers,
+                                      Map<String, String> params,
+                                      String body,
+                                      String method,
+                                      StackMobRawCallback cb,
+                                      StackMobRedirectedCallback redirCb) {
+        super(executor, session, verb, headers, params, method, cb, redirCb);
+        this.body = body;
+    }
+    
     public StackMobRequestWithPayload(ExecutorService executor,
                                       StackMobSession session,
                                       HttpVerbWithPayload verb,
@@ -44,6 +59,9 @@ public class StackMobRequestWithPayload extends StackMobRequest {
     }
 
     @Override protected String getRequestBody() {
+        if(this.body != null) {
+            return body;
+        }
         if(this.requestObject != null) {
             return gson.toJson(this.requestObject);
         }
