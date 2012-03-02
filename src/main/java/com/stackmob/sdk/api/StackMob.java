@@ -816,6 +816,29 @@ public class StackMob {
     }
 
     /**
+     * do a put request on the StackMob platform
+     * @param path the path to put
+     * @param id the id of the object to put
+     * @param body the json body
+     * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
+     */
+    public StackMobRequestSendResult put(String path,
+                                         String id,
+                                         String body,
+                                         StackMobRawCallback callback) {
+        return new StackMobRequestWithPayload(this.executor,
+                this.session,
+                HttpVerbWithPayload.PUT,
+                StackMobRequest.EmptyHeaders,
+                StackMobRequest.EmptyParams,
+                body,
+                path + "/" + id,
+                callback,
+                this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+    }
+
+    /**
      * do a an atomic put request on the StackMob platform with the contents of the has-many relation
      * @param path the path to get
      * @param primaryId id of the object with the relation

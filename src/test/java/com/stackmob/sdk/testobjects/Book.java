@@ -6,11 +6,22 @@ import com.stackmob.sdk.api.StackMobUser;
 
 public class Book extends StackMobModel {
 
+    private String title;
+    private String publisher;
+    private Author author;
+    private StackMobUser owner;
+
+
     public Book(StackMob stackmob) {
         super(stackmob, Book.class);
     }
+    public Book(String title, String publisher, Author author, StackMob stackmob) {
+        this(stackmob);
+        setTitle(title);
+        setPublisher(publisher);
+        setAuthor(author);
+    }
 
-    private String title;
     public String getTitle() {
         return title;
     }
@@ -18,7 +29,6 @@ public class Book extends StackMobModel {
         this.title = title;
     }
 
-    private String publisher;
     public String getPublisher() {
         return publisher;
     }
@@ -26,10 +36,18 @@ public class Book extends StackMobModel {
         this.publisher = publisher;
     }
 
-    private StackMobUser owner;
-    public StackMobUser getOwner() {
-         return owner;
+    public Author getAuthor() {
+        return author;
     }
+
+    public void setAuthor(Author author) {
+        this.author = author;
+    }
+
+    public StackMobUser getOwner() {
+        return owner;
+    }
+
     public void setOwner(StackMobUser owner) {
         this.owner = owner;
     }

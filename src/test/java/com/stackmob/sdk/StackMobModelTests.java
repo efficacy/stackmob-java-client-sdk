@@ -6,6 +6,7 @@ import com.stackmob.sdk.api.StackMobModel;
 import com.stackmob.sdk.callback.StackMobCallback;
 import com.stackmob.sdk.concurrencyutils.MultiThreadAsserter;
 import com.stackmob.sdk.exception.StackMobException;
+import com.stackmob.sdk.testobjects.Author;
 import com.stackmob.sdk.testobjects.Book;
 import org.junit.Test;
 
@@ -110,13 +111,13 @@ public class StackMobModelTests extends StackMobTestCommon {
         final CountDownLatch latch = latchOne();
         final Book book = new Book(stackmob);
         book.setID("4f511b979ffcad4fd0034c30");
-        book.fetch( new StackMobCallback() {
+        book.loadFromServer(new StackMobCallback() {
             @Override
             public void success(String responseBody) {
                 System.out.println("success");
                 asserter.markEquals(book.getTitle(), bookName2);
                 asserter.markEquals(book.getPublisher(), bookPublisher2);
-                latch.countDown();
+
             }
 
             @Override
@@ -126,5 +127,112 @@ public class StackMobModelTests extends StackMobTestCommon {
         });
 
         asserter.assertLatchFinished(latch);
+    }
+
+
+    @Test public void demoTest() throws Exception {
+        final Author author = new Author(stackmob);
+        author.setName("Larry Wall");
+        author.createOnServer(new StackMobCallback() {
+            @Override
+            public void success(String responseBody) {
+                createBook(author);
+            }
+
+            @Override
+            public void failure(StackMobException e) {
+                System.out.println("failure");
+                e.printStackTrace();
+            }
+        });
+        
+        System.in.read();
+    }
+    
+    
+    public void createBook(Author author) {
+        final Book book = new Book(stackmob);
+        book.setID("camelbook");
+        book.setTitle("Programming Perl");
+        book.setPublisher("O'Reilly");
+        book.setAuthor(author);
+        book.createOnServer( new StackMobCallback() {
+            @Override
+            public void success(String responseBody) {
+                fetchBook();
+            }
+
+            @Override
+            public void failure(StackMobException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+    
+    public void fetchBook() {
+        final Book book = new Book(stackmob);
+        book.setID("camelbook");
+        book.loadFromServer(new StackMobCallback() {
+            @Override
+            public void success(String responseBody) {
+                boolean bookHasData = book.hasData();
+                boolean authorHashData = book.getAuthor().hasData();
+                fetchBookWithExpand();
+            }
+
+            @Override
+            public void failure(StackMobException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+    
+    public void fetchBookWithExpand() {
+        final Book book = new Book(stackmob);
+        book.setID("camelbook"); 
+        book.loadFromServer(2, new StackMobCallback() {
+            @Override
+            public void success(String responseBody) {
+                boolean bookHasData = book.hasData();
+                boolean authorHashData = book.getAuthor().hasData();
+                System.out.println("success");
+                updateBook(book);
+            }
+
+            @Override
+            public void failure(StackMobException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+    
+    public void updateBook(Book book) {
+        final Book theBook = book;
+        book.setTitle("Programming Perl 2: Perl Harder");
+        book.saveOnServer(new StackMobCallback() {
+            @Override
+            public void success(String responseBody) {
+                deleteBook(theBook);
+            }
+
+            @Override
+            public void failure(StackMobException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+    
+    public void deleteBook(Book book) {
+        book.deleteFromServer(new StackMobCallback() {
+            @Override
+            public void success(String responseBody) {
+                System.out.println("success");
+            }
+
+            @Override
+            public void failure(StackMobException e) {
+                e.printStackTrace();
+            }
+        });
     }
 }
