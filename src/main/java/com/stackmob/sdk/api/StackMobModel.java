@@ -65,11 +65,11 @@ public abstract class StackMobModel {
         return id;
     }
 
-    protected String getSchemaName() {
+    public String getSchemaName() {
         return schemaName;
     }
 
-    protected String getIDFieldName() {
+    public String getIDFieldName() {
         return schemaName +"_id";
     }
 
@@ -79,6 +79,7 @@ public abstract class StackMobModel {
                 setID(json.getAsJsonPrimitive().getAsString());
             } else {
                 Field field = actualClass.getDeclaredField(fieldName);
+                field.setAccessible(true);
                 if(relationFields.contains(fieldName)) {
                     StackMobModel relatedModel = (StackMobModel) field.getType().getConstructor(StackMob.class).newInstance(stackmob);
                     relatedModel.fillFromJSON(json);
@@ -134,7 +135,7 @@ public abstract class StackMobModel {
         });
     }
 
-    public void init(StackMobCallback callback) {
+    public void createOnServer(StackMobCallback callback) {
         stackmob.post(getSchemaName(), toJSON(), new StackMobIntermediaryCallback(callback) {
             @Override
             public void success(String responseBody) {

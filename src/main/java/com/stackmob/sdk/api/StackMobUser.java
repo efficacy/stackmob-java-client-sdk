@@ -13,12 +13,12 @@ public class StackMobUser extends StackMobModel {
     }
 
     @Override
-    protected String getSchemaName() {
+    public String getSchemaName() {
         return "user";
     }
 
     @Override
-    protected String getIDFieldName() {
+    public String getIDFieldName() {
         return "username";
     }
     
