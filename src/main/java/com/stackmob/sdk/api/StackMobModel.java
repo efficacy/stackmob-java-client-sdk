@@ -19,6 +19,9 @@ package com.stackmob.sdk.api;
 import com.google.gson.*;
 import com.stackmob.sdk.callback.StackMobCallback;
 import com.stackmob.sdk.exception.StackMobException;
+import com.stackmob.sdk.util.ExtendedClassInfo;
+import static com.stackmob.sdk.util.ExtendedClassInfo.FieldGroup;
+import static com.stackmob.sdk.util.ExtendedClassInfo.FieldGroup.*;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -41,16 +44,6 @@ public abstract class StackMobModel {
             furtherCallback.failure(e);
         }
     }
-
-    private enum FieldGroup {
-        PRIMITIVE,
-        OBJECT,
-        MODEL,
-        OBJECT_ARRAY,
-        MODEL_ARRAY
-    }
-
-    private static Map<String,FieldGroup> fieldGroups;
     
     private transient String id;
     private transient StackMob stackmob;
@@ -66,37 +59,12 @@ public abstract class StackMobModel {
         this.stackmob = stackmob;
         this.actualClass = actualClass;
         schemaName = actualClass.getSimpleName().toLowerCase();
-        fieldGroups = new HashMap<String, FieldGroup>();
         hasData = false;
-        determineFieldGroups();
+        ExtendedClassInfo.ensureFieldGroups(actualClass);
     }
 
-    private void determineFieldGroups() {
-        //Sort the fields into groupings we care about for serialization
-        //TODO: we should only do this once per class. static map class -> fieldGroups?
-        for(Field field : actualClass.getDeclaredFields()) {
-            fieldGroups.put(field.getName(), determineFieldGroup(field));
-        }
-    }
-    
-    private FieldGroup determineFieldGroup(Field field) {
-        if(field.getType().isPrimitive()) {
-            return FieldGroup.PRIMITIVE;
-        } else if(field.getType().isArray()) {
-            if(isModel(field)) {
-                return FieldGroup.MODEL_ARRAY;
-            } else {
-                return FieldGroup.OBJECT_ARRAY;
-            }
-        } else if(isModel(field)) {
-            return FieldGroup.MODEL;
-        } else {
-            return FieldGroup.OBJECT;
-    }
-}
-    
-    private static boolean isModel(Field field) {
-        return StackMobModel.class.isAssignableFrom(field.getType());
+    public boolean isInGroup(String fieldName, FieldGroup group) {
+        return ExtendedClassInfo.getFieldGroup(actualClass, fieldName) == group;
     }
     
     public void setID(String id) {
@@ -127,7 +95,7 @@ public abstract class StackMobModel {
             } else {
                 Field field = actualClass.getDeclaredField(fieldName);
                 field.setAccessible(true);
-                if(fieldGroups.get(fieldName) == FieldGroup.MODEL) {
+                if(isInGroup(fieldName,MODEL)) {
                     // Delegate any expanded relations to the appropriate object
                     StackMobModel relatedModel = (StackMobModel) field.getType().getConstructor(StackMob.class).newInstance(stackmob);
                     relatedModel.fillFromJSON(json);
@@ -167,7 +135,7 @@ public abstract class StackMobModel {
         JsonObject json = new Gson().toJsonTree(this).getAsJsonObject();
         for(String fieldName : getFieldNames(json)) {
             JsonElement value = json.get(fieldName);
-            if(fieldGroups.get(fieldName) == FieldGroup.MODEL) {
+            if(isInGroup(fieldName, MODEL)) {
                 json.remove(fieldName);
                 try {
                     Field relationField = actualClass.getDeclaredField(fieldName);
