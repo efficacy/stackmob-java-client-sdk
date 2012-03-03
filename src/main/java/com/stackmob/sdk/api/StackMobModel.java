@@ -20,7 +20,6 @@ import com.google.gson.*;
 import com.stackmob.sdk.callback.StackMobCallback;
 import com.stackmob.sdk.exception.StackMobException;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -104,15 +103,8 @@ public abstract class StackMobModel {
                     relatedModel.fillFromJSON(json);
                     field.set(this, relatedModel);
                 } else {
-                    if(json.isJsonPrimitive()) {
-                        JsonPrimitive primitive = json.getAsJsonPrimitive();
-                        if(primitive.isString()) {
-                            String prim = primitive.getAsString();
-                            field.set(this, prim);
-                        }
-                            //TODO handle other primitives
-                        else if(primitive.isNumber()) field.setInt(this, primitive.getAsInt());
-                    }
+                    // Let gson do its thing
+                    field.set(this, new Gson().fromJson(json,field.getType()));
                 }
             }
         } catch (Exception e) {
