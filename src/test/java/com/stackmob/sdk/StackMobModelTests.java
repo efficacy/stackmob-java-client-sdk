@@ -57,31 +57,31 @@ public class StackMobModelTests extends StackMobTestCommon {
     
     @Test public void testFillUnexpandedJSON() throws Exception {
         String json = "{\"title\":\"" + bookName1 + "\"," +
-                   "\"publisher\":\"" + bookPublisher1 +"\", " +
-                       "\"owner\":\"bob\"}";
+                   "\"publisher\":\"" + bookPublisher1 +"\"," +
+                       "\"author\":KnR}";
+        System.out.println(json);
         Book post = new Book(stackmob);
         post.fillFromJSON(new JsonParser().parse(json));
         assertEquals(bookName1, post.getTitle());
         assertEquals(bookPublisher1, post.getPublisher());
-        assertNotNull(post.getOwner());
-        assertEquals("bob", post.getOwner().getID());
+        assertNotNull(post.getAuthor());
+        assertEquals("KnR", post.getAuthor().getID());
+        assertNull(post.getAuthor().getName());
 
     }
 
     @Test public void testFillExpandedJSON() throws Exception {
         String json = "{\"title\":\"" + bookName1 + "\"," +
                    "\"publisher\":\"" + bookPublisher1 +"\", " +
-                       "\"owner\":{\"username\":\"bob\", " +
-                                  "\"password\":\"hunter2\", " +
-                                     "\"email\":\"test@test.com\"}}";
+                       "\"author\":{\"author_id\":\"KnR\", " +
+                                     "\"name\":\"Kernighan and Ritchie\"}}";
         Book post = new Book(stackmob);
         post.fillFromJSON(new JsonParser().parse(json));
         assertEquals(bookName1, post.getTitle());
         assertEquals(bookPublisher1, post.getPublisher());
-        assertNotNull(post.getOwner());
-        assertEquals("bob", post.getOwner().getID());
-        assertEquals("hunter2", post.getOwner().getPassword());
-        assertEquals("test@test.com", post.getOwner().getEmail());
+        assertNotNull(post.getAuthor());
+        assertEquals("KnR", post.getAuthor().getID());
+        assertEquals("Kernighan and Ritchie", post.getAuthor().getName());
     }
 
     /* Online */
@@ -126,6 +126,7 @@ public class StackMobModelTests extends StackMobTestCommon {
                 System.out.println("success");
                 asserter.markEquals(book.getTitle(), bookName2);
                 asserter.markEquals(book.getPublisher(), bookPublisher2);
+                latch.countDown();
 
             }
 
@@ -139,7 +140,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     }
 
 
-    @Test public void demoTest() throws Exception {
+    public void demoTest() throws Exception {
         final Author author = new Author(stackmob);
         author.setName("Larry Wall");
         author.createOnServer(new StackMobCallback() {
