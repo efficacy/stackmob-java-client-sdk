@@ -19,9 +19,8 @@ package com.stackmob.sdk.api;
 import com.google.gson.*;
 import com.stackmob.sdk.callback.StackMobCallback;
 import com.stackmob.sdk.exception.StackMobException;
-import com.stackmob.sdk.util.ExtendedClassInfo;
-import static com.stackmob.sdk.util.ExtendedClassInfo.FieldGroup;
-import static com.stackmob.sdk.util.ExtendedClassInfo.FieldGroup.*;
+import com.stackmob.sdk.util.SerializationMetadata;
+import static com.stackmob.sdk.util.SerializationMetadata.*;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -60,11 +59,11 @@ public abstract class StackMobModel {
         this.actualClass = actualClass;
         schemaName = actualClass.getSimpleName().toLowerCase();
         hasData = false;
-        ExtendedClassInfo.ensureFieldGroups(actualClass);
+        ensureMetadata(actualClass);
     }
 
-    public boolean isInGroup(String fieldName, FieldGroup group) {
-        return ExtendedClassInfo.getFieldGroup(actualClass, fieldName) == group;
+    public SerializationMetadata getMetadata(String fieldName) {
+        return getSerializationMetadata(actualClass, fieldName);
     }
     
     public void setID(String id) {
@@ -87,7 +86,7 @@ public abstract class StackMobModel {
         return hasData;
     }
 
-    private void fillFieldFromJSON(String fieldName, JsonElement json) {
+    protected void fillFieldFromJSON(String fieldName, JsonElement json) {
         try {
             if(fieldName.equals(getIDFieldName())) {
                 // The id field is special, its name doesn't match the field
@@ -95,7 +94,7 @@ public abstract class StackMobModel {
             } else {
                 Field field = actualClass.getDeclaredField(fieldName);
                 field.setAccessible(true);
-                if(isInGroup(fieldName,MODEL)) {
+                if(getMetadata(fieldName) == MODEL) {
                     // Delegate any expanded relations to the appropriate object
                     StackMobModel relatedModel = (StackMobModel) field.getType().getConstructor(StackMob.class).newInstance(stackmob);
                     relatedModel.fillFromJSON(json);
@@ -110,7 +109,7 @@ public abstract class StackMobModel {
         }
     }
 
-    public void fillFromJSON(JsonElement json) {
+    protected void fillFromJSON(JsonElement json) {
         if(json.isJsonPrimitive()) {
             //This ought to be an unexpanded relation then
             setID(json.getAsJsonPrimitive().getAsString());
@@ -131,11 +130,11 @@ public abstract class StackMobModel {
         return list;
     }
     
-    public String toJSON() {
+    protected String toJSON() {
         JsonObject json = new Gson().toJsonTree(this).getAsJsonObject();
         for(String fieldName : getFieldNames(json)) {
             JsonElement value = json.get(fieldName);
-            if(isInGroup(fieldName, MODEL)) {
+            if(getMetadata(fieldName) == MODEL) {
                 json.remove(fieldName);
                 try {
                     Field relationField = actualClass.getDeclaredField(fieldName);
