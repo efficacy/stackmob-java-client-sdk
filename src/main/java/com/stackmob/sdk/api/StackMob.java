@@ -104,6 +104,31 @@ public class StackMob {
     private static ExecutorService createNewExecutor() {
         return Executors.newCachedThreadPool();
     }
+    
+    private static StackMob stackmob;
+
+    public static StackMob getStackMob() {
+        if(stackmob == null) {
+            setStackMob(StackMobConfiguration.API_KEY,
+                        StackMobConfiguration.API_SECRET,
+                        StackMobConfiguration.USER_OBJECT_NAME,
+                        StackMobConfiguration.API_VERSION,
+                        StackMobConfiguration.API_URL_FORMAT,
+                        StackMobConfiguration.PUSH_API_URL_FORMAT,
+                        StackMobConfiguration.redirectedCallback);
+        }
+        return stackmob;
+    }
+
+    public static void setStackMob(String apiKey,
+                                   String apiSecret,
+                                   String userObjectName,
+                                   Integer apiVersionNumber,
+                                   String apiUrlFormat,
+                                   String pushUrlFormat,
+                                   StackMobRedirectedCallback redirectedCallback) {
+        stackmob = new StackMob(apiKey, apiSecret, userObjectName, apiVersionNumber, apiUrlFormat, pushUrlFormat, redirectedCallback);
+    }
 
     /**
      * create a new StackMob object. this is the preferred constructor

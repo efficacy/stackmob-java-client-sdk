@@ -29,6 +29,9 @@ public class StackMobSession {
     }
 
     public StackMobSession(String key, String secret, String userObjectName, int apiVersionNumber) {
+        if(key.equals(StackMobConfiguration.DEFAULT_API_KEY) || secret.equals(StackMobConfiguration.DEFAULT_API_SECRET)) {
+            throw new RuntimeException("You forgot to set your api key and secret");
+        }
         this.key = key;
         this.secret = secret;
         this.userObjectName = userObjectName;

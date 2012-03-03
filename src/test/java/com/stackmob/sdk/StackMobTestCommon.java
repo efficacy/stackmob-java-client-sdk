@@ -18,6 +18,7 @@ package com.stackmob.sdk;
 
 import com.google.gson.Gson;
 import com.stackmob.sdk.api.StackMob;
+import com.stackmob.sdk.api.StackMobConfiguration;
 import com.stackmob.sdk.callback.StackMobCallback;
 import com.stackmob.sdk.callback.StackMobRedirectedCallback;
 import com.stackmob.sdk.concurrencyutils.MultiThreadAsserter;
@@ -40,22 +41,12 @@ public class StackMobTestCommon {
     private static final String ENVIRONMENT_KEY_KEY = "STACKMOB_KEY";
     private static final String ENVIRONMENT_SECRET_KEY = "STACKMOB_SECRET";
 
-    private static final String DEFAULT_API_KEY = "DEFAULT_API_KEY";//do not change this
-    private static final String DEFAULT_API_SECRET = "DEFAULT_API_SECRET";//do not change this
-
-    public static final String API_KEY = DEFAULT_API_KEY;
-    public static final String API_SECRET = DEFAULT_API_SECRET;
-    private static final String API_URL_FORMAT = "api.mob1.stackmob.com";
-    private static final String PUSH_URL_FORMAT = "push.mob1.stackmob.com";
-    public static final String USER_OBJECT_NAME = "user";
-    public static final Integer API_VERSION_NUM = 0;
-
     protected static final Gson gson = new Gson();
     protected final StackMob stackmob;
 
     public StackMobTestCommon() {
-        String apiKey = API_KEY;
-        String apiSecret = API_SECRET;
+        String apiKey = StackMobConfiguration.API_KEY;
+        String apiSecret = StackMobConfiguration.API_SECRET;
 
         String envKey = System.getenv(ENVIRONMENT_KEY_KEY);
         String envSecret = System.getenv(ENVIRONMENT_SECRET_KEY);
@@ -72,13 +63,12 @@ public class StackMobTestCommon {
             apiSecret = vmSecret;
         }
 
-        assertFalse("you forgot to set your API key", DEFAULT_API_KEY.equals(apiKey));
-        assertFalse("you forgot to set your API secret", DEFAULT_API_SECRET.equals(apiSecret));
-        stackmob = new StackMob(apiKey, apiSecret, USER_OBJECT_NAME, API_VERSION_NUM, API_URL_FORMAT, PUSH_URL_FORMAT, new StackMobRedirectedCallback() {
+        StackMob.setStackMob(apiKey, apiSecret, StackMobConfiguration.USER_OBJECT_NAME, StackMobConfiguration.API_VERSION, StackMobConfiguration.API_URL_FORMAT, StackMobConfiguration.PUSH_API_URL_FORMAT, new StackMobRedirectedCallback() {
             @Override public void redirected(String originalUrl, Map<String, String> redirectHeaders, String redirectBody, String newURL) {
                 //do nothing
             }
         });
+        stackmob = StackMob.getStackMob();
     }
 
     public static void assertNotError(String responseBody) {
