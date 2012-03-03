@@ -17,14 +17,12 @@ package com.stackmob.sdk.testobjects;
 
 import com.stackmob.sdk.api.StackMob;
 import com.stackmob.sdk.api.StackMobModel;
-import com.stackmob.sdk.api.StackMobUser;
 
 public class Book extends StackMobModel {
 
     private String title;
     private String publisher;
     private Author author;
-    private StackMobUser owner;
 
 
     public Book(StackMob stackmob) {
@@ -57,13 +55,5 @@ public class Book extends StackMobModel {
 
     public void setAuthor(Author author) {
         this.author = author;
-    }
-
-    public StackMobUser getOwner() {
-        return owner;
-    }
-
-    public void setOwner(StackMobUser owner) {
-        this.owner = owner;
     }
 }
