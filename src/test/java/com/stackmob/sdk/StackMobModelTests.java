@@ -26,7 +26,8 @@ import com.stackmob.sdk.testobjects.Author;
 import com.stackmob.sdk.testobjects.Book;
 import org.junit.Test;
 
-import java.util.concurrent.CountDownLatch;
+import java.util.UUID;
+import java.util.concurrent.*;
 
 import static com.stackmob.sdk.concurrencyutils.CountDownLatchUtils.latchOne;
 import static org.junit.Assert.*;
@@ -37,36 +38,54 @@ public class StackMobModelTests extends StackMobTestCommon {
 
     private class Simple extends StackMobModel {
         public Simple(StackMob stackmob) {
-            super(stackmob, Simple.class);
+            this(stackmob, Simple.class);
         }
-        private String foo;
-        private int bar;
+        public Simple(StackMob stackmob, Class<? extends StackMobModel> actualClass) {
+            super(stackmob, actualClass);
+        }
+        private String foo = "test";
+        private int bar = 5;
     }
     
     @Test public void testBasicBehavior() throws Exception {
         Simple simple = new Simple(stackmob);
-        simple.foo = "test";
-        simple.bar = 5;
         assertEquals("simple", simple.getSchemaName());
         assertEquals("simple_id", simple.getIDFieldName());
         assertEquals("{\"foo\":\"test\",\"bar\":5}", simple.toJSON());
     }
-
+    
+    private class LessSimple extends Simple {
+        public LessSimple(StackMob stackmob) {
+            super(stackmob, LessSimple.class);
+        }
+        private long x = 1337;
+        private UUID uuid = new UUID(3,4);
+        private String[] strings = new String[] {"hello", "world"};
+        private boolean test = false;
+        private byte[] myBytes = new byte[] {(byte)0xaf, (byte)0x45, (byte)0xf3};
+        private CountDownLatch Latch = latchOne();
+    }
+    
+    @Test public void testComplicatedTypes() throws Exception {
+        String json = new LessSimple(stackmob).toJSON();
+        assertEquals(json, "{\"x\":1337,\"uuid\":\"00000000-0000-0003-0000-000000000004\",\"strings\":[\"hello\",\"world\"],\"test\":false,\"myBytes\":[-81,69,-13],\"Latch\":{\"sync\":{\"state\":1}},\"foo\":\"test\",\"bar\":5}");
+    }
     String bookName1 = "The C Programming Language";
     String bookPublisher1 = "Prentice Hall";
+
     
     @Test public void testFillUnexpandedJSON() throws Exception {
         String json = "{\"title\":\"" + bookName1 + "\"," +
                    "\"publisher\":\"" + bookPublisher1 +"\"," +
                        "\"author\":KnR}";
         System.out.println(json);
-        Book post = new Book(stackmob);
-        post.fillFromJSON(new JsonParser().parse(json));
-        assertEquals(bookName1, post.getTitle());
-        assertEquals(bookPublisher1, post.getPublisher());
-        assertNotNull(post.getAuthor());
-        assertEquals("KnR", post.getAuthor().getID());
-        assertNull(post.getAuthor().getName());
+        Book book = new Book(stackmob);
+        book.fillFromJSON(new JsonParser().parse(json));
+        assertEquals(bookName1, book.getTitle());
+        assertEquals(bookPublisher1, book.getPublisher());
+        assertNotNull(book.getAuthor());
+        assertEquals("KnR", book.getAuthor().getID());
+        assertNull(book.getAuthor().getName());
 
     }
 
@@ -75,19 +94,29 @@ public class StackMobModelTests extends StackMobTestCommon {
                    "\"publisher\":\"" + bookPublisher1 +"\", " +
                        "\"author\":{\"author_id\":\"KnR\", " +
                                      "\"name\":\"Kernighan and Ritchie\"}}";
-        Book post = new Book(stackmob);
-        post.fillFromJSON(new JsonParser().parse(json));
-        assertEquals(bookName1, post.getTitle());
-        assertEquals(bookPublisher1, post.getPublisher());
-        assertNotNull(post.getAuthor());
-        assertEquals("KnR", post.getAuthor().getID());
-        assertEquals("Kernighan and Ritchie", post.getAuthor().getName());
+        Book book = new Book(stackmob);
+        book.fillFromJSON(new JsonParser().parse(json));
+        assertEquals(bookName1, book.getTitle());
+        assertEquals(bookPublisher1, book.getPublisher());
+        assertNotNull(book.getAuthor());
+        assertEquals("KnR", book.getAuthor().getID());
+        assertEquals("Kernighan and Ritchie", book.getAuthor().getName());
     }
 
     /* Online */
 
     String bookName2 = "yet another book!";
     String bookPublisher2 = "no one";
+    final MultiThreadAsserter asserter = new MultiThreadAsserter();
+    final CountDownLatch latch = latchOne();
+
+    private abstract class AssertErrorCallback extends StackMobCallback {
+
+        @Override
+        public void failure(StackMobException e) {
+            asserter.markException(e);
+        }
+    }
     
     @Test public void testSaveToServer()  throws Exception {
         final Book book = new Book(stackmob);
@@ -96,43 +125,43 @@ public class StackMobModelTests extends StackMobTestCommon {
         
         assertNull(book.getID());
 
-        final MultiThreadAsserter asserter = new MultiThreadAsserter();
-        final CountDownLatch latch = latchOne();
-
-        book.createOnServer(new StackMobCallback() {
+        book.createOnServer(new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
                 asserter.markNotNull(book.getID());
                 latch.countDown();
-            }
-
-            @Override
-            public void failure(StackMobException e) {
-                asserter.markException(e);
             }
         });
 
         asserter.assertLatchFinished(latch);
     }
 
+    @Test public void saveComplicatedTypesToServer()  throws Exception {
+        final LessSimple ls = new LessSimple(stackmob);
+
+        ls.createOnServer(new AssertErrorCallback() {
+            @Override
+            public void success(String responseBody) {
+                asserter.markNotNull(ls.getID());
+                latch.countDown();
+            }
+        });
+
+        asserter.assertLatchFinished(latch);
+    }
+
+
+
     @Test public void testUpdateFromServer() throws Exception {
-        final MultiThreadAsserter asserter = new MultiThreadAsserter();
-        final CountDownLatch latch = latchOne();
         final Book book = new Book(stackmob);
         book.setID("4f511b979ffcad4fd0034c30");
-        book.loadFromServer(new StackMobCallback() {
+        book.loadFromServer(new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
                 System.out.println("success");
                 asserter.markEquals(book.getTitle(), bookName2);
                 asserter.markEquals(book.getPublisher(), bookPublisher2);
                 latch.countDown();
-
-            }
-
-            @Override
-            public void failure(StackMobException e) {
-                asserter.markException(e);
             }
         });
 
@@ -140,23 +169,17 @@ public class StackMobModelTests extends StackMobTestCommon {
     }
 
 
-    public void demoTest() throws Exception {
+    @Test public void testFullSequence() throws Exception {
         final Author author = new Author(stackmob);
         author.setName("Larry Wall");
-        author.createOnServer(new StackMobCallback() {
+        author.createOnServer(new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
                 createBook(author);
             }
-
-            @Override
-            public void failure(StackMobException e) {
-                System.out.println("failure");
-                e.printStackTrace();
-            }
         });
         
-        System.in.read();
+        asserter.assertLatchFinished(latch);
     }
     
     
@@ -166,15 +189,10 @@ public class StackMobModelTests extends StackMobTestCommon {
         book.setTitle("Programming Perl");
         book.setPublisher("O'Reilly");
         book.setAuthor(author);
-        book.createOnServer( new StackMobCallback() {
+        book.createOnServer( new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
                 fetchBook();
-            }
-
-            @Override
-            public void failure(StackMobException e) {
-                e.printStackTrace();
             }
         });
     }
@@ -182,17 +200,10 @@ public class StackMobModelTests extends StackMobTestCommon {
     public void fetchBook() {
         final Book book = new Book(stackmob);
         book.setID("camelbook");
-        book.loadFromServer(new StackMobCallback() {
+        book.loadFromServer(new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
-                boolean bookHasData = book.hasData();
-                boolean authorHashData = book.getAuthor().hasData();
                 fetchBookWithExpand();
-            }
-
-            @Override
-            public void failure(StackMobException e) {
-                e.printStackTrace();
             }
         });
     }
@@ -200,18 +211,10 @@ public class StackMobModelTests extends StackMobTestCommon {
     public void fetchBookWithExpand() {
         final Book book = new Book(stackmob);
         book.setID("camelbook"); 
-        book.loadFromServer(2, new StackMobCallback() {
+        book.loadFromServer(2, new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
-                boolean bookHasData = book.hasData();
-                boolean authorHashData = book.getAuthor().hasData();
-                System.out.println("success");
                 updateBook(book);
-            }
-
-            @Override
-            public void failure(StackMobException e) {
-                e.printStackTrace();
             }
         });
     }
@@ -219,29 +222,19 @@ public class StackMobModelTests extends StackMobTestCommon {
     public void updateBook(Book book) {
         final Book theBook = book;
         book.setTitle("Programming Perl 2: Perl Harder");
-        book.saveOnServer(new StackMobCallback() {
+        book.saveOnServer(new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
                 deleteBook(theBook);
-            }
-
-            @Override
-            public void failure(StackMobException e) {
-                e.printStackTrace();
             }
         });
     }
     
     public void deleteBook(Book book) {
-        book.deleteFromServer(new StackMobCallback() {
+        book.deleteFromServer(new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
-                System.out.println("success");
-            }
-
-            @Override
-            public void failure(StackMobException e) {
-                e.printStackTrace();
+                latch.countDown();
             }
         });
     }
