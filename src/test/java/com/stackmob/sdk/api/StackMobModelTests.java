@@ -82,7 +82,7 @@ public class StackMobModelTests extends StackMobTestCommon {
                    "\"publisher\":\"" + bookPublisher1 +"\"," +
                        "\"author\":KnR}";
         System.out.println(json);
-        Book book = new Book(stackmob);
+        Book book = new Book();
         book.fillFromJSON(new JsonParser().parse(json));
         assertEquals(bookName1, book.getTitle());
         assertEquals(bookPublisher1, book.getPublisher());
@@ -97,7 +97,7 @@ public class StackMobModelTests extends StackMobTestCommon {
                    "\"publisher\":\"" + bookPublisher1 +"\", " +
                        "\"author\":{\"author_id\":\"KnR\", " +
                                      "\"name\":\"Kernighan and Ritchie\"}}";
-        Book book = new Book(stackmob);
+        Book book = new Book();
         book.fillFromJSON(new JsonParser().parse(json));
         assertEquals(bookName1, book.getTitle());
         assertEquals(bookPublisher1, book.getPublisher());
@@ -122,7 +122,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     }
     
     @Test public void testSaveToServer()  throws Exception {
-        final Book book = new Book(stackmob);
+        final Book book = new Book();
         book.setTitle(bookName2);
         book.setPublisher(bookPublisher2);
         
@@ -156,7 +156,7 @@ public class StackMobModelTests extends StackMobTestCommon {
 
 
     @Test public void testUpdateFromServer() throws Exception {
-        final Book book = new Book(stackmob);
+        final Book book = new Book();
         book.setID("4f511b979ffcad4fd0034c30");
         book.loadFromServer(new AssertErrorCallback() {
             @Override
@@ -173,7 +173,7 @@ public class StackMobModelTests extends StackMobTestCommon {
 
 
     @Test public void testFullSequence() throws Exception {
-        final Author author = new Author(stackmob);
+        final Author author = new Author();
         author.setName("Larry Wall");
         author.createOnServer(new AssertErrorCallback() {
             @Override
@@ -187,7 +187,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     
     
     public void createBook(Author author) {
-        final Book book = new Book(stackmob);
+        final Book book = new Book();
         book.setID("camelbook");
         book.setTitle("Programming Perl");
         book.setPublisher("O'Reilly");
@@ -201,7 +201,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     }
     
     public void fetchBook() {
-        final Book book = new Book(stackmob);
+        final Book book = new Book();
         book.setID("camelbook");
         book.loadFromServer(new AssertErrorCallback() {
             @Override
@@ -212,7 +212,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     }
     
     public void fetchBookWithExpand() {
-        final Book book = new Book(stackmob);
+        final Book book = new Book();
         book.setID("camelbook"); 
         book.loadFromServer(2, new AssertErrorCallback() {
             @Override
