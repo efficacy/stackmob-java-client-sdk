@@ -22,12 +22,12 @@ public class Author extends StackMobModel {
 
     private String name;
 
-    public Author(StackMob stackmob) {
-        super(stackmob, Author.class);
+    public Author() {
+        super(Author.class);
     }
 
-    public Author(String name, StackMob stackmob) {
-        this(stackmob);
+    public Author(String name) {
+        this();
         setName(name);
     }
 

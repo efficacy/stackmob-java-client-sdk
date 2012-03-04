@@ -45,17 +45,15 @@ public abstract class StackMobModel {
     }
     
     private transient String id;
-    private transient StackMob stackmob;
     private transient Class<? extends StackMobModel> actualClass;
     private transient String schemaName;
     private transient boolean hasData;
 
-    public StackMobModel(String id, StackMob stackmob, Class<? extends StackMobModel> actualClass) {
-        this(stackmob,actualClass);
+    public StackMobModel(String id, Class<? extends StackMobModel> actualClass) {
+        this(actualClass);
         this.id = id;
     }
-    public StackMobModel(StackMob stackmob, Class<? extends StackMobModel> actualClass) {
-        this.stackmob = stackmob;
+    public StackMobModel(Class<? extends StackMobModel> actualClass) {
         this.actualClass = actualClass;
         schemaName = actualClass.getSimpleName().toLowerCase();
         hasData = false;
@@ -96,7 +94,7 @@ public abstract class StackMobModel {
                 field.setAccessible(true);
                 if(getMetadata(fieldName) == MODEL) {
                     // Delegate any expanded relations to the appropriate object
-                    StackMobModel relatedModel = (StackMobModel) field.getType().getConstructor(StackMob.class).newInstance(stackmob);
+                    StackMobModel relatedModel = (StackMobModel) field.getType().newInstance();
                     relatedModel.fillFromJSON(json);
                     field.set(this, relatedModel);
                 } else {
@@ -170,7 +168,7 @@ public abstract class StackMobModel {
         if(depth > 1 ) args.put("_expand", String.valueOf(depth));
         Map<String,String> headers = new HashMap<String, String>();
         //headers.put("X-StackMob-Expand", String.valueOf(depth));
-        stackmob.get(getSchemaName() + "/" + id, args, headers , new StackMobIntermediaryCallback(callback) {
+        StackMob.getStackMob().get(getSchemaName() + "/" + id, args, headers , new StackMobIntermediaryCallback(callback) {
             @Override
             public void success(String responseBody) {
                 StackMobModel.this.fillFromJSON(new JsonParser().parse(responseBody));
@@ -180,7 +178,7 @@ public abstract class StackMobModel {
     }
 
     public void createOnServer(StackMobCallback callback) {
-        stackmob.post(getSchemaName(), toJSON(), new StackMobIntermediaryCallback(callback) {
+        StackMob.getStackMob().post(getSchemaName(), toJSON(), new StackMobIntermediaryCallback(callback) {
             @Override
             public void success(String responseBody) {
                 fillFromJSON(new JsonParser().parse(responseBody));
@@ -190,7 +188,7 @@ public abstract class StackMobModel {
     }
 
     public void saveOnServer(StackMobCallback callback) {
-        stackmob.put(getSchemaName(), id, toJSON(), new StackMobIntermediaryCallback(callback) {
+        StackMob.getStackMob().put(getSchemaName(), id, toJSON(), new StackMobIntermediaryCallback(callback) {
             @Override
             public void success(String responseBody) {
                 fillFromJSON(new JsonParser().parse(responseBody));
@@ -200,7 +198,7 @@ public abstract class StackMobModel {
     }
 
     public void deleteFromServer(StackMobCallback callback) {
-        stackmob.delete(getSchemaName(), id, callback);
+        StackMob.getStackMob().delete(getSchemaName(), id, callback);
     }
 
 

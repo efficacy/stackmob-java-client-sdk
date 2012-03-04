@@ -38,18 +38,18 @@ public class StackMobModelTests extends StackMobTestCommon {
     /* Offline */
 
     private class Simple extends StackMobModel {
-        public Simple(StackMob stackmob) {
-            this(stackmob, Simple.class);
+        public Simple() {
+            super(Simple.class);
         }
-        public Simple(StackMob stackmob, Class<? extends StackMobModel> actualClass) {
-            super(stackmob, actualClass);
+        public Simple(Class<? extends StackMobModel> actualClass) {
+            super(actualClass);
         }
         private String foo = "test";
         private int bar = 5;
     }
     
     @Test public void testBasicBehavior() throws Exception {
-        Simple simple = new Simple(stackmob);
+        Simple simple = new Simple();
         assertEquals("simple", simple.getSchemaName());
         assertEquals("simple_id", simple.getIDFieldName());
         assertEquals("{\"foo\":\"test\",\"bar\":5}", simple.toJSON());
@@ -57,7 +57,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     
     private class LessSimple extends Simple {
         public LessSimple(StackMob stackmob) {
-            super(stackmob, LessSimple.class);
+            super(LessSimple.class);
         }
         private long x = 1337;
         private UUID uuid = new UUID(3,4);

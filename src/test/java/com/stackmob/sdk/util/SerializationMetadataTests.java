@@ -34,7 +34,7 @@ public class SerializationMetadataTests extends StackMobTestCommon {
 
     private class CrazyStuff extends StackMobModel {
         public CrazyStuff() {
-            super(stackmob, CrazyStuff.class);
+            super(CrazyStuff.class);
         }
         private String foo = "foo";
         private int bar = 6;

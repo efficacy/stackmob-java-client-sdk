@@ -26,7 +26,7 @@ public class Book extends StackMobModel {
 
 
     public Book(StackMob stackmob) {
-        super(stackmob, Book.class);
+        super(Book.class);
     }
     public Book(String title, String publisher, Author author, StackMob stackmob) {
         this(stackmob);
