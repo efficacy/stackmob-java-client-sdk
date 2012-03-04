@@ -19,6 +19,9 @@ package com.stackmob.sdk.util;
 import com.stackmob.sdk.api.StackMobModel;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,6 +32,7 @@ public enum SerializationMetadata {
     PRIMITIVE,
     OBJECT,
     MODEL,
+    PRIMITIVE_ARRAY,
     OBJECT_ARRAY,
     MODEL_ARRAY;
 
@@ -50,19 +54,49 @@ public enum SerializationMetadata {
     }
 
     private static SerializationMetadata determineMetadata(Field field) {
-        if(field.getType().isPrimitive() || field.getType().equals(String.class)) {
-            return SerializationMetadata.PRIMITIVE;
-        } else if(field.getType().isArray()) {
-            if(isModel(field.getType().getComponentType())) {
-                return SerializationMetadata.MODEL_ARRAY;
+        if(isArray(field.getType())) {
+            Class<?> componentClass = getComponentClass(field);
+            if(isPrimitive(componentClass)) {
+                return PRIMITIVE_ARRAY;
+            } else if(isModel(componentClass)) {
+                return MODEL_ARRAY;
             } else {
-                return SerializationMetadata.OBJECT_ARRAY;
+                return OBJECT_ARRAY;
             }
+        } else if(isPrimitive(field.getType())) {
+            return PRIMITIVE;
         } else if(isModel(field.getType())) {
-            return SerializationMetadata.MODEL;
+            return MODEL;
         } else {
-            return SerializationMetadata.OBJECT;
+            return OBJECT;
         }
+    }
+    
+    private static boolean isArray(Class<?> aClass) {
+        return aClass.isArray() || Collection.class.isAssignableFrom(aClass);
+    }
+
+    //Given X[] or Collection<X> finds X. If X is
+    //parametrized further we ignore it.
+    private static Class<?> getComponentClass(Field field) {
+        if(field.getType().isArray()) {
+            return field.getType().getComponentType();
+        }
+        Type type = field.getGenericType();
+        if(type instanceof ParameterizedType) {
+            ParameterizedType pType = (ParameterizedType) type;
+            Type componentType = pType.getActualTypeArguments()[0];
+            if(componentType instanceof Class<?>) {
+                return (Class<?>) componentType;
+            }else if(componentType instanceof ParameterizedType) {
+                return (Class<?>) ((ParameterizedType) componentType).getRawType();
+            }
+        }
+        return null;
+    }
+    
+    private static boolean isPrimitive(Class<?> aClass) {
+        return aClass.isPrimitive() || aClass.equals(String.class);
     }
 
     private static boolean isModel(Class<?> aClass) {

@@ -16,10 +16,9 @@
 
 package com.stackmob.sdk.api;
 
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.stackmob.sdk.StackMobTestCommon;
-import com.stackmob.sdk.api.StackMob;
-import com.stackmob.sdk.api.StackMobModel;
 import com.stackmob.sdk.callback.StackMobCallback;
 import com.stackmob.sdk.concurrencyutils.MultiThreadAsserter;
 import com.stackmob.sdk.exception.StackMobException;
@@ -27,6 +26,8 @@ import com.stackmob.sdk.testobjects.Author;
 import com.stackmob.sdk.testobjects.Book;
 import org.junit.Test;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.*;
 
@@ -44,8 +45,8 @@ public class StackMobModelTests extends StackMobTestCommon {
         public Simple(Class<? extends StackMobModel> actualClass) {
             super(actualClass);
         }
-        private String foo = "test";
-        private int bar = 5;
+        protected String foo = "test";
+        protected int bar = 5;
     }
     
     @Test public void testBasicBehavior() throws Exception {
@@ -55,9 +56,9 @@ public class StackMobModelTests extends StackMobTestCommon {
         assertEquals("{\"foo\":\"test\",\"bar\":5}", simple.toJSON());
     }
     
-    private class LessSimple extends Simple {
-        public LessSimple(StackMob stackmob) {
-            super(LessSimple.class);
+    private class Complicated extends Simple {
+        public Complicated() {
+            super(Complicated.class);
         }
         private long x = 1337;
         private UUID uuid = new UUID(3,4);
@@ -68,14 +69,20 @@ public class StackMobModelTests extends StackMobTestCommon {
     }
     
     @Test public void testComplicatedTypes() throws Exception {
-        String json = new LessSimple(stackmob).toJSON();
-
-        //TODO reliable way of checking this
-        //assertEquals(json, "{\"x\":1337,\"uuid\":\"00000000-0000-0003-0000-000000000004\",\"strings\":[\"hello\",\"world\"],\"test\":false,\"myBytes\":[-81,69,-13],\"Latch\":{\"sync\":{\"state\":1}},\"foo\":\"test\",\"bar\":5}");
+        String json = new Complicated().toJSON();
+        JsonObject object = new JsonParser().parse(json).getAsJsonObject();
+        assertTrue(object.get("foo").getAsJsonPrimitive().isString());
+        assertTrue(object.get("bar").getAsJsonPrimitive().isNumber());
+        assertTrue(object.get("x").getAsJsonPrimitive().isNumber());
+        assertTrue(object.get("uuid").getAsJsonPrimitive().isString());
+        //assertTrue(object.get("strings").isJsonArray() && object.get("strings").getAsJsonArray().iterator().next().getAsJsonPrimitive().isString());
+        assertTrue(object.get("test").getAsJsonPrimitive().isBoolean());
+        //assertTrue(object.get("myBytes").isJsonArray() && object.get("myBytes").getAsJsonArray().iterator().next().getAsJsonPrimitive().isNumber());
+        assertTrue(object.get("Latch").getAsJsonPrimitive().isString());
     }
+
     String bookName1 = "The C Programming Language";
     String bookPublisher1 = "Prentice Hall";
-
     
     @Test public void testFillUnexpandedJSON() throws Exception {
         String json = "{\"title\":\"" + bookName1 + "\"," +
@@ -105,6 +112,70 @@ public class StackMobModelTests extends StackMobTestCommon {
         assertEquals("KnR", book.getAuthor().getID());
         assertEquals("Kernighan and Ritchie", book.getAuthor().getName());
     }
+    
+    @Test public void testFillComplicatedJSON() throws Exception {
+        String json = "{\"x\":1338,\"uuid\":\"00000000-0000-0003-0000-000000000005\",\"strings\":[\"hello!\",\"world!\"],\"test\":true,\"myBytes\":[1,2,3],\"Latch\":{\"sync\":{\"state\":2}},\"foo\":\"testpassed\",\"bar\":27}";
+        Complicated c = new Complicated();
+        c.fillFromJSON(new JsonParser().parse(json));
+        assertEquals(c.foo,"testpassed");
+        assertEquals(c.bar, 27);
+        assertEquals(c.x, 1338);
+        assertNotNull(c.uuid);
+        assertEquals(c.uuid.toString(), "00000000-0000-0003-0000-000000000005");
+        assertNotNull(c.strings);
+        assertEquals(c.strings[0], "hello!");
+        assertEquals(c.test,true);
+        assertNotNull(c.myBytes);
+        assertEquals(c.myBytes[0], 1);
+        assertNotNull(c.Latch);
+        assertEquals(c.Latch.getCount(), 0);
+    }
+    
+    private class Bad_Schema_Name extends StackMobModel {
+        public Bad_Schema_Name() {
+            super(Bad_Schema_Name.class);
+        }    
+        String foo = "fail";
+    }
+
+    @Test public void testBadSchemaName() throws Exception {
+        try {
+            new Bad_Schema_Name().toJSON();
+            assertTrue(false);
+        } catch(StackMobException e) { }
+    }
+
+    private class BadFieldName extends StackMobModel {
+        public BadFieldName() {
+            super(BadFieldName.class);
+        }
+        String _foo = "fail";
+    }
+
+    @Test public void testBadFieldName() throws Exception {
+        try {
+            new BadFieldName().toJSON();
+            assertTrue(false);
+        } catch(StackMobException e) { }
+    }
+    
+    @Test public void testNestedModels() throws Exception {
+        Book b = new Book("Mort", "Harper Collins", new Author("Terry Pratchett"));
+        String json = b.toJSON();
+        JsonObject object = new JsonParser().parse(json).getAsJsonObject();
+        assertTrue(object.get("title").getAsJsonPrimitive().getAsString().equals("Mort"));
+        assertTrue(object.get("publisher").getAsJsonPrimitive().getAsString().equals("Harper Collins"));
+        assertTrue(object.get("author").getAsJsonPrimitive().getAsString().equals("TerryPratchett"));
+    }
+    
+    @Test public void testList() throws  Exception {
+        List<String> list = new LinkedList<String>();
+        list.add("foo");
+        list.add("bar");
+        list.add("baz");
+        String json = gson.toJson(list);
+    }
+
 
     /* Online */
 
@@ -140,7 +211,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     }
 
     @Test public void saveComplicatedTypesToServer()  throws Exception {
-        final LessSimple ls = new LessSimple(stackmob);
+        final Complicated ls = new Complicated();
 
         ls.createOnServer(new AssertErrorCallback() {
             @Override
@@ -192,12 +263,16 @@ public class StackMobModelTests extends StackMobTestCommon {
         book.setTitle("Programming Perl");
         book.setPublisher("O'Reilly");
         book.setAuthor(author);
-        book.createOnServer( new AssertErrorCallback() {
-            @Override
-            public void success(String responseBody) {
-                fetchBook();
-            }
-        });
+        try {
+            book.createOnServer( new AssertErrorCallback() {
+                @Override
+                public void success(String responseBody) {
+                    fetchBook();
+                }
+            });
+        } catch (StackMobException e) {
+            assertTrue(false);
+        }
     }
     
     public void fetchBook() {
@@ -225,12 +300,16 @@ public class StackMobModelTests extends StackMobTestCommon {
     public void updateBook(Book book) {
         final Book theBook = book;
         book.setTitle("Programming Perl 2: Perl Harder");
-        book.saveOnServer(new AssertErrorCallback() {
-            @Override
-            public void success(String responseBody) {
-                deleteBook(theBook);
-            }
-        });
+        try {
+            book.saveOnServer(new AssertErrorCallback() {
+                @Override
+                public void success(String responseBody) {
+                    deleteBook(theBook);
+                }
+            });
+        } catch (StackMobException e) {
+            assertTrue(false);
+        }
     }
     
     public void deleteBook(Book book) {

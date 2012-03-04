@@ -97,6 +97,8 @@ public abstract class StackMobModel {
                     StackMobModel relatedModel = (StackMobModel) field.getType().newInstance();
                     relatedModel.fillFromJSON(json);
                     field.set(this, relatedModel);
+                } else if(getMetadata((fieldName)) == OBJECT) {
+                    field.set(this, new Gson().fromJson(json.getAsJsonPrimitive().getAsString(), field.getType()));
                 } else {
                     // Let gson do its thing
                     field.set(this, new Gson().fromJson(json,field.getType()));
@@ -128,7 +130,7 @@ public abstract class StackMobModel {
         return list;
     }
     
-    protected String toJSON() {
+    protected String toJSON() throws StackMobException{
         JsonObject json = new Gson().toJsonTree(this).getAsJsonObject();
         for(String fieldName : getFieldNames(json)) {
             JsonElement value = json.get(fieldName);
@@ -144,7 +146,8 @@ public abstract class StackMobModel {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                
+
+            //TODO: handle array types here
             } else if(!value.isJsonPrimitive()) {
                 String jsonString = value.toString();
                 json.remove(fieldName);
@@ -158,16 +161,15 @@ public abstract class StackMobModel {
     }
 
     public void loadFromServer(StackMobCallback callback) {
-        loadFromServer(1, callback);
+        loadFromServer(0, callback);
     }
     
     public void loadFromServer(int depth, StackMobCallback callback) {
         StackMobQueryWithField q = new StackMobQuery(getSchemaName()).expandDepthIs(depth).field(getIDFieldName()).isEqualTo(id);
         
         Map<String,String> args = new HashMap<String, String>();
-        if(depth > 1 ) args.put("_expand", String.valueOf(depth));
+        if(depth > 0) args.put("_expand", String.valueOf(depth));
         Map<String,String> headers = new HashMap<String, String>();
-        //headers.put("X-StackMob-Expand", String.valueOf(depth));
         StackMob.getStackMob().get(getSchemaName() + "/" + id, args, headers , new StackMobIntermediaryCallback(callback) {
             @Override
             public void success(String responseBody) {
@@ -177,7 +179,7 @@ public abstract class StackMobModel {
         });
     }
 
-    public void createOnServer(StackMobCallback callback) {
+    public void createOnServer(StackMobCallback callback) throws StackMobException {
         StackMob.getStackMob().post(getSchemaName(), toJSON(), new StackMobIntermediaryCallback(callback) {
             @Override
             public void success(String responseBody) {
@@ -187,7 +189,7 @@ public abstract class StackMobModel {
         });
     }
 
-    public void saveOnServer(StackMobCallback callback) {
+    public void saveOnServer(StackMobCallback callback) throws StackMobException{
         StackMob.getStackMob().put(getSchemaName(), id, toJSON(), new StackMobIntermediaryCallback(callback) {
             @Override
             public void success(String responseBody) {

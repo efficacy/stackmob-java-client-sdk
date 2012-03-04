@@ -18,13 +18,14 @@ package com.stackmob.sdk.util;
 import com.stackmob.sdk.StackMobTestCommon;
 import com.stackmob.sdk.api.StackMobModel;
 import com.stackmob.sdk.testobjects.Author;
-import com.stackmob.sdk.util.SerializationMetadata;
+
 import static com.stackmob.sdk.util.SerializationMetadata.*;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-import java.lang.reflect.Field;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
@@ -47,20 +48,24 @@ public class SerializationMetadataTests extends StackMobTestCommon {
         private Author author;
         private Author[] authors;
         private List<Author> authorList;
+        private Set<String> stringList;
+        private Collection<CountDownLatch> latchList;
     }
     
     @Test public void testSerializationMetaData() throws Exception {
         ensureMetadata(CrazyStuff.class);
-        assertEquals(PRIMITIVE,getSerializationMetadata(CrazyStuff.class,"foo"));
+        assertEquals(PRIMITIVE, getSerializationMetadata(CrazyStuff.class, "foo"));
         assertEquals(PRIMITIVE,getSerializationMetadata(CrazyStuff.class,"bar"));
         assertEquals(PRIMITIVE,getSerializationMetadata(CrazyStuff.class,"x"));
         assertEquals(OBJECT,getSerializationMetadata(CrazyStuff.class,"uuid"));
-        assertEquals(OBJECT_ARRAY,getSerializationMetadata(CrazyStuff.class,"strings"));
+        assertEquals(PRIMITIVE_ARRAY,getSerializationMetadata(CrazyStuff.class,"strings"));
         assertEquals(PRIMITIVE,getSerializationMetadata(CrazyStuff.class,"test"));
-        assertEquals(OBJECT_ARRAY,getSerializationMetadata(CrazyStuff.class,"myBytes"));
+        assertEquals(PRIMITIVE_ARRAY,getSerializationMetadata(CrazyStuff.class,"myBytes"));
         assertEquals(OBJECT,getSerializationMetadata(CrazyStuff.class,"Latch"));
         assertEquals(MODEL,getSerializationMetadata(CrazyStuff.class,"author"));
         assertEquals(MODEL_ARRAY,getSerializationMetadata(CrazyStuff.class,"authors"));
-        assertEquals(OBJECT,getSerializationMetadata(CrazyStuff.class,"authorList"));
+        assertEquals(MODEL_ARRAY,getSerializationMetadata(CrazyStuff.class,"authorList"));
+        assertEquals(PRIMITIVE_ARRAY,getSerializationMetadata(CrazyStuff.class,"stringList"));
+        assertEquals(OBJECT_ARRAY,getSerializationMetadata(CrazyStuff.class,"latchList"));
     }
 }
