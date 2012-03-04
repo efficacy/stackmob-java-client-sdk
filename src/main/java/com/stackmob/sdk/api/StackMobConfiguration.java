@@ -25,7 +25,7 @@ public class StackMobConfiguration {
 
     public static final String API_KEY = DEFAULT_API_KEY;
     public static final String API_SECRET = DEFAULT_API_SECRET;
-    public static String USER_OBJECT_NAME = "YOUR_USER_OBJECT_NAME_HERE";
+    public static String USER_OBJECT_NAME = "user";
     public static Integer API_VERSION = 0;
 
     public static String API_URL_FORMAT = "api.mob1.stackmob.com";
