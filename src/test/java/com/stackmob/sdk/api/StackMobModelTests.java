@@ -114,7 +114,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     }
     
     @Test public void testFillComplicatedJSON() throws Exception {
-        String json = "{\"x\":1338,\"strings\":[\"hello!\",\"world!\"],\"test\":true,\"myBytes\":[1,2,3],\"foo\":\"testpassed\",\"bar\":27,\"uuid\":\"\\\"00000000-0000-0003-0000-000000000005\\\"\",\"Latch\":\"{\\\"sync\\\":{\\\"state\\\":1}}\"}";
+        String json = "{\"x\":1338,\"strings\":[\"hello!\",\"world!\"],\"test\":true,\"myBytes\":[1,2,3],\"foo\":\"testpassed\",\"bar\":27,\"uuid\":\"\\\"00000000-0000-0003-0000-000000000005\\\"\",\"Latch\":\"{\\\"sync\\\":{\\\"state\\\":0}}\"}";
         Complicated c = new Complicated();
         c.fillFromJSON(new JsonParser().parse(json));
         assertEquals(c.foo,"testpassed");

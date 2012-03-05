@@ -90,7 +90,7 @@ public abstract class StackMobModel {
                 // The id field is special, its name doesn't match the field
                 setID(json.getAsJsonPrimitive().getAsString());
             } else {
-                Field field = actualClass.getDeclaredField(fieldName);
+                Field field = getField(fieldName);
                 field.setAccessible(true);
                 if(getMetadata(fieldName) == MODEL) {
                     // Delegate any expanded relations to the appropriate object
@@ -107,6 +107,17 @@ public abstract class StackMobModel {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    
+    private Field getField(String fieldName) {
+        Class<?> classToCheck = actualClass;
+        while(!classToCheck.equals(StackMobModel.class)) {
+            try {
+                return classToCheck.getDeclaredField(fieldName);
+            } catch (NoSuchFieldException e) { }
+            classToCheck = classToCheck.getSuperclass();
+        }
+        return null;
     }
 
     protected void fillFromJSON(JsonElement json) {
