@@ -184,8 +184,6 @@ public abstract class StackMobModel {
     }
     
     public void loadFromServer(int depth, StackMobCallback callback) {
-        StackMobQueryWithField q = new StackMobQuery(getSchemaName()).expandDepthIs(depth).field(getIDFieldName()).isEqualTo(id);
-        
         Map<String,String> args = new HashMap<String, String>();
         if(depth > 0) args.put("_expand", String.valueOf(depth));
         Map<String,String> headers = new HashMap<String, String>();
