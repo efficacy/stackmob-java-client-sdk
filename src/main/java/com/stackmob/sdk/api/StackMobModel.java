@@ -56,8 +56,15 @@ public abstract class StackMobModel {
     public StackMobModel(Class<? extends StackMobModel> actualClass) {
         this.actualClass = actualClass;
         schemaName = actualClass.getSimpleName().toLowerCase();
-        hasData = false;
+        ensureValidName(schemaName,"model");
         ensureMetadata(actualClass);
+    }
+
+
+    private static void ensureValidName(String name, String thing) {
+        if(name.matches(".*(\\W|_).*") || name.length() > 25 || name.length() < 3) {
+            throw new IllegalStateException(String.format("Invalid name for a %s: %s. Must be 3-25 alphanumeric characters", thing, name));
+        }
     }
 
     public SerializationMetadata getMetadata(String fieldName) {
@@ -144,6 +151,7 @@ public abstract class StackMobModel {
     protected String toJSON() throws StackMobException{
         JsonObject json = new Gson().toJsonTree(this).getAsJsonObject();
         for(String fieldName : getFieldNames(json)) {
+            ensureValidName(fieldName, "field");
             JsonElement value = json.get(fieldName);
             if(getMetadata(fieldName) == MODEL) {
                 json.remove(fieldName);

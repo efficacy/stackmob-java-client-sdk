@@ -60,7 +60,7 @@ public class StackMobModelTests extends StackMobTestCommon {
         public Complicated() {
             super(Complicated.class);
         }
-        private long x = 1337;
+        private long number = 1337;
         private UUID uuid = new UUID(3,4);
         private String[] strings = new String[] {"hello", "world"};
         private boolean test = false;
@@ -73,7 +73,7 @@ public class StackMobModelTests extends StackMobTestCommon {
         JsonObject object = new JsonParser().parse(json).getAsJsonObject();
         assertTrue(object.get("foo").getAsJsonPrimitive().isString());
         assertTrue(object.get("bar").getAsJsonPrimitive().isNumber());
-        assertTrue(object.get("x").getAsJsonPrimitive().isNumber());
+        assertTrue(object.get("number").getAsJsonPrimitive().isNumber());
         assertTrue(object.get("uuid").getAsJsonPrimitive().isString());
         //assertTrue(object.get("strings").isJsonArray() && object.get("strings").getAsJsonArray().iterator().next().getAsJsonPrimitive().isString());
         assertTrue(object.get("test").getAsJsonPrimitive().isBoolean());
@@ -114,12 +114,12 @@ public class StackMobModelTests extends StackMobTestCommon {
     }
     
     @Test public void testFillComplicatedJSON() throws Exception {
-        String json = "{\"x\":1338,\"strings\":[\"hello!\",\"world!\"],\"test\":true,\"myBytes\":[1,2,3],\"foo\":\"testpassed\",\"bar\":27,\"uuid\":\"\\\"00000000-0000-0003-0000-000000000005\\\"\",\"Latch\":\"{\\\"sync\\\":{\\\"state\\\":0}}\"}";
+        String json = "{\"number\":1338,\"strings\":[\"hello!\",\"world!\"],\"test\":true,\"myBytes\":[1,2,3],\"foo\":\"testpassed\",\"bar\":27,\"uuid\":\"\\\"00000000-0000-0003-0000-000000000005\\\"\",\"Latch\":\"{\\\"sync\\\":{\\\"state\\\":0}}\"}";
         Complicated c = new Complicated();
         c.fillFromJSON(new JsonParser().parse(json));
         assertEquals(c.foo,"testpassed");
         assertEquals(c.bar, 27);
-        assertEquals(c.x, 1338);
+        assertEquals(c.number, 1338);
         assertNotNull(c.uuid);
         assertEquals(c.uuid.toString(), "00000000-0000-0003-0000-000000000005");
         assertNotNull(c.strings);
@@ -142,7 +142,7 @@ public class StackMobModelTests extends StackMobTestCommon {
         try {
             new Bad_Schema_Name().toJSON();
             assertTrue(false);
-        } catch(StackMobException e) { }
+        } catch(Exception e) { }
     }
 
     private class BadFieldName extends StackMobModel {
@@ -156,16 +156,18 @@ public class StackMobModelTests extends StackMobTestCommon {
         try {
             new BadFieldName().toJSON();
             assertTrue(false);
-        } catch(StackMobException e) { }
+        } catch(Exception e) { }
     }
     
     @Test public void testNestedModels() throws Exception {
-        Book b = new Book("Mort", "Harper Collins", new Author("Terry Pratchett"));
+        Author a = new Author("Terry Pratchett");
+        a.setID("pratchett");
+        Book b = new Book("Mort", "Harper Collins", a);
         String json = b.toJSON();
         JsonObject object = new JsonParser().parse(json).getAsJsonObject();
         assertTrue(object.get("title").getAsJsonPrimitive().getAsString().equals("Mort"));
         assertTrue(object.get("publisher").getAsJsonPrimitive().getAsString().equals("Harper Collins"));
-        assertTrue(object.get("author").getAsJsonPrimitive().getAsString().equals("TerryPratchett"));
+        assertTrue(object.get("author").getAsJsonPrimitive().getAsString().equals("pratchett"));
     }
     
     @Test public void testList() throws  Exception {
