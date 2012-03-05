@@ -107,7 +107,7 @@ public class StackMob {
     
     private static StackMob stackmob;
 
-    public static StackMob getStackMob() {
+    public static synchronized StackMob getStackMob() {
         if(stackmob == null) {
             stackmob = StackMobConfiguration.newStackMob();
         }
