@@ -36,5 +36,15 @@ public class StackMobConfiguration {
             //do nothing for now
         }
     };
+    
+    public static StackMob newStackMob() {
+        return new StackMob(API_KEY,
+                            API_SECRET,
+                            USER_OBJECT_NAME,
+                            API_VERSION,
+                            API_URL_FORMAT,
+                            PUSH_API_URL_FORMAT,
+                            redirectedCallback);
+    }
 
 }
