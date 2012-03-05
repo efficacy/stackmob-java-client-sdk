@@ -1,5 +1,11 @@
 # Stackmob Java SDK (Release Notes)
 
+### 0.3.4 (03/05/2012)
+* Select support in queries
+* Persistent cookie support
+* Fixed user-agent
+* Minor bug fixes
+
 ### 0.3.3 (02/23/2012)
 * Factored out cookie management
 * Forgot/reset password support
