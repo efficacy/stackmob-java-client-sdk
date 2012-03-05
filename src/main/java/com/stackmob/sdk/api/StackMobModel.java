@@ -148,7 +148,7 @@ public abstract class StackMobModel {
                 }
 
             //TODO: handle array types here
-            } else if(!value.isJsonPrimitive()) {
+            } else if(getMetadata(fieldName) == OBJECT) {
                 String jsonString = value.toString();
                 json.remove(fieldName);
                 json.add(fieldName, new JsonPrimitive(jsonString));
