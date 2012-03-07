@@ -201,7 +201,7 @@ public class StackMobModelTests extends StackMobTestCommon {
         
         assertNull(book.getID());
 
-        book.createOnServer(new AssertErrorCallback() {
+        book.init(new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
                 asserter.markNotNull(book.getID());
@@ -215,7 +215,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     @Test public void saveComplicatedTypesToServer()  throws Exception {
         final Complicated ls = new Complicated();
 
-        ls.createOnServer(new AssertErrorCallback() {
+        ls.init(new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
                 asserter.markNotNull(ls.getID());
@@ -231,7 +231,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     @Test public void testUpdateFromServer() throws Exception {
         final Book book = new Book();
         book.setID("4f511b979ffcad4fd0034c30");
-        book.loadFromServer(new AssertErrorCallback() {
+        book.load(new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
                 System.out.println("success");
@@ -248,7 +248,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     @Test public void testFullSequence() throws Exception {
         final Author author = new Author();
         author.setName("Larry Wall");
-        author.createOnServer(new AssertErrorCallback() {
+        author.init(new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
                 createBook(author);
@@ -266,13 +266,13 @@ public class StackMobModelTests extends StackMobTestCommon {
         book.setPublisher("O'Reilly");
         book.setAuthor(author);
         try {
-            book.createOnServer( new AssertErrorCallback() {
+            book.init(new AssertErrorCallback() {
                 @Override
                 public void success(String responseBody) {
                     fetchBook();
                 }
             });
-        } catch (StackMobException e) {
+        } catch (Exception e) {
             assertTrue(false);
         }
     }
@@ -280,7 +280,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     public void fetchBook() {
         final Book book = new Book();
         book.setID("camelbook");
-        book.loadFromServer(new AssertErrorCallback() {
+        book.load(new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
                 fetchBookWithExpand();
@@ -291,7 +291,8 @@ public class StackMobModelTests extends StackMobTestCommon {
     public void fetchBookWithExpand() {
         final Book book = new Book();
         book.setID("camelbook"); 
-        book.loadFromServer(2, new AssertErrorCallback() {
+        book.setDepth(2);
+        book.load(new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
                 updateBook(book);
@@ -303,19 +304,19 @@ public class StackMobModelTests extends StackMobTestCommon {
         final Book theBook = book;
         book.setTitle("Programming Perl 2: Perl Harder");
         try {
-            book.saveOnServer(new AssertErrorCallback() {
+            book.save(new AssertErrorCallback() {
                 @Override
                 public void success(String responseBody) {
                     deleteBook(theBook);
                 }
             });
-        } catch (StackMobException e) {
+        } catch (Exception e) {
             assertTrue(false);
         }
     }
     
     public void deleteBook(Book book) {
-        book.deleteFromServer(new AssertErrorCallback() {
+        book.delete(new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
                 latch.countDown();
