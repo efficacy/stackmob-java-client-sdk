@@ -61,20 +61,4 @@ public class StackMobModelQuery<T extends StackMobModel>{
         });
     }
 
-    /*
-    public void send(StackMobQueryCallback<T> callback) {
-        final StackMobQueryCallback<T> furtherCallback = callback;
-        StackMob.getStackMob().get(this, new StackMobCallback() {
-            @Override
-            public void success(String responseBody) {
-                furtherCallback.success((List<T>)new Gson().fromJson(responseBody,responseType));
-            }
-
-            @Override
-            public void failure(StackMobException e) {
-                furtherCallback.failure(e);
-            }
-        });
-    }
-    */
 }
