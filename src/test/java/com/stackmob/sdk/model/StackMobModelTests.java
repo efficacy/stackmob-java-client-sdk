@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.stackmob.sdk.api;
+package com.stackmob.sdk.model;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -22,6 +22,7 @@ import com.stackmob.sdk.StackMobTestCommon;
 import com.stackmob.sdk.callback.StackMobCallback;
 import com.stackmob.sdk.concurrencyutils.MultiThreadAsserter;
 import com.stackmob.sdk.exception.StackMobException;
+import com.stackmob.sdk.model.StackMobModel;
 import com.stackmob.sdk.testobjects.Author;
 import com.stackmob.sdk.testobjects.Book;
 import org.junit.Test;

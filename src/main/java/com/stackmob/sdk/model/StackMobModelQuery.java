@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.stackmob.sdk.api;
+package com.stackmob.sdk.model;
 
 import com.google.gson.*;
+import com.stackmob.sdk.api.StackMob;
+import com.stackmob.sdk.api.StackMobQuery;
 import com.stackmob.sdk.callback.StackMobCallback;
 import com.stackmob.sdk.callback.StackMobQueryCallback;
 import com.stackmob.sdk.exception.StackMobException;
+import com.stackmob.sdk.model.StackMobModel;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;

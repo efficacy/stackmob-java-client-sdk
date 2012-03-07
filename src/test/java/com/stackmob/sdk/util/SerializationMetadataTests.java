@@ -16,7 +16,7 @@
 package com.stackmob.sdk.util;
 
 import com.stackmob.sdk.StackMobTestCommon;
-import com.stackmob.sdk.api.StackMobModel;
+import com.stackmob.sdk.model.StackMobModel;
 import com.stackmob.sdk.testobjects.Author;
 
 import static com.stackmob.sdk.util.SerializationMetadata.*;

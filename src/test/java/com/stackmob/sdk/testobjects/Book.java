@@ -15,8 +15,7 @@
  */
 package com.stackmob.sdk.testobjects;
 
-import com.stackmob.sdk.api.StackMob;
-import com.stackmob.sdk.api.StackMobModel;
+import com.stackmob.sdk.model.StackMobModel;
 
 public class Book extends StackMobModel {
 

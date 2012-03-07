@@ -15,7 +15,7 @@
  */
 package com.stackmob.sdk.callback;
 
-import com.stackmob.sdk.api.StackMobModel;
+import com.stackmob.sdk.model.StackMobModel;
 import com.stackmob.sdk.exception.StackMobException;
 
 import java.util.List;

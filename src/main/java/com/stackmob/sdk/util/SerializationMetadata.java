@@ -16,7 +16,7 @@
 
 package com.stackmob.sdk.util;
 
-import com.stackmob.sdk.api.StackMobModel;
+import com.stackmob.sdk.model.StackMobModel;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;

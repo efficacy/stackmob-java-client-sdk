@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.stackmob.sdk.api;
+package com.stackmob.sdk.model;
 
 import com.stackmob.sdk.StackMobTestCommon;
 import com.stackmob.sdk.callback.StackMobQueryCallback;
 import com.stackmob.sdk.concurrencyutils.MultiThreadAsserter;
 import com.stackmob.sdk.exception.StackMobException;
+import com.stackmob.sdk.model.StackMobModelQuery;
 import com.stackmob.sdk.testobjects.Author;
 import org.junit.Test;
 import static org.junit.Assert.*;
