@@ -34,7 +34,7 @@ public class StackMobModelQueryTests extends StackMobTestCommon {
     final CountDownLatch latch = latchOne();
 
     @Test public void testQuery() throws Exception {
-        StackMobModelQuery<Author> query = new StackMobModelQuery<Author>(){};
+        StackMobModelQuery<Author> query = new StackMobModelQuery<Author>(Author.class);
         query.getQuery().isInRange(0,10);
         query.send(new StackMobQueryCallback<Author>() {
             @Override

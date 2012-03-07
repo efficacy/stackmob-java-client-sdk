@@ -28,14 +28,12 @@ import java.util.List;
 
 public class StackMobModelQuery<T extends StackMobModel>{
 
-    Type genericType;
+    Class<T> classOfT;
     StackMobQuery query;
 
-    public StackMobModelQuery() {
-        Type t = getClass().getGenericSuperclass();
-        ParameterizedType pt = (ParameterizedType) t;
-        genericType = pt.getActualTypeArguments()[0];
-        query = new StackMobQuery(((Class)genericType).getSimpleName().toLowerCase());
+    public StackMobModelQuery(Class<T> classOfT) {
+        this.classOfT = classOfT;
+        this.query = new StackMobQuery(this.classOfT.getSimpleName().toLowerCase());
     }
     
     public StackMobQuery getQuery() {
@@ -51,7 +49,7 @@ public class StackMobModelQuery<T extends StackMobModel>{
                 List<T> resultList = new ArrayList<T>();
                 Iterator<JsonElement> it = array.iterator();
                 while(it.hasNext()) {
-                    resultList.add((T) new Gson().fromJson(it.next(), genericType));
+                    resultList.add(new Gson().fromJson(it.next(), classOfT));
                 }
                 furtherCallback.success(resultList);
             }
