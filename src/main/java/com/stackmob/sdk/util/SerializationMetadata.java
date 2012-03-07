@@ -78,7 +78,7 @@ public enum SerializationMetadata {
 
     //Given X[] or Collection<X> finds X. If X is
     //parametrized further we ignore it.
-    private static Class<?> getComponentClass(Field field) {
+    public static Class<?> getComponentClass(Field field) {
         if(field.getType().isArray()) {
             return field.getType().getComponentType();
         }

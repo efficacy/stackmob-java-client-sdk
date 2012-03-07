@@ -76,9 +76,9 @@ public class StackMobModelTests extends StackMobTestCommon {
         assertTrue(object.get("bar").getAsJsonPrimitive().isNumber());
         assertTrue(object.get("number").getAsJsonPrimitive().isNumber());
         assertTrue(object.get("uuid").getAsJsonPrimitive().isString());
-        //assertTrue(object.get("strings").isJsonArray() && object.get("strings").getAsJsonArray().iterator().next().getAsJsonPrimitive().isString());
+        assertTrue(object.get("strings").isJsonArray() && object.get("strings").getAsJsonArray().iterator().next().getAsJsonPrimitive().isString());
         assertTrue(object.get("test").getAsJsonPrimitive().isBoolean());
-        //assertTrue(object.get("myBytes").isJsonArray() && object.get("myBytes").getAsJsonArray().iterator().next().getAsJsonPrimitive().isNumber());
+        assertTrue(object.get("myBytes").isJsonArray() && object.get("myBytes").getAsJsonArray().iterator().next().getAsJsonPrimitive().isNumber());
         assertTrue(object.get("Latch").getAsJsonPrimitive().isString());
     }
 

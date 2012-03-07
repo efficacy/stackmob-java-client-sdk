@@ -70,7 +70,7 @@ public abstract class StackMobModel {
      * Determines the schema connected to this class on the server. By
      * default it's the name of the class in lower case. Override in
      * subclasses to change that. Must be 3-25 alphanumeric characters.
-     * @return
+     * @return the schema name
      */
     protected String getSchemaName() {
         return schemaName;
@@ -101,14 +101,34 @@ public abstract class StackMobModel {
                     StackMobModel relatedModel = (StackMobModel) field.getType().newInstance();
                     relatedModel.fillFromJSON(json);
                     field.set(this, relatedModel);
-                } else if(getMetadata((fieldName)) == OBJECT) {
+                } else if(getMetadata(fieldName) == MODEL_ARRAY) {
+                    JsonArray array = json.getAsJsonArray();
+                    Class<? extends StackMobModel> actualModelClass = (Class<? extends StackMobModel>) SerializationMetadata.getComponentClass(field);
+                    //TODO: need to handle update gracefully
+                    if(field.getType().isArray()) {
+                        StackMobModel[] modelArray = new StackMobModel[array.size()];
+                        for(int i = 0; i < array.size(); i++) {
+                            modelArray[i] = actualModelClass.newInstance();
+                            modelArray[i].fillFromJSON(array.get(i));
+                        }
+                        field.set(this, modelArray);
+                    } else {
+                        Collection<StackMobModel> models = (Collection<StackMobModel>) field.getType().newInstance();
+                        for(JsonElement jsonElement : array) {
+                            StackMobModel model = actualModelClass.newInstance();
+                            model.fillFromJSON(jsonElement);
+                            models.add(model);
+                        }
+                        field.set(this, models);
+                    }
+                } else if(getMetadata(fieldName) == OBJECT) {
                     field.set(this, new Gson().fromJson(json.getAsJsonPrimitive().getAsString(), field.getType()));
                 } else {
                     // Let gson do its thing
-                    field.set(this, new Gson().fromJson(json,field.getType()));
+                    field.set(this, new Gson().fromJson(json, field.getType()));
                 }
             }
-        } catch (Exception e) {
+        } catch(Exception e) {
             e.printStackTrace();
         }
     }
@@ -143,7 +163,11 @@ public abstract class StackMobModel {
         }
         return list;
     }
-    
+
+    /**
+     * Converts the object to JSON turning all Models into their ids
+     * @return the json representation of this model
+     */
     protected String toJSON() {
         JsonObject json = new Gson().toJsonTree(this).getAsJsonObject();
         for(String fieldName : getFieldNames(json)) {
@@ -152,17 +176,31 @@ public abstract class StackMobModel {
             if(getMetadata(fieldName) == MODEL) {
                 json.remove(fieldName);
                 try {
-                    Field relationField = actualClass.getDeclaredField(fieldName);
+                    Field relationField = getField(fieldName);
                     relationField.setAccessible(true);
                     StackMobModel relatedModel = (StackMobModel) relationField.get(this);
                     json.add(fieldName, new JsonPrimitive(relatedModel.getID()));
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-            //TODO: handle array types here
+                } catch (Exception ignore) { } //Should never happen
+            } else if(getMetadata(fieldName) == MODEL_ARRAY) {
+                json.remove(fieldName);
+                try {
+                    Field relationField = getField(fieldName);
+                    relationField.setAccessible(true);
+                    JsonArray array = new JsonArray();
+                    Collection<StackMobModel> relatedModels;
+                    if(relationField.getType().isArray()) {
+                        relatedModels = Arrays.asList((StackMobModel[])relationField.get(this));
+                    } else {
+                        relatedModels = (Collection<StackMobModel>) relationField.get(this);
+                    }
+                    for(StackMobModel relatedModel : relatedModels) {
+                         array.add(new JsonPrimitive(relatedModel.getID()));
+                    }
+                    json.add(fieldName, array);
+                } catch (Exception ignore) { } //Should never happen
             } else if(getMetadata(fieldName) == OBJECT) {
+                //We don't support actual objects in our schemas,
+                //so condense these down to strings
                 String jsonString = value.toString();
                 json.remove(fieldName);
                 json.add(fieldName, new JsonPrimitive(jsonString));
