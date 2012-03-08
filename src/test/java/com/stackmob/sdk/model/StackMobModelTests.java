@@ -16,9 +16,7 @@
 
 package com.stackmob.sdk.model;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import com.stackmob.sdk.StackMobTestCommon;
 import com.stackmob.sdk.callback.StackMobCallback;
 import com.stackmob.sdk.concurrencyutils.MultiThreadAsserter;
@@ -28,9 +26,8 @@ import com.stackmob.sdk.testobjects.Book;
 import com.stackmob.sdk.testobjects.Library;
 import org.junit.Test;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.lang.reflect.Field;
+import java.util.*;
 import java.util.concurrent.*;
 
 import static com.stackmob.sdk.concurrencyutils.CountDownLatchUtils.latchOne;
@@ -41,12 +38,22 @@ public class StackMobModelTests extends StackMobTestCommon {
     
     /* Offline */
 
-    private class Simple extends StackMobModel {
+    private static class Simple extends StackMobModel {
         public Simple() {
             super(Simple.class);
         }
         public Simple(Class<? extends StackMobModel> actualClass) {
             super(actualClass);
+        }
+        
+        public Simple(String id) {
+            this();
+            setID(id);
+        }
+        public Simple(String id, String foo, int bar) {
+            this(id);
+            this.foo = foo;
+            this.bar = bar;
         }
         protected String foo = "test";
         protected int bar = 5;
@@ -265,6 +272,132 @@ public class StackMobModelTests extends StackMobTestCommon {
         assertEquals("baz", b.getAuthor().getName());
     }
 
+    @Test public void testHasSameID() {
+        Simple simple = new Simple();
+        assertFalse(simple.hasSameID(new JsonPrimitive("foo")));
+        simple.setID("foo");
+        assertTrue(simple.hasSameID(new JsonPrimitive("foo")));
+        assertFalse(simple.hasSameID(new JsonPrimitive("bar")));
+        assertTrue(simple.hasSameID(new JsonParser().parse("{\"simple_id\":\"foo\", \"somethingelse\":\"bar\"}")));
+        assertFalse(simple.hasSameID(new JsonParser().parse("{\"simple_id\":\"bar\", \"somethingelse\":\"bar\"}")));
+        assertFalse(simple.hasSameID(new JsonParser().parse("{\"somethingelse\":\"foo\"}")));
+    }
+    
+    @Test public void testGetExistingModel() {
+        JsonElement foo = new JsonPrimitive("foo");
+        JsonElement bar = new JsonPrimitive("bar");
+        JsonElement fooObj = new JsonParser().parse("{\"simple_id\":\"foo\", \"bar\":\"8\"}");
+        Simple[] simples = new Simple[]{ new Simple("blah"), new Simple("foo"), new Simple("baz")};
+        assertNull(StackMobModel.getExistingModel(Arrays.asList(new Simple[]{}), foo));
+        assertNotNull(StackMobModel.getExistingModel(Arrays.asList(simples), foo));
+        assertNotNull(StackMobModel.getExistingModel(Arrays.asList(simples), fooObj));
+        assertNull(StackMobModel.getExistingModel(Arrays.asList(simples), bar));
+    }
+
+    List<Simple> simples = Arrays.asList(new Simple[]{ new Simple("blah", "blah", 2), new Simple("foo","foo",3), new Simple("baz","baz",4)});
+    @Test public void testUpdateModelListFromJson() throws Exception{
+        JsonArray trivialUpdate = new JsonParser().parse("[\"blah\", \"foo\", \"baz\"]").getAsJsonArray();
+        JsonArray reorderUpdate = new JsonParser().parse("[\"foo\", \"blah\",\"baz\"]").getAsJsonArray();
+        JsonArray clearUpdate = new JsonParser().parse("[]").getAsJsonArray();
+        JsonArray insertUpdate = new JsonParser().parse("[\"blah\", \"arg\", \"foo\", \"baz\"]").getAsJsonArray();
+        JsonArray replaceUpdate = new JsonParser().parse("[{\"simple_id\":\"blah\", \"foo\":\"a\"}, {\"simple_id\":\"foo\", \"foo\":\"b\"}, {\"simple_id\":\"baz\", \"foo\":\"c\"}]").getAsJsonArray();
+
+        List<StackMobModel> trivialUpdated = StackMobModel.updateModelListFromJson(trivialUpdate,simples,Simple.class);
+        assertEquals("blah",((Simple)trivialUpdated.get(0)).getID());
+        assertEquals("blah",((Simple)trivialUpdated.get(0)).foo);
+        assertEquals("foo",((Simple)trivialUpdated.get(1)).getID());
+        assertEquals("foo",((Simple)trivialUpdated.get(1)).foo);
+        assertEquals("baz",((Simple)trivialUpdated.get(2)).getID());
+        assertEquals("baz",((Simple)trivialUpdated.get(2)).foo);
+
+        List<StackMobModel> reorderUpdated = StackMobModel.updateModelListFromJson(reorderUpdate,simples,Simple.class);
+        assertEquals("foo",((Simple)reorderUpdated.get(0)).getID());
+        assertEquals("foo",((Simple)reorderUpdated.get(0)).foo);
+        assertEquals("blah",((Simple)reorderUpdated.get(1)).getID());
+        assertEquals("blah",((Simple)reorderUpdated.get(1)).foo);
+        assertEquals("baz",((Simple)reorderUpdated.get(2)).getID());
+        assertEquals("baz",((Simple)reorderUpdated.get(2)).foo);
+
+        List<StackMobModel> clearUpdated = StackMobModel.updateModelListFromJson(clearUpdate,simples,Simple.class);
+        assertTrue(clearUpdated.isEmpty());
+
+        List<StackMobModel> insertUpdated = StackMobModel.updateModelListFromJson(insertUpdate,simples,Simple.class);
+        assertEquals("blah",((Simple)insertUpdated.get(0)).getID());
+        assertEquals("blah",((Simple)insertUpdated.get(0)).foo);
+        assertEquals("arg",((Simple)insertUpdated.get(1)).getID());
+        assertEquals("test", ((Simple) insertUpdated.get(1)).foo);
+        assertEquals("foo", ((Simple) insertUpdated.get(2)).getID());
+        assertEquals("foo",((Simple)insertUpdated.get(2)).foo);
+        assertEquals("baz",((Simple)insertUpdated.get(3)).getID());
+        assertEquals("baz",((Simple)insertUpdated.get(3)).foo);
+
+        List<StackMobModel> replaceUpdated = StackMobModel.updateModelListFromJson(replaceUpdate,simples,Simple.class);
+        assertEquals("blah",((Simple)replaceUpdated.get(0)).getID());
+        assertEquals("a",((Simple)replaceUpdated.get(0)).foo);
+        assertEquals(2,((Simple)replaceUpdated.get(0)).bar);
+        assertEquals("foo",((Simple)replaceUpdated.get(1)).getID());
+        assertEquals("b",((Simple)replaceUpdated.get(1)).foo);
+        assertEquals(3,((Simple)replaceUpdated.get(1)).bar);
+        assertEquals("baz",((Simple)replaceUpdated.get(2)).getID());
+        assertEquals("c",((Simple)replaceUpdated.get(2)).foo);
+        assertEquals(4,((Simple)replaceUpdated.get(2)).bar);
+    }
+    
+    private static class LotsOfCollections extends StackMobModel {
+        public LotsOfCollections(List<Simple> simples) {
+            super(LotsOfCollections.class);
+            simpleArray = simples.toArray(new Simple[]{});
+            simpleList.addAll(simples);
+            simpleSet.addAll(simples);
+        }
+
+        public LotsOfCollections() {
+            super(LotsOfCollections.class);
+        }
+        
+        Simple[] simpleArray = new Simple[3];
+        List<Simple> simpleList = new ArrayList<Simple>();
+        Set<Simple> simpleSet = new HashSet<Simple>();
+    }
+
+    
+    @Test public void testGetFieldAsCollection() throws Exception {
+        LotsOfCollections loc = new LotsOfCollections(simples);
+        Field simpleArray = LotsOfCollections.class.getDeclaredField("simpleArray");
+        Field simpleList = LotsOfCollections.class.getDeclaredField("simpleList");
+        Field simpleSet = LotsOfCollections.class.getDeclaredField("simpleSet");
+        Collection<StackMobModel> result1 = loc.getFieldAsCollection(simpleArray);
+        Collection<StackMobModel> result2 = loc.getFieldAsCollection(simpleList);
+        Collection<StackMobModel> result3 = loc.getFieldAsCollection(simpleSet);
+        assertTrue(result1.contains(simples.get(0)));
+        assertTrue(result1.contains(simples.get(1)));
+        assertTrue(result1.contains(simples.get(2)));
+        assertTrue(result2.contains(simples.get(0)));
+        assertTrue(result2.contains(simples.get(1)));
+        assertTrue(result2.contains(simples.get(2)));
+        assertTrue(result3.contains(simples.get(0)));
+        assertTrue(result3.contains(simples.get(1)));
+        assertTrue(result3.contains(simples.get(2)));
+    }
+    
+    @Test public void testSetFieldFromList() throws Exception {
+        LotsOfCollections loc = new LotsOfCollections();
+        loc.simpleList = null;
+        Field simpleArray = LotsOfCollections.class.getDeclaredField("simpleArray");
+        Field simpleList = LotsOfCollections.class.getDeclaredField("simpleList");
+        Field simpleSet = LotsOfCollections.class.getDeclaredField("simpleSet");
+        loc.setFieldFromList(simpleArray,simples,Simple.class);
+        loc.setFieldFromList(simpleList,simples,Simple.class);
+        loc.setFieldFromList(simpleSet,simples,Simple.class);
+        assertArrayEquals(simples.toArray(new Simple[]{}),loc.simpleArray);
+        assertTrue(loc.simpleList.contains(simples.get(0)));
+        assertTrue(loc.simpleList.contains(simples.get(1)));
+        assertTrue(loc.simpleList.contains(simples.get(2)));
+        assertTrue(loc.simpleSet.contains(simples.get(0)));
+        assertTrue(loc.simpleSet.contains(simples.get(1)));
+        assertTrue(loc.simpleSet.contains(simples.get(2)));
+
+    }
 
 
 

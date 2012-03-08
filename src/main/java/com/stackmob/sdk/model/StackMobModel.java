@@ -17,6 +17,8 @@
 package com.stackmob.sdk.model;
 
 import com.google.gson.*;
+import com.google.gson.internal.ConstructorConstructor;
+import com.google.gson.reflect.TypeToken;
 import com.stackmob.sdk.api.StackMob;
 import com.stackmob.sdk.callback.StackMobCallback;
 import com.stackmob.sdk.callback.StackMobIntermediaryCallback;
@@ -146,7 +148,7 @@ public abstract class StackMobModel {
     /**
      * Sets a field which is either an Array or Collection of StackMobModels using a list
      */
-    protected void setFieldFromList(Field field, List<StackMobModel> list, Class<? extends StackMobModel> modelClass) throws IllegalAccessException, InstantiationException {
+    protected void setFieldFromList(Field field, List<? extends StackMobModel> list, Class<? extends StackMobModel> modelClass) throws IllegalAccessException, InstantiationException {
         if(field.getType().isArray()) {
             field.set(this, Array.newInstance(modelClass,list.size()));
             StackMobModel[] newModelArray = (StackMobModel[]) field.get(this);
@@ -154,12 +156,16 @@ public abstract class StackMobModel {
                 newModelArray[i] = list.get(i);
             }
         } else {
-            field.set(this,field.getType().newInstance());
-            ((Collection<StackMobModel>)field.get(this)).addAll(list);
+            // Given a null Collection, how to we find the right concrete collection to use? There is no good way.
+            // So let's at least use the same hack as gson.
+            field.set(this,new ConstructorConstructor().getConstructor(TypeToken.get(field.getType())).construct());
+            Collection<StackMobModel> models = (Collection<StackMobModel>)field.get(this);
+            models.clear();
+            models.addAll(list);
         }
     }
     
-    protected List<StackMobModel> updateModelListFromJson(JsonArray array, Collection<StackMobModel> existingModels, Class<? extends StackMobModel> modelClass) throws IllegalAccessException, InstantiationException {
+    protected static List<StackMobModel> updateModelListFromJson(JsonArray array, Collection<? extends StackMobModel> existingModels, Class<? extends StackMobModel> modelClass) throws IllegalAccessException, InstantiationException {
         List<StackMobModel> result = new ArrayList<StackMobModel>();
         for(JsonElement json : array) {
             StackMobModel model = getExistingModel(existingModels, json);
@@ -176,11 +182,10 @@ public abstract class StackMobModel {
      * @param json
      * @return
      */
-    protected StackMobModel getExistingModel(Collection<StackMobModel> oldList, JsonElement json) {
+    protected static StackMobModel getExistingModel(Collection<? extends StackMobModel> oldList, JsonElement json) {
         if(oldList != null) {
             for(StackMobModel model : oldList) {
                 if(model.hasSameID(json)) {
-                    oldList.remove(model);
                     return model;
                 }
             }
@@ -221,7 +226,8 @@ public abstract class StackMobModel {
         if(json.isJsonPrimitive()) {
             return getID().equals(json.getAsJsonPrimitive().getAsString());
         }
-        return getID().equals(json.getAsJsonObject().get(getIDFieldName()));
+        JsonElement idFromJson = json.getAsJsonObject().get(getIDFieldName());
+        return idFromJson == null ? false : getID().equals(idFromJson.getAsString());
     }
     
     private List<String> getFieldNames(JsonObject json) {
