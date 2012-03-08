@@ -264,7 +264,7 @@ public class StackMobModelTests extends StackMobTestCommon {
         assertEquals("Dickens", b.getAuthor().getName());
     }
     
-    @Test public void testNotOverwritingExistingData() {
+    @Test public void testNotOverwritingExistingData() throws Exception {
         Book b = new Book("foo","bar", new Author("baz"));
         b.getAuthor().setID("baz");
         //The json has the same author with no data
@@ -294,7 +294,7 @@ public class StackMobModelTests extends StackMobTestCommon {
         assertNull(StackMobModel.getExistingModel(Arrays.asList(simples), bar));
     }
 
-    List<Simple> simples = Arrays.asList(new Simple[]{ new Simple("blah", "blah", 2), new Simple("foo","foo",3), new Simple("baz","baz",4)});
+    List<Simple> simples = Arrays.asList(new Simple("blah", "blah", 2), new Simple("foo","foo",3), new Simple("baz","baz",4));
     @Test public void testUpdateModelListFromJson() throws Exception{
         JsonArray trivialUpdate = new JsonParser().parse("[\"blah\", \"foo\", \"baz\"]").getAsJsonArray();
         JsonArray reorderUpdate = new JsonParser().parse("[\"foo\", \"blah\",\"baz\"]").getAsJsonArray();

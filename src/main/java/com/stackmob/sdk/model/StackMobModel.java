@@ -17,12 +17,11 @@
 package com.stackmob.sdk.model;
 
 import com.google.gson.*;
-import com.google.gson.internal.ConstructorConstructor;
-import com.google.gson.reflect.TypeToken;
 import com.stackmob.sdk.api.StackMob;
 import com.stackmob.sdk.callback.StackMobCallback;
 import com.stackmob.sdk.callback.StackMobIntermediaryCallback;
 import com.stackmob.sdk.callback.StackMobNoopCallback;
+import com.stackmob.sdk.exception.StackMobException;
 import com.stackmob.sdk.util.SerializationMetadata;
 import static com.stackmob.sdk.util.SerializationMetadata.*;
 
@@ -91,7 +90,7 @@ public abstract class StackMobModel {
         this.depth = depth;
     }
 
-    protected void fillFieldFromJSON(String fieldName, JsonElement json) {
+    protected void fillFieldFromJSON(String fieldName, JsonElement json) throws StackMobException {
         try {
             if(fieldName.equals(getIDFieldName())) {
                 // The id field is special, its name doesn't match the field
@@ -109,7 +108,10 @@ public abstract class StackMobModel {
                     relatedModel.fillFromJSON(json);
                     field.set(this, relatedModel);
                 } else if(getMetadata(fieldName) == MODEL_ARRAY) {
-                    fillModelArrayFieldFromJson(field, json.getAsJsonArray());
+                    Class<? extends StackMobModel> actualModelClass = (Class<? extends StackMobModel>) SerializationMetadata.getComponentClass(field);
+                    Collection<StackMobModel> existingModels = getFieldAsCollection(field);
+                    List<StackMobModel> newModels = updateModelListFromJson(json.getAsJsonArray(), existingModels, actualModelClass);
+                    setFieldFromList(field, newModels, actualModelClass);
                 } else if(getMetadata(fieldName) == OBJECT) {
                     //unpack the object string
                     field.set(this, new Gson().fromJson(json.getAsJsonPrimitive().getAsString(), field.getType()));
@@ -118,17 +120,12 @@ public abstract class StackMobModel {
                     field.set(this, new Gson().fromJson(json, field.getType()));
                 }
             }
-        } catch(Exception e) {
-            e.printStackTrace();
+        } catch(NoSuchFieldException ignore) {
+        } catch(IllegalAccessException e) {
+            throw new StackMobException(e.getMessage());
+        } catch (InstantiationException e) {
+            throw new StackMobException(e.getMessage());
         }
-    }
-
-    protected void fillModelArrayFieldFromJson(Field field, JsonArray array) throws IllegalAccessException, InstantiationException {
-        Class<? extends StackMobModel> actualModelClass = (Class<? extends StackMobModel>) SerializationMetadata.getComponentClass(field);
-        Collection<StackMobModel> existingModels = getFieldAsCollection(field);
-        List<StackMobModel> newModels = updateModelListFromJson(array, existingModels, actualModelClass);
-        setFieldFromList(field, newModels, actualModelClass);
-
     }
 
     /**
@@ -158,14 +155,14 @@ public abstract class StackMobModel {
         } else {
             // Given a null Collection, how to we find the right concrete collection to use? There is no good way.
             // So let's at least use the same hack as gson.
-            field.set(this,new ConstructorConstructor().getConstructor(TypeToken.get(field.getType())).construct());
+            field.set(this,new Gson().fromJson("[]",field.getType()));
             Collection<StackMobModel> models = (Collection<StackMobModel>)field.get(this);
             models.clear();
             models.addAll(list);
         }
     }
     
-    protected static List<StackMobModel> updateModelListFromJson(JsonArray array, Collection<? extends StackMobModel> existingModels, Class<? extends StackMobModel> modelClass) throws IllegalAccessException, InstantiationException {
+    protected static List<StackMobModel> updateModelListFromJson(JsonArray array, Collection<? extends StackMobModel> existingModels, Class<? extends StackMobModel> modelClass) throws IllegalAccessException, InstantiationException, StackMobException {
         List<StackMobModel> result = new ArrayList<StackMobModel>();
         for(JsonElement json : array) {
             StackMobModel model = getExistingModel(existingModels, json);
@@ -204,7 +201,7 @@ public abstract class StackMobModel {
         throw new NoSuchFieldException(fieldName);
     }
 
-    protected void fillFromJSON(JsonElement json) {
+    protected void fillFromJSON(JsonElement json) throws StackMobException {
         if(json.isJsonPrimitive()) {
             //This ought to be an unexpanded relation then
             setID(json.getAsJsonPrimitive().getAsString());
@@ -272,7 +269,7 @@ public abstract class StackMobModel {
                         if(relatedJson != null) array.add(relatedJson);
                     }
                     json.add(fieldName, array);
-                } catch (Exception e) { e.printStackTrace();} //Should never happen
+                } catch (Exception ignore) { } //Should never happen
             } else if(getMetadata(fieldName) == OBJECT) {
                 //We don't support actual objects in our schemas,
                 //so condense these down to strings
@@ -307,7 +304,11 @@ public abstract class StackMobModel {
         StackMob.getStackMob().post(getSchemaName(), toJSON(), new StackMobIntermediaryCallback(callback) {
             @Override
             public void success(String responseBody) {
-                fillFromJSON(new JsonParser().parse(responseBody));
+                try {
+                    fillFromJSON(new JsonParser().parse(responseBody));
+                } catch (StackMobException e) {
+                    failure(e);
+                }
                 super.success(responseBody);
             }
         });
@@ -324,7 +325,11 @@ public abstract class StackMobModel {
         StackMob.getStackMob().get(getSchemaName() + "/" + id, args, headers , new StackMobIntermediaryCallback(callback) {
             @Override
             public void success(String responseBody) {
-                StackMobModel.this.fillFromJSON(new JsonParser().parse(responseBody));
+                try {
+                    StackMobModel.this.fillFromJSON(new JsonParser().parse(responseBody));
+                } catch (StackMobException e) {
+                    failure(e);
+                }
                 super.success(responseBody);
             }
         });
@@ -338,7 +343,11 @@ public abstract class StackMobModel {
         StackMob.getStackMob().put(getSchemaName(), id, toJSON(), new StackMobIntermediaryCallback(callback) {
             @Override
             public void success(String responseBody) {
-                fillFromJSON(new JsonParser().parse(responseBody));
+                try {
+                    fillFromJSON(new JsonParser().parse(responseBody));
+                } catch (StackMobException e) {
+                    failure(e);
+                }
                 super.success(responseBody);
             }
         });
