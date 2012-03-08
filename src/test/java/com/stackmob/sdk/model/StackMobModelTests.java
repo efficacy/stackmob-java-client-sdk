@@ -16,15 +16,16 @@
 
 package com.stackmob.sdk.model;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.stackmob.sdk.StackMobTestCommon;
 import com.stackmob.sdk.callback.StackMobCallback;
 import com.stackmob.sdk.concurrencyutils.MultiThreadAsserter;
 import com.stackmob.sdk.exception.StackMobException;
-import com.stackmob.sdk.model.StackMobModel;
 import com.stackmob.sdk.testobjects.Author;
 import com.stackmob.sdk.testobjects.Book;
+import com.stackmob.sdk.testobjects.Library;
 import org.junit.Test;
 
 import java.util.LinkedList;
@@ -34,6 +35,7 @@ import java.util.concurrent.*;
 
 import static com.stackmob.sdk.concurrencyutils.CountDownLatchUtils.latchOne;
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class StackMobModelTests extends StackMobTestCommon {
     
@@ -178,6 +180,92 @@ public class StackMobModelTests extends StackMobTestCommon {
         list.add("baz");
         String json = gson.toJson(list);
     }
+    
+    @Test public void testModelArrayToJSON() throws Exception {
+        Library lib = new Library();
+        lib.name = "SF Public Library";
+        Author a = new Author("baz");
+        a.setID("baz");
+        Book b1 = new Book("foo","bar", a);
+        b1.setID("foobar");
+        Book b2 = new Book("foo2", "bar2", a);
+        b2.setID("foo2bar2");
+        lib.books = new Book[] {b1, b2};
+        JsonElement json = new JsonParser().parse(lib.toJSON(2));
+        assertNotNull(json);
+        assertTrue(json.isJsonObject());
+        JsonObject jsonObject = json.getAsJsonObject();
+        assertEquals(jsonObject.get("name").getAsString(), "SF Public Library");
+        assertTrue(jsonObject.get("books").isJsonArray());
+        JsonObject book1 = jsonObject.get("books").getAsJsonArray().get(0).getAsJsonObject();
+        assertEquals("foobar", book1.get("book_id").getAsString());
+        assertEquals("foo", book1.get("title").getAsString());
+        assertEquals("bar", book1.get("publisher").getAsString());
+        assertNotNull(book1.get("author"));
+        JsonObject author1 = book1.get("author").getAsJsonObject();
+        assertEquals("baz", author1.get("author_id").getAsString());
+        assertEquals("baz", author1.get("name").getAsString());
+        JsonObject book2 = jsonObject.get("books").getAsJsonArray().get(1).getAsJsonObject();
+        assertEquals("foo2bar2", book2.get("book_id").getAsString());
+        assertEquals("foo2", book2.get("title").getAsString());
+        assertEquals("bar2", book2.get("publisher").getAsString());
+        assertNotNull(book2.get("author"));
+        JsonObject author2 = book2.get("author").getAsJsonObject();
+        assertEquals("baz", author2.get("author_id").getAsString());
+        assertEquals("baz", author2.get("name").getAsString());
+
+    }
+    
+    @Test public void testModelArrayFromJSON() throws Exception {
+        String json = "{\"name\":\"SF Public Library\",\"books\":[{\"title\":\"foo\",\"publisher\":\"bar\",\"author\":{\"name\":\"baz\",\"author_id\":\"baz\"},\"book_id\":\"foobar\"},{\"title\":\"foo2\",\"publisher\":\"bar2\",\"author\":{\"name\":\"baz\",\"author_id\":\"baz\"},\"book_id\":\"foo2bar2\"}]}";
+        Library lib = new Library();
+        lib.fillFromJSON(new JsonParser().parse(json));
+
+        assertEquals(lib.name,"SF Public Library");
+        assertNotNull(lib.books);
+        assertNotNull(lib.books[0]);
+        assertEquals(lib.books[0].getID(), "foobar");
+        assertEquals(lib.books[0].getTitle(), "foo");
+        assertEquals(lib.books[0].getPublisher(), "bar");
+        assertNotNull(lib.books[0].getAuthor());
+        assertEquals(lib.books[0].getAuthor().getID(), "baz");
+        assertEquals(lib.books[0].getAuthor().getName(), "baz");
+        assertNotNull(lib.books[1]);
+        assertEquals(lib.books[1].getID(), "foo2bar2");
+        assertEquals(lib.books[1].getTitle(), "foo2");
+        assertEquals(lib.books[1].getPublisher(), "bar2");
+        assertNotNull(lib.books[1].getAuthor());
+        assertEquals(lib.books[1].getAuthor().getID(), "baz");
+        assertEquals(lib.books[1].getAuthor().getName(), "baz");
+    }
+    
+    @Test public void noIDChildrenToJSON() throws Exception {
+        Book b = new Book("Oliver","Penguin",new Author("Dickens"));
+        JsonElement json = new JsonParser().parse(b.toJSON(1)); 
+        JsonObject authorObject =  json.getAsJsonObject().get("author").getAsJsonObject();
+        assertEquals("Dickens",authorObject.get("name").getAsString());
+    }
+    
+    @Test public void noIDChildrenFromJSON() throws Exception {
+        String json = "{\"title\":\"Oliver\",\"publisher\":\"Penguin\",\"author\":{\"name\":\"Dickens\"}}";
+        Book b = new Book();
+        b.fillFromJSON(new JsonParser().parse(json));
+        assertNull(b.getID());
+        assertEquals("Oliver", b.getTitle());
+        assertEquals("Penguin", b.getPublisher());
+        assertNull(b.getAuthor().getID());
+        assertEquals("Dickens", b.getAuthor().getName());
+    }
+    
+    @Test public void testNotOverwritingExistingData() {
+        Book b = new Book("foo","bar", new Author("baz"));
+        b.getAuthor().setID("baz");
+        //The json has the same author with no data
+        b.fillFromJSON(new JsonParser().parse("{\"title\":\"foo\",\"publisher\":\"bar\",\"author\":\"baz\",\"book_id\":\"foobar\"}"));
+        assertEquals("baz", b.getAuthor().getName());
+    }
+
+
 
 
     /* Online */
@@ -202,7 +290,7 @@ public class StackMobModelTests extends StackMobTestCommon {
         
         assertNull(book.getID());
 
-        book.init(new AssertErrorCallback() {
+        book.create(new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
                 asserter.markNotNull(book.getID());
@@ -216,7 +304,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     @Test public void saveComplicatedTypesToServer()  throws Exception {
         final Complicated ls = new Complicated();
 
-        ls.init(new AssertErrorCallback() {
+        ls.create(new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
                 asserter.markNotNull(ls.getID());
@@ -249,7 +337,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     @Test public void testFullSequence() throws Exception {
         final Author author = new Author();
         author.setName("Larry Wall");
-        author.init(new AssertErrorCallback() {
+        author.create(new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
                 createBook(author);
@@ -266,16 +354,12 @@ public class StackMobModelTests extends StackMobTestCommon {
         book.setTitle("Programming Perl");
         book.setPublisher("O'Reilly");
         book.setAuthor(author);
-        try {
-            book.init(new AssertErrorCallback() {
-                @Override
-                public void success(String responseBody) {
-                    fetchBook();
-                }
-            });
-        } catch (Exception e) {
-            assertTrue(false);
-        }
+        book.create(new AssertErrorCallback() {
+            @Override
+            public void success(String responseBody) {
+                fetchBook();
+            }
+        });
     }
     
     public void fetchBook() {
@@ -304,18 +388,14 @@ public class StackMobModelTests extends StackMobTestCommon {
     public void updateBook(Book book) {
         final Book theBook = book;
         book.setTitle("Programming Perl 2: Perl Harder");
-        try {
-            book.save(new AssertErrorCallback() {
-                @Override
-                public void success(String responseBody) {
-                    deleteBook(theBook);
-                }
-            });
-        } catch (Exception e) {
-            assertTrue(false);
-        }
+        book.save(new AssertErrorCallback() {
+            @Override
+            public void success(String responseBody) {
+                deleteBook(theBook);
+            }
+        });
     }
-    
+
     public void deleteBook(Book book) {
         book.delete(new AssertErrorCallback() {
             @Override

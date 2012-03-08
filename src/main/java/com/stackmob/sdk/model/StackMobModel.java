@@ -24,6 +24,8 @@ import com.stackmob.sdk.callback.StackMobNoopCallback;
 import com.stackmob.sdk.util.SerializationMetadata;
 import static com.stackmob.sdk.util.SerializationMetadata.*;
 
+import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -98,30 +100,40 @@ public abstract class StackMobModel {
                 field.setAccessible(true);
                 if(getMetadata(fieldName) == MODEL) {
                     // Delegate any expanded relations to the appropriate object
-                    StackMobModel relatedModel = (StackMobModel) field.getType().newInstance();
+                    StackMobModel relatedModel = (StackMobModel) field.get(this);
+                    // If there's a model with the same id, keep it. Otherwise create a new one
+                    if(relatedModel == null || !relatedModel.hasSameID(json)) {
+                        relatedModel = (StackMobModel) field.getType().newInstance();
+                    }
                     relatedModel.fillFromJSON(json);
                     field.set(this, relatedModel);
                 } else if(getMetadata(fieldName) == MODEL_ARRAY) {
                     JsonArray array = json.getAsJsonArray();
                     Class<? extends StackMobModel> actualModelClass = (Class<? extends StackMobModel>) SerializationMetadata.getComponentClass(field);
-                    //TODO: need to handle update gracefully
+                    Collection<StackMobModel> existingModels = null;
+                    // grab the existing collection/array if there is one. We want to reuse any existing objects.
+                    // Otherwise we might end up clobbering a full object with just an id.
                     if(field.getType().isArray()) {
-                        StackMobModel[] modelArray = new StackMobModel[array.size()];
-                        for(int i = 0; i < array.size(); i++) {
-                            modelArray[i] = actualModelClass.newInstance();
-                            modelArray[i].fillFromJSON(array.get(i));
+                        StackMobModel[] models = (StackMobModel[]) field.get(this);
+                        if(models != null) {
+                            existingModels = Arrays.asList(models);
                         }
-                        field.set(this, modelArray);
                     } else {
-                        Collection<StackMobModel> models = (Collection<StackMobModel>) field.getType().newInstance();
-                        for(JsonElement jsonElement : array) {
-                            StackMobModel model = actualModelClass.newInstance();
-                            model.fillFromJSON(jsonElement);
-                            models.add(model);
+                        existingModels = (Collection<StackMobModel>) field.get(this);
+                    }
+                    List<StackMobModel> newModels = merge(array, existingModels, actualModelClass);
+                    if(field.getType().isArray()) {
+                        field.set(this, Array.newInstance(actualModelClass,newModels.size()));
+                        StackMobModel[] newModelArray = (StackMobModel[]) field.get(this);
+                        for(int i = 0; i < newModels.size(); i++) {
+                            newModelArray[i] = newModels.get(i);
                         }
-                        field.set(this, models);
+                    } else {
+                        field.set(this,field.getType().newInstance());
+                        ((Collection<StackMobModel>)field.get(this)).addAll(newModels);
                     }
                 } else if(getMetadata(fieldName) == OBJECT) {
+                    //unpack the object string
                     field.set(this, new Gson().fromJson(json.getAsJsonPrimitive().getAsString(), field.getType()));
                 } else {
                     // Let gson do its thing
@@ -131,6 +143,34 @@ public abstract class StackMobModel {
         } catch(Exception e) {
             e.printStackTrace();
         }
+    }
+    
+    private List<StackMobModel> merge(JsonArray array, Collection<StackMobModel> existingModels, Class<? extends StackMobModel> modelClass) {
+        List<StackMobModel> result = new ArrayList<StackMobModel>();
+        Iterator<JsonElement> it = array.iterator();
+        while(it.hasNext()) {
+            JsonElement json = it.next();
+            boolean found = false;
+            if(existingModels != null) {
+                for(StackMobModel model : existingModels) {
+                    if(model.hasSameID(json)) {
+                        model.fillFromJSON(json);
+                        result.add(model);
+                        existingModels.remove(model);
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if(!found) {
+                try {
+                    StackMobModel newModel = modelClass.newInstance();
+                    newModel.fillFromJSON(json);
+                    result.add(newModel);
+                } catch (Exception ignore) { }
+            }
+        }
+        return result;
     }
     
     private Field getField(String fieldName) throws NoSuchFieldException {
@@ -155,6 +195,19 @@ public abstract class StackMobModel {
             hasData = true;
         }
     }
+
+    /**
+     * Checks if the current object has the same id as this json
+     * @param json
+     * @return
+     */
+    protected boolean hasSameID(JsonElement json) {
+        if(getID() == null) return false;
+        if(json.isJsonPrimitive()) {
+            return getID().equals(json.getAsJsonPrimitive().getAsString());
+        }
+        return getID().equals(json.getAsJsonObject().get(getIDFieldName()));
+    }
     
     private List<String> getFieldNames(JsonObject json) {
         List<String> list = new ArrayList<String>();
@@ -164,11 +217,10 @@ public abstract class StackMobModel {
         return list;
     }
 
-    /**
-     * Converts the object to JSON turning all Models into their ids
-     * @return the json representation of this model
-     */
-    protected String toJSON() {
+    private JsonElement toJSONElement(int depth) {
+        if(depth < 0) {
+            return getID() == null ? null : new JsonPrimitive(getID());
+        }
         JsonObject json = new Gson().toJsonTree(this).getAsJsonObject();
         for(String fieldName : getFieldNames(json)) {
             ensureValidName(fieldName, "field");
@@ -179,7 +231,8 @@ public abstract class StackMobModel {
                     Field relationField = getField(fieldName);
                     relationField.setAccessible(true);
                     StackMobModel relatedModel = (StackMobModel) relationField.get(this);
-                    json.add(fieldName, new JsonPrimitive(relatedModel.getID()));
+                    JsonElement relatedJson = relatedModel.toJSONElement(depth -1);
+                    if(relatedJson != null) json.add(fieldName, relatedJson);
                 } catch (Exception ignore) { } //Should never happen
             } else if(getMetadata(fieldName) == MODEL_ARRAY) {
                 json.remove(fieldName);
@@ -194,10 +247,11 @@ public abstract class StackMobModel {
                         relatedModels = (Collection<StackMobModel>) relationField.get(this);
                     }
                     for(StackMobModel relatedModel : relatedModels) {
-                         array.add(new JsonPrimitive(relatedModel.getID()));
+                        JsonElement relatedJson = relatedModel.toJSONElement(depth -1);
+                        if(relatedJson != null) array.add(relatedJson);
                     }
                     json.add(fieldName, array);
-                } catch (Exception ignore) { } //Should never happen
+                } catch (Exception e) { e.printStackTrace();} //Should never happen
             } else if(getMetadata(fieldName) == OBJECT) {
                 //We don't support actual objects in our schemas,
                 //so condense these down to strings
@@ -209,14 +263,26 @@ public abstract class StackMobModel {
         if(id != null) {
             json.addProperty(getIDFieldName(),id);
         }
-        return json.toString();
+        return json;
     }
     
-    public void init() {
-        init(new StackMobNoopCallback());
+    protected String toJSON() {
+        return toJSON(0);
     }
 
-    public void init(StackMobCallback callback) {
+    /**
+     * Converts the object to JSON turning all Models into their ids
+     * @return the json representation of this model
+     */
+    protected String toJSON(int depth) {
+        return toJSONElement(depth).toString();
+    }
+    
+    public void create() {
+        create(new StackMobNoopCallback());
+    }
+
+    public void create(StackMobCallback callback) {
         StackMob.getStackMob().post(getSchemaName(), toJSON(), new StackMobIntermediaryCallback(callback) {
             @Override
             public void success(String responseBody) {
