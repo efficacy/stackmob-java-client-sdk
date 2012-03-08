@@ -25,7 +25,6 @@ import com.stackmob.sdk.util.SerializationMetadata;
 import static com.stackmob.sdk.util.SerializationMetadata.*;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -108,30 +107,7 @@ public abstract class StackMobModel {
                     relatedModel.fillFromJSON(json);
                     field.set(this, relatedModel);
                 } else if(getMetadata(fieldName) == MODEL_ARRAY) {
-                    JsonArray array = json.getAsJsonArray();
-                    Class<? extends StackMobModel> actualModelClass = (Class<? extends StackMobModel>) SerializationMetadata.getComponentClass(field);
-                    Collection<StackMobModel> existingModels = null;
-                    // grab the existing collection/array if there is one. We want to reuse any existing objects.
-                    // Otherwise we might end up clobbering a full object with just an id.
-                    if(field.getType().isArray()) {
-                        StackMobModel[] models = (StackMobModel[]) field.get(this);
-                        if(models != null) {
-                            existingModels = Arrays.asList(models);
-                        }
-                    } else {
-                        existingModels = (Collection<StackMobModel>) field.get(this);
-                    }
-                    List<StackMobModel> newModels = merge(array, existingModels, actualModelClass);
-                    if(field.getType().isArray()) {
-                        field.set(this, Array.newInstance(actualModelClass,newModels.size()));
-                        StackMobModel[] newModelArray = (StackMobModel[]) field.get(this);
-                        for(int i = 0; i < newModels.size(); i++) {
-                            newModelArray[i] = newModels.get(i);
-                        }
-                    } else {
-                        field.set(this,field.getType().newInstance());
-                        ((Collection<StackMobModel>)field.get(this)).addAll(newModels);
-                    }
+                    fillModelArrayFieldFromJson(field, json.getAsJsonArray());
                 } else if(getMetadata(fieldName) == OBJECT) {
                     //unpack the object string
                     field.set(this, new Gson().fromJson(json.getAsJsonPrimitive().getAsString(), field.getType()));
@@ -144,33 +120,72 @@ public abstract class StackMobModel {
             e.printStackTrace();
         }
     }
+
+    protected void fillModelArrayFieldFromJson(Field field, JsonArray array) throws IllegalAccessException, InstantiationException {
+        Class<? extends StackMobModel> actualModelClass = (Class<? extends StackMobModel>) SerializationMetadata.getComponentClass(field);
+        Collection<StackMobModel> existingModels = getFieldAsCollection(field);
+        List<StackMobModel> newModels = updateModelListFromJson(array, existingModels, actualModelClass);
+        setFieldFromList(field, newModels, actualModelClass);
+
+    }
+
+    /**
+     * Turns a field which is either an Array or Collection of StackMobModels and turns in into a collection
+     */
+    protected Collection<StackMobModel> getFieldAsCollection(Field field) throws IllegalAccessException {
+        if(field.getType().isArray()) {
+            // grab the existing collection/array if there is one. We want to reuse any existing objects.
+            // Otherwise we might end up clobbering a full object with just an id.
+            StackMobModel[] models = (StackMobModel[]) field.get(this);
+            return models == null ? null : Arrays.asList(models);
+        } else {
+            return (Collection<StackMobModel>) field.get(this);
+        }
+    }
+
+    /**
+     * Sets a field which is either an Array or Collection of StackMobModels using a list
+     */
+    protected void setFieldFromList(Field field, List<StackMobModel> list, Class<? extends StackMobModel> modelClass) throws IllegalAccessException, InstantiationException {
+        if(field.getType().isArray()) {
+            field.set(this, Array.newInstance(modelClass,list.size()));
+            StackMobModel[] newModelArray = (StackMobModel[]) field.get(this);
+            for(int i = 0; i < list.size(); i++) {
+                newModelArray[i] = list.get(i);
+            }
+        } else {
+            field.set(this,field.getType().newInstance());
+            ((Collection<StackMobModel>)field.get(this)).addAll(list);
+        }
+    }
     
-    private List<StackMobModel> merge(JsonArray array, Collection<StackMobModel> existingModels, Class<? extends StackMobModel> modelClass) {
+    protected List<StackMobModel> updateModelListFromJson(JsonArray array, Collection<StackMobModel> existingModels, Class<? extends StackMobModel> modelClass) throws IllegalAccessException, InstantiationException {
         List<StackMobModel> result = new ArrayList<StackMobModel>();
-        Iterator<JsonElement> it = array.iterator();
-        while(it.hasNext()) {
-            JsonElement json = it.next();
-            boolean found = false;
-            if(existingModels != null) {
-                for(StackMobModel model : existingModels) {
-                    if(model.hasSameID(json)) {
-                        model.fillFromJSON(json);
-                        result.add(model);
-                        existingModels.remove(model);
-                        found = true;
-                        break;
-                    }
-                }
-            }
-            if(!found) {
-                try {
-                    StackMobModel newModel = modelClass.newInstance();
-                    newModel.fillFromJSON(json);
-                    result.add(newModel);
-                } catch (Exception ignore) { }
-            }
+        for(JsonElement json : array) {
+            StackMobModel model = getExistingModel(existingModels, json);
+            if(model == null) model = modelClass.newInstance();
+            model.fillFromJSON(json);
+            result.add(model);
         }
         return result;
+    }
+
+    /**
+     * Finds a model with the same id as the json
+     * @param oldList The data in the object already
+     * @param json
+     * @return
+     */
+    protected StackMobModel getExistingModel(Collection<StackMobModel> oldList, JsonElement json) {
+        if(oldList != null) {
+            for(StackMobModel model : oldList) {
+                if(model.hasSameID(json)) {
+                    oldList.remove(model);
+                    return model;
+                }
+            }
+        }
+        return null;
     }
     
     private Field getField(String fieldName) throws NoSuchFieldException {
