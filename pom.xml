@@ -131,21 +131,21 @@
 
     <build>
         <resources>
-         <resource>
-           <directory>src/main/resources</directory>
-           <filtering>true</filtering>
-           <includes>
-             <include>**/*.properties</include>
-           </includes>
-         </resource>
-         <resource>
-           <directory>src/main/resources</directory>
-           <filtering>false</filtering>
-           <excludes>
-             <exclude>**/*.properties</exclude>
-           </excludes>
-         </resource>
-		</resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*.properties</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>**/*.properties</exclude>
+                </excludes>
+            </resource>
+        </resources>
 
         <plugins>
             <plugin>
@@ -162,11 +162,11 @@
               <artifactId>maven-surefire-plugin</artifactId>
               <version>2.10</version>
               <configuration>
-                <includes>
-                  <include>**/*Tests.java</include>
-                </includes>
-                <argLine>-Xmx1024m</argLine>
-                <parallel>both</parallel>
+                  <includes>
+                      <include>**/*Tests.java</include>
+                  </includes>
+                  <argLine>-Xmx1024m</argLine>
+                  <parallel>both</parallel>
               </configuration>
             </plugin>
         </plugins>
