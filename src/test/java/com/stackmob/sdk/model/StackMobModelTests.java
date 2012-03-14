@@ -455,7 +455,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     @Test public void testUpdateFromServer() throws Exception {
         final Book book = new Book();
         book.setID("4f511b979ffcad4fd0034c30");
-        book.load(new AssertErrorCallback() {
+        book.fetch(new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
                 System.out.println("success");
@@ -476,7 +476,7 @@ public class StackMobModelTests extends StackMobTestCommon {
         Book b1 = new Book("War and Peace","foo", a);
         Book b2 = new Book("Anna Karenina", "bar", a);
         lib.books = new Book[] {b1, b2};
-        lib.create(2, new AssertErrorCallback() {
+        lib.createWithDepth(2, new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
                 
@@ -519,7 +519,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     public void fetchBook() {
         final Book book = new Book();
         book.setID("camelbook");
-        book.load(new AssertErrorCallback() {
+        book.fetch(new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
                 fetchBookWithExpand();
@@ -529,8 +529,8 @@ public class StackMobModelTests extends StackMobTestCommon {
     
     public void fetchBookWithExpand() {
         final Book book = new Book();
-        book.setID("camelbook"); 
-        book.load(2, new AssertErrorCallback() {
+        book.setID("camelbook");
+        book.fetchWithDepth(2, new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
                 updateBook(book);
@@ -550,7 +550,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     }
 
     public void deleteBook(Book book) {
-        book.delete(new AssertErrorCallback() {
+        book.destroy(new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
                 latch.countDown();

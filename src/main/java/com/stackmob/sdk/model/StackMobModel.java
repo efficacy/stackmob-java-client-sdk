@@ -297,18 +297,18 @@ public abstract class StackMobModel {
     }
     
     public void create() {
-        create(0,new StackMobNoopCallback());
+        create(new StackMobNoopCallback());
     }
 
-    public void create(int depth) {
-        create(depth, new StackMobNoopCallback());
+    public void createWithDepth(int depth) {
+        createWithDepth(depth, new StackMobNoopCallback());
     }
 
     public void create(StackMobCallback callback) {
-        create(0, callback);
+        createWithDepth(0, callback);
     }
 
-    public void create(int depth, StackMobCallback callback) {
+    public void createWithDepth(int depth, StackMobCallback callback) {
         RelationMapping mapping = new RelationMapping();
         String json = toJSON(depth, mapping);
         List<Map.Entry<String,String>> headers= new ArrayList<Map.Entry<String,String>>();
@@ -326,19 +326,19 @@ public abstract class StackMobModel {
         });
     }
     
-    public void load() {
-        load(new StackMobNoopCallback());
+    public void fetch() {
+        fetch(new StackMobNoopCallback());
     }
 
     public void load(int depth) {
-        create(depth, new StackMobNoopCallback());
+        fetchWithDepth(depth, new StackMobNoopCallback());
     }
 
-    public void load(StackMobCallback callback) {
-        load(0, callback);
+    public void fetch(StackMobCallback callback) {
+        fetchWithDepth(0, callback);
     }
     
-    public void load(int depth, StackMobCallback callback) {
+    public void fetchWithDepth(int depth, StackMobCallback callback) {
         Map<String,String> args = new HashMap<String, String>();
         if(depth > 0) args.put("_expand", String.valueOf(depth));
         Map<String,String> headers = new HashMap<String, String>();
@@ -356,18 +356,18 @@ public abstract class StackMobModel {
     }
     
     public void save() {
-        save(0, new StackMobNoopCallback());
+        save(new StackMobNoopCallback());
     }
 
-    public void save(int depth) {
-        save(depth, new StackMobNoopCallback());
+    public void saveWithDepth(int depth) {
+        saveWithDepth(depth, new StackMobNoopCallback());
     }
 
     public void save(StackMobCallback callback) {
-        save(0, callback);
+        saveWithDepth(0, callback);
     }
 
-    public void save(int depth, StackMobCallback callback) {
+    public void saveWithDepth(int depth, StackMobCallback callback) {
         RelationMapping mapping = new RelationMapping();
         String json = toJSON(depth, mapping);
         StackMob.getStackMob().put(getSchemaName(), id, json, new StackMobIntermediaryCallback(callback) {
@@ -383,11 +383,11 @@ public abstract class StackMobModel {
         });
     }
 
-    public void delete() {
-        delete(new StackMobNoopCallback());
+    public void destroy() {
+        destroy(new StackMobNoopCallback());
     }
 
-    public void delete(StackMobCallback callback) {
+    public void destroy(StackMobCallback callback) {
         StackMob.getStackMob().delete(getSchemaName(), id, callback);
     }
 
