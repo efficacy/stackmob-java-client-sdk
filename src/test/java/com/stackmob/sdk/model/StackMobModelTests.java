@@ -24,6 +24,7 @@ import com.stackmob.sdk.exception.StackMobException;
 import com.stackmob.sdk.testobjects.Author;
 import com.stackmob.sdk.testobjects.Book;
 import com.stackmob.sdk.testobjects.Library;
+import com.stackmob.sdk.util.RelationMapping;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
@@ -63,7 +64,7 @@ public class StackMobModelTests extends StackMobTestCommon {
         Simple simple = new Simple();
         assertEquals("simple", simple.getSchemaName());
         assertEquals("simple_id", simple.getIDFieldName());
-        assertEquals("{\"foo\":\"test\",\"bar\":5}", simple.toJSON());
+        assertEquals("{\"foo\":\"test\",\"bar\":5}", simple.toJSON(new RelationMapping()));
     }
     
     private class Complicated extends Simple {
@@ -79,7 +80,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     }
     
     @Test public void testComplicatedTypes() throws Exception {
-        String json = new Complicated().toJSON();
+        String json = new Complicated().toJSON(new RelationMapping());
         JsonObject object = new JsonParser().parse(json).getAsJsonObject();
         assertTrue(object.get("foo").getAsJsonPrimitive().isString());
         assertTrue(object.get("bar").getAsJsonPrimitive().isNumber());
@@ -150,7 +151,7 @@ public class StackMobModelTests extends StackMobTestCommon {
 
     @Test public void testBadSchemaName() throws Exception {
         try {
-            new Bad_Schema_Name().toJSON();
+            new Bad_Schema_Name().toJSON(new RelationMapping());
             assertTrue(false);
         } catch(Exception e) { }
     }
@@ -164,7 +165,7 @@ public class StackMobModelTests extends StackMobTestCommon {
 
     @Test public void testBadFieldName() throws Exception {
         try {
-            new BadFieldName().toJSON();
+            new BadFieldName().toJSON(new RelationMapping());
             assertTrue(false);
         } catch(Exception e) { }
     }
@@ -173,7 +174,7 @@ public class StackMobModelTests extends StackMobTestCommon {
         Author a = new Author("Terry Pratchett");
         a.setID("pratchett");
         Book b = new Book("Mort", "Harper Collins", a);
-        String json = b.toJSON();
+        String json = b.toJSON(new RelationMapping());
         JsonObject object = new JsonParser().parse(json).getAsJsonObject();
         assertTrue(object.get("title").getAsJsonPrimitive().getAsString().equals("Mort"));
         assertTrue(object.get("publisher").getAsJsonPrimitive().getAsString().equals("Harper Collins"));
@@ -198,7 +199,7 @@ public class StackMobModelTests extends StackMobTestCommon {
         Book b2 = new Book("foo2", "bar2", a);
         b2.setID("foo2bar2");
         lib.books = new Book[] {b1, b2};
-        JsonElement json = new JsonParser().parse(lib.toJSON(2));
+        JsonElement json = new JsonParser().parse(lib.toJSON(2,new RelationMapping()));
         assertNotNull(json);
         assertTrue(json.isJsonObject());
         JsonObject jsonObject = json.getAsJsonObject();
@@ -248,7 +249,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     
     @Test public void noIDChildrenToJSON() throws Exception {
         Book b = new Book("Oliver","Penguin",new Author("Dickens"));
-        JsonElement json = new JsonParser().parse(b.toJSON(1)); 
+        JsonElement json = new JsonParser().parse(b.toJSON(1, new RelationMapping()));
         JsonObject authorObject =  json.getAsJsonObject().get("author").getAsJsonObject();
         assertEquals("Dickens",authorObject.get("name").getAsString());
     }
@@ -464,6 +465,20 @@ public class StackMobModelTests extends StackMobTestCommon {
         });
 
         asserter.assertLatchFinished(latch);
+    }
+    
+    @Test public void testDeepSave() throws Exception {
+        Library lib = new Library();
+        lib.name = "SF Public Library";
+        Author a = new Author("baz");
+        a.setID("baz");
+        Book b1 = new Book("foo","bar", a);
+        b1.setID("foobar");
+        Book b2 = new Book("foo2", "bar2", a);
+        b2.setID("foo2bar2");
+        lib.books = new Book[] {b1, b2};
+        lib.setDepth(2);
+        lib.create();
     }
 
 

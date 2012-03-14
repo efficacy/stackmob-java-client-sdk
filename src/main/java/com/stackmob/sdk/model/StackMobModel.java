@@ -22,6 +22,7 @@ import com.stackmob.sdk.callback.StackMobCallback;
 import com.stackmob.sdk.callback.StackMobIntermediaryCallback;
 import com.stackmob.sdk.callback.StackMobNoopCallback;
 import com.stackmob.sdk.exception.StackMobException;
+import com.stackmob.sdk.util.RelationMapping;
 import com.stackmob.sdk.util.SerializationMetadata;
 import static com.stackmob.sdk.util.SerializationMetadata.*;
 
@@ -235,7 +236,7 @@ public abstract class StackMobModel {
         return list;
     }
 
-    private JsonElement toJSONElement(int depth) {
+    private JsonElement toJSONElement(int depth, RelationMapping mapping) {
         if(depth < 0) {
             return getID() == null ? null : new JsonPrimitive(getID());
         }
@@ -249,7 +250,9 @@ public abstract class StackMobModel {
                     Field relationField = getField(fieldName);
                     relationField.setAccessible(true);
                     StackMobModel relatedModel = (StackMobModel) relationField.get(this);
-                    JsonElement relatedJson = relatedModel.toJSONElement(depth -1);
+                    mapping.add(fieldName,relatedModel.getSchemaName());
+                    JsonElement relatedJson = relatedModel.toJSONElement(depth -1, mapping);
+                    mapping.leave();
                     if(relatedJson != null) json.add(fieldName, relatedJson);
                 } catch (Exception ignore) { } //Should never happen
             } else if(getMetadata(fieldName) == MODEL_ARRAY) {
@@ -264,10 +267,16 @@ public abstract class StackMobModel {
                     } else {
                         relatedModels = (Collection<StackMobModel>) relationField.get(this);
                     }
+                    boolean first = true;
                     for(StackMobModel relatedModel : relatedModels) {
-                        JsonElement relatedJson = relatedModel.toJSONElement(depth -1);
+                        if(first) {
+                            mapping.add(fieldName,relatedModel.getSchemaName());
+                            first = false;
+                        }
+                        JsonElement relatedJson = relatedModel.toJSONElement(depth -1,mapping);
                         if(relatedJson != null) array.add(relatedJson);
                     }
+                    if(!first) mapping.leave();
                     json.add(fieldName, array);
                 } catch (Exception ignore) { } //Should never happen
             } else if(getMetadata(fieldName) == OBJECT) {
@@ -284,16 +293,16 @@ public abstract class StackMobModel {
         return json;
     }
     
-    protected String toJSON() {
-        return toJSON(0);
+    protected String toJSON(RelationMapping mapping) {
+        return toJSON(depth, mapping);
     }
 
     /**
      * Converts the object to JSON turning all Models into their ids
      * @return the json representation of this model
      */
-    protected String toJSON(int depth) {
-        return toJSONElement(depth).toString();
+    protected String toJSON(int depth, RelationMapping mapping) {
+        return toJSONElement(depth, mapping).toString();
     }
     
     public void create() {
@@ -301,7 +310,11 @@ public abstract class StackMobModel {
     }
 
     public void create(StackMobCallback callback) {
-        StackMob.getStackMob().post(getSchemaName(), toJSON(), new StackMobIntermediaryCallback(callback) {
+        RelationMapping mapping = new RelationMapping();
+        String json = toJSON(mapping);
+        List<Map.Entry<String,String>> headers= new ArrayList<Map.Entry<String,String>>();
+        headers.add(new AbstractMap.SimpleEntry<String,String>("X-StackMob-Relations", mapping.toHeaderString()));
+        StackMob.getStackMob().post(getSchemaName(), json, headers, new StackMobIntermediaryCallback(callback) {
             @Override
             public void success(String responseBody) {
                 try {
@@ -340,7 +353,9 @@ public abstract class StackMobModel {
     }
 
     public void save(StackMobCallback callback) {
-        StackMob.getStackMob().put(getSchemaName(), id, toJSON(), new StackMobIntermediaryCallback(callback) {
+        RelationMapping mapping = new RelationMapping();
+        String json = toJSON(mapping);
+        StackMob.getStackMob().put(getSchemaName(), id, json, new StackMobIntermediaryCallback(callback) {
             @Override
             public void success(String responseBody) {
                 try {

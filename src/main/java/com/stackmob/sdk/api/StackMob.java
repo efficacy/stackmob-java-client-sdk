@@ -716,6 +716,29 @@ public class StackMob {
     }
 
     /**
+     * do a post request on the StackMob platform for a single object
+     * @param path the path to get
+     * @param body the json body
+     * @param headers any additional headers to send
+     * @param callback callback to be called when the server returns. may execute in a separate thread
+     * @return a StackMobRequestSendResult representing what happened when the SDK tried to do the request. contains no information about the response - that will be passed to the callback when the response comes back
+     */
+    public StackMobRequestSendResult post(String path,
+                                          String body,
+                                          List<Map.Entry<String, String>>  headers,
+                                          StackMobRawCallback callback) {
+        return new StackMobRequestWithPayload(this.executor,
+                this.session,
+                HttpVerbWithPayload.POST,
+                headers,
+                StackMobRequest.EmptyParams,
+                body,
+                path,
+                callback,
+                this.redirectedCallback).setUrlFormat(this.apiUrlFormat).sendRequest();
+    }
+
+    /**
      * do a post request on the StackMob platform with a list of objects
      * @param path the path to get
      * @param requestObjects List of objects to serialize and send in the POST body. the list will be serialized with Gson
