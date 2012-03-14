@@ -64,7 +64,9 @@ public class StackMobModelTests extends StackMobTestCommon {
         Simple simple = new Simple();
         assertEquals("simple", simple.getSchemaName());
         assertEquals("simple_id", simple.getIDFieldName());
-        assertEquals("{\"foo\":\"test\",\"bar\":5}", simple.toJSON(new RelationMapping()));
+        RelationMapping mapping = new RelationMapping();
+        assertEquals("{\"foo\":\"test\",\"bar\":5}", simple.toJSON(mapping));
+        assertEquals("",mapping.toHeaderString());
     }
     
     private class Complicated extends Simple {
@@ -80,7 +82,8 @@ public class StackMobModelTests extends StackMobTestCommon {
     }
     
     @Test public void testComplicatedTypes() throws Exception {
-        String json = new Complicated().toJSON(new RelationMapping());
+        RelationMapping mapping = new RelationMapping();
+        String json = new Complicated().toJSON(mapping);
         JsonObject object = new JsonParser().parse(json).getAsJsonObject();
         assertTrue(object.get("foo").getAsJsonPrimitive().isString());
         assertTrue(object.get("bar").getAsJsonPrimitive().isNumber());
@@ -90,6 +93,7 @@ public class StackMobModelTests extends StackMobTestCommon {
         assertTrue(object.get("test").getAsJsonPrimitive().isBoolean());
         assertTrue(object.get("myBytes").isJsonArray() && object.get("myBytes").getAsJsonArray().iterator().next().getAsJsonPrimitive().isNumber());
         assertTrue(object.get("Latch").getAsJsonPrimitive().isString());
+        assertEquals("",mapping.toHeaderString());
     }
 
     String bookName1 = "The C Programming Language";
@@ -174,19 +178,13 @@ public class StackMobModelTests extends StackMobTestCommon {
         Author a = new Author("Terry Pratchett");
         a.setID("pratchett");
         Book b = new Book("Mort", "Harper Collins", a);
-        String json = b.toJSON(new RelationMapping());
+        RelationMapping mapping = new RelationMapping();
+        String json = b.toJSON(mapping);
         JsonObject object = new JsonParser().parse(json).getAsJsonObject();
         assertTrue(object.get("title").getAsJsonPrimitive().getAsString().equals("Mort"));
         assertTrue(object.get("publisher").getAsJsonPrimitive().getAsString().equals("Harper Collins"));
         assertTrue(object.get("author").getAsJsonPrimitive().getAsString().equals("pratchett"));
-    }
-    
-    @Test public void testList() throws  Exception {
-        List<String> list = new LinkedList<String>();
-        list.add("foo");
-        list.add("bar");
-        list.add("baz");
-        String json = gson.toJson(list);
+        assertEquals("author=author", mapping.toHeaderString());
     }
     
     @Test public void testModelArrayToJSON() throws Exception {
@@ -199,7 +197,8 @@ public class StackMobModelTests extends StackMobTestCommon {
         Book b2 = new Book("foo2", "bar2", a);
         b2.setID("foo2bar2");
         lib.books = new Book[] {b1, b2};
-        JsonElement json = new JsonParser().parse(lib.toJSON(2,new RelationMapping()));
+        RelationMapping mapping = new RelationMapping();
+        JsonElement json = new JsonParser().parse(lib.toJSON(2, mapping));
         assertNotNull(json);
         assertTrue(json.isJsonObject());
         JsonObject jsonObject = json.getAsJsonObject();
@@ -221,6 +220,7 @@ public class StackMobModelTests extends StackMobTestCommon {
         JsonObject author2 = book2.get("author").getAsJsonObject();
         assertEquals("baz", author2.get("author_id").getAsString());
         assertEquals("baz", author2.get("name").getAsString());
+        assertEquals("books=book&books.author=author",mapping.toHeaderString());
 
     }
     

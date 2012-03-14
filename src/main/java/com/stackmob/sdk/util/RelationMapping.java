@@ -29,8 +29,7 @@ public class RelationMapping {
     }
 
     public void leave() {
-        String basePathMinusDot = basePath.substring(0,basePath.length() - 1);
-        basePath = basePathMinusDot.substring(0,basePathMinusDot.lastIndexOf(".") + 1);
+        basePath = basePath.substring(0,basePath.lastIndexOf(".", basePath.length() - 2) + 1);
     }
 
 
