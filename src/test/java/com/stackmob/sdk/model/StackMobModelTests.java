@@ -31,6 +31,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.*;
 
+import static com.stackmob.sdk.concurrencyutils.CountDownLatchUtils.latch;
 import static com.stackmob.sdk.concurrencyutils.CountDownLatchUtils.latchOne;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
@@ -65,7 +66,7 @@ public class StackMobModelTests extends StackMobTestCommon {
         assertEquals("simple", simple.getSchemaName());
         assertEquals("simple_id", simple.getIDFieldName());
         RelationMapping mapping = new RelationMapping();
-        assertEquals("{\"foo\":\"test\",\"bar\":5}", simple.toJSON(mapping));
+        assertEquals("{\"foo\":\"test\",\"bar\":5}", simple.toJSON(0, mapping));
         assertEquals("",mapping.toHeaderString());
     }
     
@@ -83,7 +84,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     
     @Test public void testComplicatedTypes() throws Exception {
         RelationMapping mapping = new RelationMapping();
-        String json = new Complicated().toJSON(mapping);
+        String json = new Complicated().toJSON(0, mapping);
         JsonObject object = new JsonParser().parse(json).getAsJsonObject();
         assertTrue(object.get("foo").getAsJsonPrimitive().isString());
         assertTrue(object.get("bar").getAsJsonPrimitive().isNumber());
@@ -155,7 +156,7 @@ public class StackMobModelTests extends StackMobTestCommon {
 
     @Test public void testBadSchemaName() throws Exception {
         try {
-            new Bad_Schema_Name().toJSON(new RelationMapping());
+            new Bad_Schema_Name().toJSON(0, new RelationMapping());
             assertTrue(false);
         } catch(Exception e) { }
     }
@@ -169,7 +170,7 @@ public class StackMobModelTests extends StackMobTestCommon {
 
     @Test public void testBadFieldName() throws Exception {
         try {
-            new BadFieldName().toJSON(new RelationMapping());
+            new BadFieldName().toJSON(0, new RelationMapping());
             assertTrue(false);
         } catch(Exception e) { }
     }
@@ -179,7 +180,7 @@ public class StackMobModelTests extends StackMobTestCommon {
         a.setID("pratchett");
         Book b = new Book("Mort", "Harper Collins", a);
         RelationMapping mapping = new RelationMapping();
-        String json = b.toJSON(mapping);
+        String json = b.toJSON(0, mapping);
         JsonObject object = new JsonParser().parse(json).getAsJsonObject();
         assertTrue(object.get("title").getAsJsonPrimitive().getAsString().equals("Mort"));
         assertTrue(object.get("publisher").getAsJsonPrimitive().getAsString().equals("Harper Collins"));
@@ -466,20 +467,25 @@ public class StackMobModelTests extends StackMobTestCommon {
 
         asserter.assertLatchFinished(latch);
     }
-    
+
+    /*
     @Test public void testDeepSave() throws Exception {
         Library lib = new Library();
         lib.name = "SF Public Library";
-        Author a = new Author("baz");
-        a.setID("baz");
-        Book b1 = new Book("foo","bar", a);
-        b1.setID("foobar");
-        Book b2 = new Book("foo2", "bar2", a);
-        b2.setID("foo2bar2");
+        Author a = new Author("Tolstoy");
+        Book b1 = new Book("War and Peace","foo", a);
+        Book b2 = new Book("Anna Karenina", "bar", a);
         lib.books = new Book[] {b1, b2};
-        lib.setDepth(2);
-        lib.create();
+        lib.create(2, new AssertErrorCallback() {
+            @Override
+            public void success(String responseBody) {
+                
+                latch.countDown();
+            }
+        });
+        asserter.assertLatchFinished(latch);
     }
+    */
 
 
     @Test public void testFullSequence() throws Exception {
@@ -524,8 +530,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     public void fetchBookWithExpand() {
         final Book book = new Book();
         book.setID("camelbook"); 
-        book.setDepth(2);
-        book.load(new AssertErrorCallback() {
+        book.load(2, new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
                 updateBook(book);
