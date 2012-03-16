@@ -35,9 +35,24 @@ public class StackMobModelQueryTests extends StackMobTestCommon {
     final CountDownLatch latch = latchOne();
 
     @Test public void testQuery() throws Exception {
-        StackMobModelQuery<Author> query = new StackMobModelQuery<Author>(Author.class);
-        query.getQuery().isInRange(0,10);
-        query.send(new StackMobQueryCallback<Author>() {
+        new StackMobModelQuery<Author>(Author.class).isInRange(0,10).send(new StackMobQueryCallback<Author>() {
+            @Override
+            public void success(List<Author> result) {
+                assertEquals(11, result.size());
+                assertNotNull(result.get(0).getName());
+                latch.countDown();
+            }
+
+            @Override
+            public void failure(StackMobException e) {
+                asserter.markException(e);
+            }
+        });
+        asserter.assertLatchFinished(latch);
+    }
+
+    @Test public void testFieldQuery() throws Exception {
+        new StackMobModelQuery<Author>(Author.class).isInRange(0,10).field(new StackMobField("name").isEqualTo("bar")).send(new StackMobQueryCallback<Author>() {
             @Override
             public void success(List<Author> result) {
                 assertEquals(11, result.size());
