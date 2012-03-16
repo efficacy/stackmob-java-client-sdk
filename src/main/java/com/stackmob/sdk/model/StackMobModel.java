@@ -296,36 +296,6 @@ public abstract class StackMobModel {
         return toJSONElement(depth, mapping).toString();
     }
     
-    public void create() {
-        create(new StackMobNoopCallback());
-    }
-
-    public void createWithDepth(int depth) {
-        createWithDepth(depth, new StackMobNoopCallback());
-    }
-
-    public void create(StackMobCallback callback) {
-        createWithDepth(0, callback);
-    }
-
-    public void createWithDepth(int depth, StackMobCallback callback) {
-        RelationMapping mapping = new RelationMapping();
-        String json = toJSON(depth, mapping);
-        List<Map.Entry<String,String>> headers= new ArrayList<Map.Entry<String,String>>();
-        headers.add(new AbstractMap.SimpleEntry<String,String>("X-StackMob-Relations", mapping.toHeaderString()));
-        StackMob.getStackMob().post(getSchemaName(), json, headers, new StackMobIntermediaryCallback(callback) {
-            @Override
-            public void success(String responseBody) {
-                try {
-                    fillFromJSON(new JsonParser().parse(responseBody));
-                } catch (StackMobException e) {
-                    failure(e);
-                }
-                super.success(responseBody);
-            }
-        });
-    }
-    
     public void fetch() {
         fetch(new StackMobNoopCallback());
     }
@@ -370,7 +340,9 @@ public abstract class StackMobModel {
     public void saveWithDepth(int depth, StackMobCallback callback) {
         RelationMapping mapping = new RelationMapping();
         String json = toJSON(depth, mapping);
-        StackMob.getStackMob().put(getSchemaName(), id, json, new StackMobIntermediaryCallback(callback) {
+        List<Map.Entry<String,String>> headers= new ArrayList<Map.Entry<String,String>>();
+        headers.add(new AbstractMap.SimpleEntry<String,String>("X-StackMob-Relations", mapping.toHeaderString()));
+        StackMob.getStackMob().post(getSchemaName(), json, headers, new StackMobIntermediaryCallback(callback) {
             @Override
             public void success(String responseBody) {
                 try {
