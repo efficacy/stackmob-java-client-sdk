@@ -86,7 +86,7 @@ public abstract class StackMobModel {
         return hasData;
     }
     
-    protected void fillFieldFromJSON(String fieldName, JsonElement json) throws StackMobException {
+    protected void fillFieldFromJson(String fieldName, JsonElement json) throws StackMobException {
         try {
             if(fieldName.equals(getIDFieldName())) {
                 // The id field is special, its name doesn't match the field
@@ -101,7 +101,7 @@ public abstract class StackMobModel {
                     if(relatedModel == null || !relatedModel.hasSameID(json)) {
                         relatedModel = (StackMobModel) field.getType().newInstance();
                     }
-                    relatedModel.fillFromJSON(json);
+                    relatedModel.fillFromJson(json);
                     field.set(this, relatedModel);
                 } else if(getMetadata(fieldName) == MODEL_ARRAY) {
                     Class<? extends StackMobModel> actualModelClass = (Class<? extends StackMobModel>) SerializationMetadata.getComponentClass(field);
@@ -163,7 +163,7 @@ public abstract class StackMobModel {
         for(JsonElement json : array) {
             StackMobModel model = getExistingModel(existingModels, json);
             if(model == null) model = modelClass.newInstance();
-            model.fillFromJSON(json);
+            model.fillFromJson(json);
             result.add(model);
         }
         return result;
@@ -196,14 +196,18 @@ public abstract class StackMobModel {
         }
         throw new NoSuchFieldException(fieldName);
     }
+    
+    public void fillFromJson(String jsonString) throws StackMobException {
+        fillFromJson(new JsonParser().parse(jsonString));
+    }
 
-    protected void fillFromJSON(JsonElement json) throws StackMobException {
+    protected void fillFromJson(JsonElement json) throws StackMobException {
         if(json.isJsonPrimitive()) {
             //This ought to be an unexpanded relation then
             setID(json.getAsJsonPrimitive().getAsString());
         } else {
             for (Map.Entry<String, JsonElement> jsonField : json.getAsJsonObject().entrySet()) {
-                fillFieldFromJSON(jsonField.getKey(), jsonField.getValue());
+                fillFieldFromJson(jsonField.getKey(), jsonField.getValue());
             }
             hasData = true;
         }
@@ -231,7 +235,7 @@ public abstract class StackMobModel {
         return list;
     }
 
-    private JsonElement toJSONElement(int depth, RelationMapping mapping) {
+    private JsonElement toJsonElement(int depth, RelationMapping mapping) {
         if(depth < 0) {
             return getID() == null ? null : new JsonPrimitive(getID());
         }
@@ -246,7 +250,7 @@ public abstract class StackMobModel {
                     relationField.setAccessible(true);
                     StackMobModel relatedModel = (StackMobModel) relationField.get(this);
                     mapping.add(fieldName,relatedModel.getSchemaName());
-                    JsonElement relatedJson = relatedModel.toJSONElement(depth -1, mapping);
+                    JsonElement relatedJson = relatedModel.toJsonElement(depth - 1, mapping);
                     mapping.leave();
                     if(relatedJson != null) json.add(fieldName, relatedJson);
                 } catch (Exception ignore) { } //Should never happen
@@ -268,7 +272,7 @@ public abstract class StackMobModel {
                             mapping.add(fieldName,relatedModel.getSchemaName());
                             first = false;
                         }
-                        JsonElement relatedJson = relatedModel.toJSONElement(depth -1,mapping);
+                        JsonElement relatedJson = relatedModel.toJsonElement(depth - 1, mapping);
                         if(relatedJson != null) array.add(relatedJson);
                     }
                     if(!first) mapping.leave();
@@ -287,13 +291,21 @@ public abstract class StackMobModel {
         }
         return json;
     }
+    
+    public String toJson() {
+        return toJson(0);
+    }
+    
+    public String toJson(int depth) {
+        return toJson(depth, new RelationMapping());
+    }
 
     /**
      * Converts the object to JSON turning all Models into their ids
      * @return the json representation of this model
      */
-    protected String toJSON(int depth, RelationMapping mapping) {
-        return toJSONElement(depth, mapping).toString();
+    protected String toJson(int depth, RelationMapping mapping) {
+        return toJsonElement(depth, mapping).toString();
     }
     
     public void fetch() {
@@ -316,7 +328,7 @@ public abstract class StackMobModel {
             @Override
             public void success(String responseBody) {
                 try {
-                    StackMobModel.this.fillFromJSON(new JsonParser().parse(responseBody));
+                    StackMobModel.this.fillFromJson(new JsonParser().parse(responseBody));
                 } catch (StackMobException e) {
                     failure(e);
                 }
@@ -339,14 +351,14 @@ public abstract class StackMobModel {
 
     public void saveWithDepth(int depth, StackMobCallback callback) {
         RelationMapping mapping = new RelationMapping();
-        String json = toJSON(depth, mapping);
+        String json = toJson(depth, mapping);
         List<Map.Entry<String,String>> headers= new ArrayList<Map.Entry<String,String>>();
         headers.add(new AbstractMap.SimpleEntry<String,String>("X-StackMob-Relations", mapping.toHeaderString()));
         StackMob.getStackMob().post(getSchemaName(), json, headers, new StackMobIntermediaryCallback(callback) {
             @Override
             public void success(String responseBody) {
                 try {
-                    fillFromJSON(new JsonParser().parse(responseBody));
+                    fillFromJson(new JsonParser().parse(responseBody));
                 } catch (StackMobException e) {
                     failure(e);
                 }

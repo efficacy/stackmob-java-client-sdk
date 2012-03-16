@@ -31,7 +31,6 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.*;
 
-import static com.stackmob.sdk.concurrencyutils.CountDownLatchUtils.latch;
 import static com.stackmob.sdk.concurrencyutils.CountDownLatchUtils.latchOne;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
@@ -66,7 +65,7 @@ public class StackMobModelTests extends StackMobTestCommon {
         assertEquals("simple", simple.getSchemaName());
         assertEquals("simple_id", simple.getIDFieldName());
         RelationMapping mapping = new RelationMapping();
-        assertEquals("{\"foo\":\"test\",\"bar\":5}", simple.toJSON(0, mapping));
+        assertEquals("{\"foo\":\"test\",\"bar\":5}", simple.toJson(0, mapping));
         assertEquals("",mapping.toHeaderString());
     }
     
@@ -84,7 +83,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     
     @Test public void testComplicatedTypes() throws Exception {
         RelationMapping mapping = new RelationMapping();
-        String json = new Complicated().toJSON(0, mapping);
+        String json = new Complicated().toJson(0, mapping);
         JsonObject object = new JsonParser().parse(json).getAsJsonObject();
         assertTrue(object.get("foo").getAsJsonPrimitive().isString());
         assertTrue(object.get("bar").getAsJsonPrimitive().isNumber());
@@ -106,7 +105,7 @@ public class StackMobModelTests extends StackMobTestCommon {
                        "\"author\":KnR}";
         System.out.println(json);
         Book book = new Book();
-        book.fillFromJSON(new JsonParser().parse(json));
+        book.fillFromJson(new JsonParser().parse(json));
         assertEquals(bookName1, book.getTitle());
         assertEquals(bookPublisher1, book.getPublisher());
         assertNotNull(book.getAuthor());
@@ -121,7 +120,7 @@ public class StackMobModelTests extends StackMobTestCommon {
                        "\"author\":{\"author_id\":\"KnR\", " +
                                      "\"name\":\"Kernighan and Ritchie\"}}";
         Book book = new Book();
-        book.fillFromJSON(new JsonParser().parse(json));
+        book.fillFromJson(new JsonParser().parse(json));
         assertEquals(bookName1, book.getTitle());
         assertEquals(bookPublisher1, book.getPublisher());
         assertNotNull(book.getAuthor());
@@ -132,7 +131,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     @Test public void testFillComplicatedJSON() throws Exception {
         String json = "{\"number\":1338,\"strings\":[\"hello!\",\"world!\"],\"test\":true,\"myBytes\":[1,2,3],\"foo\":\"testpassed\",\"bar\":27,\"uuid\":\"\\\"00000000-0000-0003-0000-000000000005\\\"\",\"Latch\":\"{\\\"sync\\\":{\\\"state\\\":0}}\"}";
         Complicated c = new Complicated();
-        c.fillFromJSON(new JsonParser().parse(json));
+        c.fillFromJson(new JsonParser().parse(json));
         assertEquals(c.foo,"testpassed");
         assertEquals(c.bar, 27);
         assertEquals(c.number, 1338);
@@ -156,7 +155,7 @@ public class StackMobModelTests extends StackMobTestCommon {
 
     @Test public void testBadSchemaName() throws Exception {
         try {
-            new Bad_Schema_Name().toJSON(0, new RelationMapping());
+            new Bad_Schema_Name().toJson(0, new RelationMapping());
             assertTrue(false);
         } catch(Exception e) { }
     }
@@ -170,7 +169,7 @@ public class StackMobModelTests extends StackMobTestCommon {
 
     @Test public void testBadFieldName() throws Exception {
         try {
-            new BadFieldName().toJSON(0, new RelationMapping());
+            new BadFieldName().toJson(0, new RelationMapping());
             assertTrue(false);
         } catch(Exception e) { }
     }
@@ -180,7 +179,7 @@ public class StackMobModelTests extends StackMobTestCommon {
         a.setID("pratchett");
         Book b = new Book("Mort", "Harper Collins", a);
         RelationMapping mapping = new RelationMapping();
-        String json = b.toJSON(0, mapping);
+        String json = b.toJson(0, mapping);
         JsonObject object = new JsonParser().parse(json).getAsJsonObject();
         assertTrue(object.get("title").getAsJsonPrimitive().getAsString().equals("Mort"));
         assertTrue(object.get("publisher").getAsJsonPrimitive().getAsString().equals("Harper Collins"));
@@ -199,7 +198,7 @@ public class StackMobModelTests extends StackMobTestCommon {
         b2.setID("foo2bar2");
         lib.books = new Book[] {b1, b2};
         RelationMapping mapping = new RelationMapping();
-        JsonElement json = new JsonParser().parse(lib.toJSON(2, mapping));
+        JsonElement json = new JsonParser().parse(lib.toJson(2, mapping));
         assertNotNull(json);
         assertTrue(json.isJsonObject());
         JsonObject jsonObject = json.getAsJsonObject();
@@ -228,7 +227,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     @Test public void testModelArrayFromJSON() throws Exception {
         String json = "{\"name\":\"SF Public Library\",\"books\":[{\"title\":\"foo\",\"publisher\":\"bar\",\"author\":{\"name\":\"baz\",\"author_id\":\"baz\"},\"book_id\":\"foobar\"},{\"title\":\"foo2\",\"publisher\":\"bar2\",\"author\":{\"name\":\"baz\",\"author_id\":\"baz\"},\"book_id\":\"foo2bar2\"}]}";
         Library lib = new Library();
-        lib.fillFromJSON(new JsonParser().parse(json));
+        lib.fillFromJson(new JsonParser().parse(json));
 
         assertEquals(lib.name,"SF Public Library");
         assertNotNull(lib.books);
@@ -250,7 +249,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     
     @Test public void noIDChildrenToJSON() throws Exception {
         Book b = new Book("Oliver","Penguin",new Author("Dickens"));
-        JsonElement json = new JsonParser().parse(b.toJSON(1, new RelationMapping()));
+        JsonElement json = new JsonParser().parse(b.toJson(1, new RelationMapping()));
         JsonObject authorObject =  json.getAsJsonObject().get("author").getAsJsonObject();
         assertEquals("Dickens",authorObject.get("name").getAsString());
     }
@@ -258,7 +257,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     @Test public void noIDChildrenFromJSON() throws Exception {
         String json = "{\"title\":\"Oliver\",\"publisher\":\"Penguin\",\"author\":{\"name\":\"Dickens\"}}";
         Book b = new Book();
-        b.fillFromJSON(new JsonParser().parse(json));
+        b.fillFromJson(new JsonParser().parse(json));
         assertNull(b.getID());
         assertEquals("Oliver", b.getTitle());
         assertEquals("Penguin", b.getPublisher());
@@ -270,7 +269,7 @@ public class StackMobModelTests extends StackMobTestCommon {
         Book b = new Book("foo","bar", new Author("baz"));
         b.getAuthor().setID("baz");
         //The json has the same author with no data
-        b.fillFromJSON(new JsonParser().parse("{\"title\":\"foo\",\"publisher\":\"bar\",\"author\":\"baz\",\"book_id\":\"foobar\"}"));
+        b.fillFromJson(new JsonParser().parse("{\"title\":\"foo\",\"publisher\":\"bar\",\"author\":\"baz\",\"book_id\":\"foobar\"}"));
         assertEquals("baz", b.getAuthor().getName());
     }
 
