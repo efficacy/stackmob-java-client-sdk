@@ -108,9 +108,6 @@ public abstract class StackMobModel {
                     Collection<StackMobModel> existingModels = getFieldAsCollection(field);
                     List<StackMobModel> newModels = updateModelListFromJson(json.getAsJsonArray(), existingModels, actualModelClass);
                     setFieldFromList(field, newModels, actualModelClass);
-                } else if(getMetadata(fieldName) == OBJECT) {
-                    //unpack the object string
-                    field.set(this, new Gson().fromJson(json.getAsJsonPrimitive().getAsString(), field.getType()));
                 } else {
                     // Let gson do its thing
                     field.set(this, new Gson().fromJson(json, field.getType()));
@@ -279,11 +276,11 @@ public abstract class StackMobModel {
                     json.add(fieldName, array);
                 } catch (Exception ignore) { } //Should never happen
             } else if(getMetadata(fieldName) == OBJECT) {
-                //We don't support actual objects in our schemas,
-                //so condense these down to strings
-                String jsonString = value.toString();
-                json.remove(fieldName);
-                json.add(fieldName, new JsonPrimitive(jsonString));
+                //We don't support subobjects. Gson automatically converts a few types like
+                //Date and BigInteger to primitive types, but anything else has to be an error.
+                if(value.isJsonObject()) {
+                    throw new IllegalStateException("Field " + fieldName + " is a subobject which is not supported at this time");
+                }
             }
         }
         if(id != null) {
