@@ -78,7 +78,7 @@ public class StackMobModelTests extends StackMobTestCommon {
         private String[] strings = new String[] {"hello", "world"};
         private boolean test = false;
         private byte[] myBytes = new byte[] {(byte)0xaf, (byte)0x45, (byte)0xf3};
-        private CountDownLatch Latch = latchOne();
+        protected Date date = new Date();
     }
     
     @Test public void testComplicatedTypes() throws Exception {
@@ -92,8 +92,24 @@ public class StackMobModelTests extends StackMobTestCommon {
         assertTrue(object.get("strings").isJsonArray() && object.get("strings").getAsJsonArray().iterator().next().getAsJsonPrimitive().isString());
         assertTrue(object.get("test").getAsJsonPrimitive().isBoolean());
         assertTrue(object.get("myBytes").isJsonArray() && object.get("myBytes").getAsJsonArray().iterator().next().getAsJsonPrimitive().isNumber());
-        assertTrue(object.get("Latch").getAsJsonPrimitive().isString());
+        assertTrue(object.get("date").getAsJsonPrimitive().isNumber());
         assertEquals("",mapping.toHeaderString());
+    }
+
+    private class Subobject extends StackMobModel {
+        private CountDownLatch Latch = latchOne();
+        public Subobject() {
+            super(Subobject.class);
+        }
+    }
+    
+    @Test public void testSubobject() throws Exception {
+        try {
+            new Subobject().toJson(0, new RelationMapping());
+            assertTrue(false);
+        } catch(Exception e) {
+            assertTrue(e instanceof IllegalStateException);
+        }
     }
 
     String bookName1 = "The C Programming Language";
@@ -129,7 +145,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     }
     
     @Test public void testFillComplicatedJSON() throws Exception {
-        String json = "{\"number\":1338,\"strings\":[\"hello!\",\"world!\"],\"test\":true,\"myBytes\":[1,2,3],\"foo\":\"testpassed\",\"bar\":27,\"uuid\":\"\\\"00000000-0000-0003-0000-000000000005\\\"\",\"Latch\":\"{\\\"sync\\\":{\\\"state\\\":0}}\"}";
+        String json = "{\"number\":1338,\"strings\":[\"hello!\",\"world!\"],\"test\":true,\"myBytes\":[1,2,3],\"foo\":\"testpassed\",\"bar\":27,\"uuid\":\"00000000-0000-0003-0000-000000000005\",\"date\":0}";
         Complicated c = new Complicated();
         c.fillFromJson(new JsonParser().parse(json));
         assertEquals(c.foo,"testpassed");
@@ -142,8 +158,7 @@ public class StackMobModelTests extends StackMobTestCommon {
         assertEquals(c.test,true);
         assertNotNull(c.myBytes);
         assertEquals(c.myBytes[0], 1);
-        assertNotNull(c.Latch);
-        assertEquals(c.Latch.getCount(), 0);
+        assertEquals(new Date(0), c.date);
     }
     
     private class Bad_Schema_Name extends StackMobModel {

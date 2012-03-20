@@ -17,6 +17,9 @@
 package com.stackmob.sdk.model;
 
 import com.google.gson.*;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
 import com.stackmob.sdk.api.StackMob;
 import com.stackmob.sdk.callback.StackMobCallback;
 import com.stackmob.sdk.callback.StackMobIntermediaryCallback;
@@ -24,18 +27,43 @@ import com.stackmob.sdk.callback.StackMobNoopCallback;
 import com.stackmob.sdk.exception.StackMobException;
 import com.stackmob.sdk.util.RelationMapping;
 import com.stackmob.sdk.util.SerializationMetadata;
+
 import static com.stackmob.sdk.util.SerializationMetadata.*;
 
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.*;
 
 public abstract class StackMobModel {
+
+    public class DateAsNumberTypeAdapter extends TypeAdapter<Date> {
+
+        @Override
+        public void write(JsonWriter jsonWriter, Date date) throws IOException {
+            if (date == null) {
+                jsonWriter.nullValue();
+                return;
+            }
+            jsonWriter.value(date.getTime());
+        }
+
+        @Override
+        public Date read(JsonReader jsonReader) throws IOException {
+            if (jsonReader.peek() == JsonToken.NULL) {
+                jsonReader.nextNull();
+                return null;
+            }
+            return new Date(jsonReader.nextLong());
+        }
+    }
+
     
     private transient String id;
     private transient Class<? extends StackMobModel> actualClass;
     private transient String schemaName;
     private transient boolean hasData;
+    private transient Gson gson;
 
     public StackMobModel(String id, Class<? extends StackMobModel> actualClass) {
         this(actualClass);
@@ -47,6 +75,9 @@ public abstract class StackMobModel {
         schemaName = actualClass.getSimpleName().toLowerCase();
         ensureValidName(schemaName,"model");
         ensureMetadata(actualClass);
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeAdapter(Date.class, new DateAsNumberTypeAdapter());
+        gson = gsonBuilder.create();
     }
 
     private static void ensureValidName(String name, String thing) {
@@ -110,7 +141,7 @@ public abstract class StackMobModel {
                     setFieldFromList(field, newModels, actualModelClass);
                 } else {
                     // Let gson do its thing
-                    field.set(this, new Gson().fromJson(json, field.getType()));
+                    field.set(this, gson.fromJson(json, field.getType()));
                 }
             }
         } catch(NoSuchFieldException ignore) {
@@ -148,7 +179,7 @@ public abstract class StackMobModel {
         } else {
             // Given a null Collection, how to we find the right concrete collection to use? There is no good way.
             // So let's at least use the same hack as gson.
-            field.set(this,new Gson().fromJson("[]",field.getType()));
+            field.set(this,gson.fromJson("[]", field.getType()));
             Collection<StackMobModel> models = (Collection<StackMobModel>)field.get(this);
             models.clear();
             models.addAll(list);
@@ -236,7 +267,7 @@ public abstract class StackMobModel {
         if(depth < 0) {
             return getID() == null ? null : new JsonPrimitive(getID());
         }
-        JsonObject json = new Gson().toJsonTree(this).getAsJsonObject();
+        JsonObject json = gson.toJsonTree(this).getAsJsonObject();
         for(String fieldName : getFieldNames(json)) {
             ensureValidName(fieldName, "field");
             JsonElement value = json.get(fieldName);
