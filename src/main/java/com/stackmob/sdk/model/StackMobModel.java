@@ -90,6 +90,10 @@ public abstract class StackMobModel {
     private SerializationMetadata getMetadata(String fieldName) {
         return getSerializationMetadata(actualClass, fieldName);
     }
+
+    private String getFieldName(String jsonName) {
+        return getFieldNameFromJsonName(actualClass, jsonName);
+    }
     
     public void setID(String id) {
         this.id = id;
@@ -117,31 +121,35 @@ public abstract class StackMobModel {
         return hasData;
     }
     
-    protected void fillFieldFromJson(String fieldName, JsonElement json) throws StackMobException {
+    protected void fillFieldFromJson(String jsonName, JsonElement json) throws StackMobException {
         try {
-            if(fieldName.equals(getIDFieldName())) {
+            if(jsonName.equals(getIDFieldName())) {
                 // The id field is special, its name doesn't match the field
                 setID(json.getAsJsonPrimitive().getAsString());
             } else {
-                Field field = getField(fieldName);
-                field.setAccessible(true);
-                if(getMetadata(fieldName) == MODEL) {
-                    // Delegate any expanded relations to the appropriate object
-                    StackMobModel relatedModel = (StackMobModel) field.get(this);
-                    // If there's a model with the same id, keep it. Otherwise create a new one
-                    if(relatedModel == null || !relatedModel.hasSameID(json)) {
-                        relatedModel = (StackMobModel) field.getType().newInstance();
+                // undo the toLowerCase we do when sending out the json
+                String fieldName = getFieldName(jsonName);
+                if(fieldName != null) {
+                    Field field = getField(fieldName);
+                    field.setAccessible(true);
+                    if(getMetadata(fieldName) == MODEL) {
+                        // Delegate any expanded relations to the appropriate object
+                        StackMobModel relatedModel = (StackMobModel) field.get(this);
+                        // If there's a model with the same id, keep it. Otherwise create a new one
+                        if(relatedModel == null || !relatedModel.hasSameID(json)) {
+                            relatedModel = (StackMobModel) field.getType().newInstance();
+                        }
+                        relatedModel.fillFromJson(json);
+                        field.set(this, relatedModel);
+                    } else if(getMetadata(fieldName) == MODEL_ARRAY) {
+                        Class<? extends StackMobModel> actualModelClass = (Class<? extends StackMobModel>) SerializationMetadata.getComponentClass(field);
+                        Collection<StackMobModel> existingModels = getFieldAsCollection(field);
+                        List<StackMobModel> newModels = updateModelListFromJson(json.getAsJsonArray(), existingModels, actualModelClass);
+                        setFieldFromList(field, newModels, actualModelClass);
+                    } else {
+                        // Let gson do its thing
+                        field.set(this, gson.fromJson(json, field.getType()));
                     }
-                    relatedModel.fillFromJson(json);
-                    field.set(this, relatedModel);
-                } else if(getMetadata(fieldName) == MODEL_ARRAY) {
-                    Class<? extends StackMobModel> actualModelClass = (Class<? extends StackMobModel>) SerializationMetadata.getComponentClass(field);
-                    Collection<StackMobModel> existingModels = getFieldAsCollection(field);
-                    List<StackMobModel> newModels = updateModelListFromJson(json.getAsJsonArray(), existingModels, actualModelClass);
-                    setFieldFromList(field, newModels, actualModelClass);
-                } else {
-                    // Let gson do its thing
-                    field.set(this, gson.fromJson(json, field.getType()));
                 }
             }
         } catch(NoSuchFieldException ignore) {
@@ -268,6 +276,7 @@ public abstract class StackMobModel {
             return getID() == null ? null : new JsonPrimitive(getID());
         }
         JsonObject json = gson.toJsonTree(this).getAsJsonObject();
+        JsonObject outgoing = new JsonObject();
         for(String fieldName : getFieldNames(json)) {
             ensureValidName(fieldName, "field");
             JsonElement value = json.get(fieldName);
@@ -313,11 +322,12 @@ public abstract class StackMobModel {
                     throw new IllegalStateException("Field " + fieldName + " is a subobject which is not supported at this time");
                 }
             }
+            outgoing.add(fieldName.toLowerCase(), json.get(fieldName));
         }
         if(id != null) {
-            json.addProperty(getIDFieldName(),id);
+            outgoing.addProperty(getIDFieldName(),id);
         }
-        return json;
+        return outgoing;
     }
     
     public String toJson() {

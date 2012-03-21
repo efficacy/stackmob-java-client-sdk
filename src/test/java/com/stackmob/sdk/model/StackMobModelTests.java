@@ -91,7 +91,7 @@ public class StackMobModelTests extends StackMobTestCommon {
         assertTrue(object.get("uuid").getAsJsonPrimitive().isString());
         assertTrue(object.get("strings").isJsonArray() && object.get("strings").getAsJsonArray().iterator().next().getAsJsonPrimitive().isString());
         assertTrue(object.get("test").getAsJsonPrimitive().isBoolean());
-        assertTrue(object.get("myBytes").isJsonArray() && object.get("myBytes").getAsJsonArray().iterator().next().getAsJsonPrimitive().isNumber());
+        assertTrue(object.get("mybytes").isJsonArray() && object.get("mybytes").getAsJsonArray().iterator().next().getAsJsonPrimitive().isNumber());
         assertTrue(object.get("date").getAsJsonPrimitive().isNumber());
         assertEquals("",mapping.toHeaderString());
     }
@@ -145,7 +145,7 @@ public class StackMobModelTests extends StackMobTestCommon {
     }
     
     @Test public void testFillComplicatedJSON() throws Exception {
-        String json = "{\"number\":1338,\"strings\":[\"hello!\",\"world!\"],\"test\":true,\"myBytes\":[1,2,3],\"foo\":\"testpassed\",\"bar\":27,\"uuid\":\"00000000-0000-0003-0000-000000000005\",\"date\":0}";
+        String json = "{\"number\":1338,\"strings\":[\"hello!\",\"world!\"],\"test\":true,\"mybytes\":[1,2,3],\"foo\":\"testpassed\",\"bar\":27,\"uuid\":\"00000000-0000-0003-0000-000000000005\",\"date\":0}";
         Complicated c = new Complicated();
         c.fillFromJson(new JsonParser().parse(json));
         assertEquals(c.foo,"testpassed");
