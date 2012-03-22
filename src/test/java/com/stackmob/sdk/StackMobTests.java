@@ -404,7 +404,6 @@ public class StackMobTests extends StackMobTestCommon {
                     asserter.markException(e);
                 }
                 asserter.markFalse(obj.photo.startsWith("Content-Type:"));
-                String s = expectedAWSPrefix;
                 asserter.markTrue(obj.photo.startsWith(expectedAWSPrefix));
                 asserter.markTrue(obj.photo.endsWith(fileName));
 
