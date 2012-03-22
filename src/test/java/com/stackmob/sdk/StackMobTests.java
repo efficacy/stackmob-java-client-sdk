@@ -382,7 +382,7 @@ public class StackMobTests extends StackMobTestCommon {
         final String schema = "user2";
         final String binaryField = "photo";
         final StackMobFile obj = new StackMobFile(contentType, fileName, content.getBytes());
-        final String expectedAWSPrefix = "http://s3.amazonaws.com/test-stackmob/" + schema + "." + binaryField;
+        final String expectedAWSPrefix = "http://s3.amazonaws.com/test-stackmob/" + schema;
 
         Map<String, String> args = new HashMap<String, String>();
         args.put("username", "bob");
@@ -404,6 +404,7 @@ public class StackMobTests extends StackMobTestCommon {
                     asserter.markException(e);
                 }
                 asserter.markFalse(obj.photo.startsWith("Content-Type:"));
+                String s = expectedAWSPrefix;
                 asserter.markTrue(obj.photo.startsWith(expectedAWSPrefix));
                 asserter.markTrue(obj.photo.endsWith(fileName));
 
