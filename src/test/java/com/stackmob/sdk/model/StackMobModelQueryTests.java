@@ -38,8 +38,8 @@ public class StackMobModelQueryTests extends StackMobTestCommon {
         new StackMobModelQuery<Author>(Author.class).isInRange(0,10).send(new StackMobQueryCallback<Author>() {
             @Override
             public void success(List<Author> result) {
-                assertEquals(11, result.size());
-                assertNotNull(result.get(0).getName());
+                asserter.markEquals(11, result.size());
+                asserter.markNotNull(result.get(0).getName());
                 latch.countDown();
             }
 
@@ -52,11 +52,11 @@ public class StackMobModelQueryTests extends StackMobTestCommon {
     }
 
     @Test public void testFieldQuery() throws Exception {
-        new StackMobModelQuery<Author>(Author.class).isInRange(0,10).field(new StackMobField("name").isEqualTo("bar")).send(new StackMobQueryCallback<Author>() {
+        new StackMobModelQuery<Author>(Author.class).isInRange(0,10).field(new StackMobField("name").isEqualTo("testqueryauthor")).send(new StackMobQueryCallback<Author>() {
             @Override
             public void success(List<Author> result) {
-                assertEquals(11, result.size());
-                assertNotNull(result.get(0).getName());
+                asserter.markEquals(3, result.size());
+                asserter.markNotNull(result.get(0).getName());
                 latch.countDown();
             }
 
