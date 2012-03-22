@@ -110,6 +110,12 @@ public class StackMobQuery {
     public Map<String, String> getArguments() {
         return this.args;
     }
+    
+    public StackMobQuery add(StackMobQuery other) {
+        this.headers.putAll(other.headers);
+        this.args.putAll(other.args);
+        return this;
+    }
 
     public StackMobQueryWithField field(String field) {
         return new StackMobQueryWithField(field, this);
@@ -313,7 +319,12 @@ public class StackMobQuery {
         headers.put(RangeHeader, "objects="+start.toString()+"-");
         return this;
     }
-    
+
+    /**
+     * restricts the fields returned in the query
+     * @param fields the fields to return
+     * @return
+     */
     public StackMobQuery select(List<String> fields) {
         headers.put(SelectHeader,join(fields));
         return this;
