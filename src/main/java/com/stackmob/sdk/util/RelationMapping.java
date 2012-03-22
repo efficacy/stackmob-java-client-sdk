@@ -32,6 +32,10 @@ public class RelationMapping {
         basePath = basePath.substring(0,basePath.lastIndexOf(".", basePath.length() - 2) + 1);
     }
 
+    public boolean isEmpty() {
+        return relations.isEmpty();
+    }
+
 
     public String toHeaderString() {
         StringBuilder sb = new StringBuilder();

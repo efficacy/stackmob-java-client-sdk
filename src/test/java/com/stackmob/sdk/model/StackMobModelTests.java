@@ -468,7 +468,7 @@ public class StackMobModelTests extends StackMobTestCommon {
 
     @Test public void testUpdateFromServer() throws Exception {
         final Book book = new Book();
-        book.setID("4f511b979ffcad4fd0034c30");
+        book.setID("4f6a1660625498bf90571c36");
         book.fetch(new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
@@ -482,7 +482,6 @@ public class StackMobModelTests extends StackMobTestCommon {
         asserter.assertLatchFinished(latch);
     }
 
-    /*
     @Test public void testDeepSave() throws Exception {
         Library lib = new Library();
         lib.name = "SF Public Library";
@@ -490,7 +489,7 @@ public class StackMobModelTests extends StackMobTestCommon {
         Book b1 = new Book("War and Peace","foo", a);
         Book b2 = new Book("Anna Karenina", "bar", a);
         lib.books = new Book[] {b1, b2};
-        lib.createWithDepth(2, new AssertErrorCallback() {
+        lib.saveWithDepth(2, new AssertErrorCallback() {
             @Override
             public void success(String responseBody) {
                 
@@ -499,7 +498,6 @@ public class StackMobModelTests extends StackMobTestCommon {
         });
         asserter.assertLatchFinished(latch);
     }
-    */
 
 
     @Test public void testFullSequence() throws Exception {
