@@ -66,10 +66,13 @@ public class StackMobModelTests extends StackMobTestCommon {
         assertEquals("simple", simple.getSchemaName());
         assertEquals("simple_id", simple.getIDFieldName());
         RelationMapping mapping = new RelationMapping();
-        assertEquals("{\"foo\":\"test\",\"bar\":5}", simple.toJson(0, mapping));
+        JsonObject obj = new JsonParser().parse(simple.toJson(0, mapping)).getAsJsonObject();
+        assertEquals("test", obj.get("foo").getAsString());
+        assertEquals(5, obj.get("bar").getAsInt());
+        assertNotNull(obj.get("simple_id").getAsString());
         assertEquals("",mapping.toHeaderString());
     }
-    
+
     private class Complicated extends Simple {
         public Complicated() {
             super(Complicated.class);
@@ -268,6 +271,7 @@ public class StackMobModelTests extends StackMobTestCommon {
         JsonElement json = new JsonParser().parse(b.toJson(1, new RelationMapping()));
         JsonObject authorObject =  json.getAsJsonObject().get("author").getAsJsonObject();
         assertEquals("Dickens",authorObject.get("name").getAsString());
+        assertNotNull(authorObject.get("author_id"));
     }
     
     @Test public void noIDChildrenFromJSON() throws Exception {
@@ -627,6 +631,6 @@ public class StackMobModelTests extends StackMobTestCommon {
                 asserter.markException(e);
             }
         });
-        asserter.assertLatchFinished(latch, new AbstractMap.SimpleEntry(10000L, TimeUnit.MILLISECONDS));
+        asserter.assertLatchFinished(latch);
     }
 }

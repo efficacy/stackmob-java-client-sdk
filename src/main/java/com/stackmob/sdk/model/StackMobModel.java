@@ -304,9 +304,9 @@ public abstract class StackMobModel {
     }
 
     private JsonElement toJsonElement(int depth, RelationMapping mapping) {
-        if(depth < 0) {
-            return getID() == null ? null : new JsonPrimitive(getID());
-        }
+        // Set the id here as opposed to on the server to avoid a race condition
+        if(getID() == null) setID(UUID.randomUUID().toString().replace("-",""));
+        if(depth < 0) return new JsonPrimitive(getID());
         JsonObject json = gson.toJsonTree(this).getAsJsonObject();
         JsonObject outgoing = new JsonObject();
         for(String fieldName : getFieldNames(json)) {
