@@ -50,7 +50,11 @@ public class StackMobModelQuery<T extends StackMobModel>{
                 JsonArray array = new JsonParser().parse(responseBody).getAsJsonArray();
                 List<T> resultList = new ArrayList<T>();
                 for(JsonElement elt : array) {
-                    resultList.add(new Gson().fromJson(elt, classOfT));
+                    T newObject = new Gson().fromJson("{}", classOfT);
+                    try {
+                        newObject.fillFromJson(elt);
+                        resultList.add(newObject);
+                    } catch (StackMobException e) { }
                 }
                 furtherCallback.success(resultList);
             }
