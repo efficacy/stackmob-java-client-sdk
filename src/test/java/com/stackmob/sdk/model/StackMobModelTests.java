@@ -627,6 +627,6 @@ public class StackMobModelTests extends StackMobTestCommon {
                 asserter.markException(e);
             }
         });
-        asserter.assertLatchFinished(latch);
+        asserter.assertLatchFinished(latch, new AbstractMap.SimpleEntry(10000L, TimeUnit.MILLISECONDS));
     }
 }
