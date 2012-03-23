@@ -31,6 +31,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.*;
 
+import static com.stackmob.sdk.concurrencyutils.CountDownLatchUtils.latch;
 import static com.stackmob.sdk.concurrencyutils.CountDownLatchUtils.latchOne;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
@@ -568,5 +569,64 @@ public class StackMobModelTests extends StackMobTestCommon {
                 latch.countDown();
             }
         });
+    }
+
+    public static class Task extends StackMobModel {
+
+        private String name;
+        private Date dueDate;
+        private int priority = 0;
+        private boolean done = false;
+
+        public Task() {
+            super(Task.class);
+        }
+
+        public Task(String name) {
+            this();
+            this.name = name;
+        }
+    }
+
+    public static class TaskList extends StackMobModel {
+
+        private String name;
+        private List<Task> tasks = new ArrayList<Task>();
+
+        public TaskList() {
+            super(TaskList.class);
+        }
+
+        public TaskList(String name) {
+            this();
+            this.name = name;
+        }
+    }
+
+    @Test public void testMultiSave() throws Exception {
+        final TaskList tl = new TaskList("TODO");
+        final Task t = new Task("fix this api");
+        final Task t2 = new Task("make it work");
+        final List<Task> oldTaskList = tl.tasks;
+        tl.tasks.add(t);
+        tl.tasks.add(t2);
+        tl.saveWithDepth(1,new StackMobCallback() {
+            @Override
+            public void success(String responseBody) {
+                asserter.markNotNull(tl.getID());
+                asserter.markNotNull(tl.tasks.get(0).getID());
+                asserter.markNotNull(tl.tasks.get(1).getID());
+                asserter.markTrue(tl.tasks.get(0) == t);
+                asserter.markTrue(tl.tasks.get(1) == t2);
+                asserter.markTrue(tl.tasks == oldTaskList);
+                latch.countDown();
+            }
+
+            @Override
+            public void failure(StackMobException e) {
+                asserter.markException(e);
+            }
+        });
+        asserter.assertLatchFinished(latch);
     }
 }

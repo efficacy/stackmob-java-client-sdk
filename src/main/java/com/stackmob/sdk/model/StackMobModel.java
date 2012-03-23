@@ -178,20 +178,36 @@ public abstract class StackMobModel {
      * Sets a field which is either an Array or Collection of StackMobModels using a list
      */
     protected void setFieldFromList(Field field, List<? extends StackMobModel> list, Class<? extends StackMobModel> modelClass) throws IllegalAccessException, InstantiationException {
+        // We want to reuse the existing collection if at all possible
         if(field.getType().isArray()) {
-            field.set(this, Array.newInstance(modelClass,list.size()));
-            StackMobModel[] newModelArray = (StackMobModel[]) field.get(this);
+            StackMobModel[] modelArray = (StackMobModel[]) field.get(this);
+            if(modelArray == null || modelArray.length != list.size()) {
+                field.set(this, Array.newInstance(modelClass,list.size()));
+                modelArray = (StackMobModel[]) field.get(this);
+            }
             for(int i = 0; i < list.size(); i++) {
-                newModelArray[i] = list.get(i);
+                modelArray[i] = list.get(i);
             }
         } else {
-            // Given a null Collection, how to we find the right concrete collection to use? There is no good way.
-            // So let's at least use the same hack as gson.
-            field.set(this,gson.fromJson("[]", field.getType()));
             Collection<StackMobModel> models = (Collection<StackMobModel>)field.get(this);
-            models.clear();
+            if(models == null) {
+                initWithNewCollection(field);
+                models = (Collection<StackMobModel>)field.get(this);
+            }
+            try {
+                models.clear();
+            } catch(UnsupportedOperationException e) {
+                initWithNewCollection(field);
+            }
             models.addAll(list);
         }
+    }
+    
+    private void initWithNewCollection(Field field) throws IllegalAccessException {
+        // Given a null Collection, how to we find the right
+        // concrete collection to use? There is no good way.
+        // So let's at least use the same hack as gson.
+        field.set(this,gson.fromJson("[]", field.getType()));
     }
     
     protected static List<StackMobModel> updateModelListFromJson(JsonArray array, Collection<? extends StackMobModel> existingModels, Class<? extends StackMobModel> modelClass) throws IllegalAccessException, InstantiationException, StackMobException {
@@ -213,8 +229,16 @@ public abstract class StackMobModel {
      */
     protected static StackMobModel getExistingModel(Collection<? extends StackMobModel> oldList, JsonElement json) {
         if(oldList != null) {
+            //First try to find the existing model in the list
             for(StackMobModel model : oldList) {
                 if(model.hasSameID(json)) {
+                    return model;
+                }
+            }
+            //If none, pick the first one without an id
+            for(StackMobModel model : oldList) {
+                if(model.getID() == null) {
+                    model.setID(json);
                     return model;
                 }
             }
@@ -260,7 +284,15 @@ public abstract class StackMobModel {
             return getID().equals(json.getAsJsonPrimitive().getAsString());
         }
         JsonElement idFromJson = json.getAsJsonObject().get(getIDFieldName());
-        return idFromJson == null ? false : getID().equals(idFromJson.getAsString());
+        return idFromJson != null && getID().equals(idFromJson.getAsString());
+    }
+    
+    protected void setID(JsonElement json) {
+        if(json.isJsonPrimitive()) {
+            setID(json.getAsJsonPrimitive().getAsString());
+        } else {
+            setID(json.getAsJsonObject().get(getIDFieldName()).getAsString());
+        }
     }
     
     private List<String> getFieldNames(JsonObject json) {
