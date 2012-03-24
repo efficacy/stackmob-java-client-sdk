@@ -262,12 +262,17 @@ public abstract class StackMobModel {
     }
 
     protected void fillFromJson(JsonElement json) throws StackMobException {
+        fillFromJson(json, null);
+    }
+    protected void fillFromJson(JsonElement json, List<String> selection) throws StackMobException {
         if(json.isJsonPrimitive()) {
             //This ought to be an unexpanded relation then
             setID(json.getAsJsonPrimitive().getAsString());
         } else {
             for (Map.Entry<String, JsonElement> jsonField : json.getAsJsonObject().entrySet()) {
-                fillFieldFromJson(jsonField.getKey(), jsonField.getValue());
+                if(selection == null || selection.contains(jsonField.getKey())) {
+                    fillFieldFromJson(jsonField.getKey(), jsonField.getValue());
+                }
             }
             hasData = true;
         }
@@ -428,7 +433,7 @@ public abstract class StackMobModel {
             @Override
             public void success(String responseBody) {
                 try {
-                    fillFromJson(new JsonParser().parse(responseBody));
+                    fillFromJson(new JsonParser().parse(responseBody), Arrays.asList("lastmoddate", "createddate"));
                 } catch (StackMobException e) {
                     failure(e);
                 }
