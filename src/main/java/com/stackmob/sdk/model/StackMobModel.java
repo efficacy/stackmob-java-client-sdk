@@ -368,18 +368,18 @@ public abstract class StackMobModel {
     }
     
     public String toJson() {
-        return toJson(0);
+        return toJsonWithDepth(0);
     }
     
-    public String toJson(int depth) {
-        return toJson(depth, new RelationMapping());
+    public String toJsonWithDepth(int depth) {
+        return toJsonWithDepth(depth, new RelationMapping());
     }
 
     /**
      * Converts the object to JSON turning all Models into their ids
      * @return the json representation of this model
      */
-    protected String toJson(int depth, RelationMapping mapping) {
+    protected String toJsonWithDepth(int depth, RelationMapping mapping) {
         return toJsonElement(depth, mapping).toString();
     }
     
@@ -426,7 +426,7 @@ public abstract class StackMobModel {
 
     public void saveWithDepth(int depth, StackMobCallback callback) {
         RelationMapping mapping = new RelationMapping();
-        String json = toJson(depth, mapping);
+        String json = toJsonWithDepth(depth, mapping);
         List<Map.Entry<String,String>> headers= new ArrayList<Map.Entry<String,String>>();
         if(!mapping.isEmpty()) headers.add(new AbstractMap.SimpleEntry<String,String>("X-StackMob-Relations", mapping.toHeaderString()));
         StackMob.getStackMob().post(getSchemaName(), json, headers, new StackMobIntermediaryCallback(callback) {
