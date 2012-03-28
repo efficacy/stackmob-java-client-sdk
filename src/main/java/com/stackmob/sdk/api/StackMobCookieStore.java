@@ -53,8 +53,7 @@ public class StackMobCookieStore {
                 if (cookieSplit.length == 2) {
                     map.put(valSplit[0], new AbstractMap.SimpleEntry<String, Date>( valSplit[1], null));
                 }
-            }
-            else if(valSplit.length == 2) {
+            } else {
                 //cookie and expires
                 String[] cookieSplit = valSplit[0].split("=");
                 String[] expiresSplit = valSplit[1].split("=");
