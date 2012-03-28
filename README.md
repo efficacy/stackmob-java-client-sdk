@@ -28,9 +28,12 @@ Hopefully you can see the pattern here. With this library, you can connect almos
 libraryDependencies += "com.stackmob" % "stackmob-java-client-sdk" % "0.3.4"
 ```
 
-## Commandline
+## Commandline (or Ant)
 
-[Download this JAR](http://search.maven.org/remotecontent?filepath=com/stackmob/stackmob-java-client-sdk/0.3.4/stackmob-java-client-sdk-0.3.4.jar) and put it on your CLASSPATH
+[Download this JAR](http://search.maven.org/remotecontent?filepath=com/stackmob/stackmob-java-client-sdk/0.3.4/stackmob-java-client-sdk-0.3.4.jar) and the dependencies listed below and place them on your CLASSPATH:
+* [GSON](http://search.maven.org/remotecontent?filepath=com/google/code/gson/gson/2.1/gson-2.1.jar)
+* [Scribe](http://search.maven.org/remotecontent?filepath=org/scribe/scribe/1.2.3/scribe-1.2.3.jar)
+* [Apache Commons Codec](http://search.maven.org/remotecontent?filepath=commons-codec/commons-codec/1.4/commons-codec-1.4.jar)
 
 # Making REST API Calls
 
