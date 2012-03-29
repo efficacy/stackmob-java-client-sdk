@@ -1,5 +1,8 @@
 # Stackmob Java SDK (Release Notes)
 
+### 0.4.0 (03/28/2012)
+* Model API
+
 ### 0.3.4 (03/05/2012)
 * Select support in queries
 * Persistent cookie support
