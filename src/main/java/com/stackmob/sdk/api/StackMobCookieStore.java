@@ -17,12 +17,12 @@
 
 package com.stackmob.sdk.api;
 
+import com.stackmob.sdk.util.Pair;
 import org.scribe.model.Response;
 
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.AbstractMap;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -51,7 +51,7 @@ public class StackMobCookieStore {
                 //cookie only
                 String[] cookieSplit = cookieString.split("=");
                 if (cookieSplit.length == 2) {
-                    map.put(valSplit[0], new AbstractMap.SimpleEntry<String, Date>( valSplit[1], null));
+                    map.put(valSplit[0], new Pair<String, Date>( valSplit[1], null));
                 }
             } else {
                 //cookie and expires
@@ -66,7 +66,7 @@ public class StackMobCookieStore {
                             //do nothing
                         }
                     }
-                    map.put(cookieSplit[0], new AbstractMap.SimpleEntry<String, Date>( cookieSplit[1], expires));
+                    map.put(cookieSplit[0], new Pair<String, Date>( cookieSplit[1], expires));
                 }
             }
         }

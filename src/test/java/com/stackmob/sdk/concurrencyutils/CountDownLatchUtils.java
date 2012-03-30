@@ -1,8 +1,8 @@
 package com.stackmob.sdk.concurrencyutils;
 
 import com.stackmob.sdk.exception.StackMobException;
+import com.stackmob.sdk.util.Pair;
 
-import java.util.AbstractMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.junit.Assert.fail;
 
 public class CountDownLatchUtils {
-    public static final Map.Entry<Long, TimeUnit> MAX_LATCH_WAIT_TIME = new AbstractMap.SimpleEntry<Long, TimeUnit>(5000L, TimeUnit.MILLISECONDS);
+    public static final Map.Entry<Long, TimeUnit> MAX_LATCH_WAIT_TIME = new Pair<Long, TimeUnit>(5000L, TimeUnit.MILLISECONDS);
 
     public static boolean wasLatchFinished(CountDownLatch latch) throws InterruptedException {
         return latch.await(MAX_LATCH_WAIT_TIME.getKey(), MAX_LATCH_WAIT_TIME.getValue());

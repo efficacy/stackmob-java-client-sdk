@@ -26,6 +26,7 @@ import com.stackmob.sdk.push.StackMobPushToken;
 import com.stackmob.sdk.push.StackMobPushTokenDeserializer;
 import com.stackmob.sdk.push.StackMobPushTokenSerializer;
 import com.stackmob.sdk.util.Http;
+import com.stackmob.sdk.util.Pair;
 import org.scribe.builder.ServiceBuilder;
 import org.scribe.model.OAuthRequest;
 import org.scribe.model.Response;
@@ -276,15 +277,15 @@ public abstract class StackMobRequest {
         List<Map.Entry<String, String>> headerList = new ArrayList<Map.Entry<String, String>>();
 
         //build basic headers
-        headerList.add(new AbstractMap.SimpleEntry<String, String>("Content-Type", contentType));
-        headerList.add(new AbstractMap.SimpleEntry<String, String>("Accept", accept));
-        headerList.add(new AbstractMap.SimpleEntry<String, String>("User-Agent", StackMob.getUserAgent(session.getAppName())));
-        headerList.add(new AbstractMap.SimpleEntry<String, String>("Cookie", cookieStore.cookieHeader()));
+        headerList.add(new Pair<String, String>("Content-Type", contentType));
+        headerList.add(new Pair<String, String>("Accept", accept));
+        headerList.add(new Pair<String, String>("User-Agent", StackMob.getUserAgent(session.getAppName())));
+        headerList.add(new Pair<String, String>("Cookie", cookieStore.cookieHeader()));
 
         //build user headers
         if(this.headers != null) {
             for(Map.Entry<String, String> header : this.headers) {
-                headerList.add(new AbstractMap.SimpleEntry<String, String>(header.getKey(), header.getValue()));
+                headerList.add(new Pair<String, String>(header.getKey(), header.getValue()));
             }
         }
 

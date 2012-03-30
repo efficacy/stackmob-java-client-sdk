@@ -21,6 +21,7 @@ import com.stackmob.sdk.callback.StackMobRedirectedCallback;
 import com.stackmob.sdk.net.HttpVerbWithPayload;
 import com.stackmob.sdk.net.HttpVerbWithoutPayload;
 import com.stackmob.sdk.push.StackMobPushToken;
+import com.stackmob.sdk.util.Pair;
 
 import java.io.IOException;
 import java.net.URI;
@@ -934,7 +935,7 @@ public class StackMob {
         }
         List<Map.Entry<String, String>> headers = new ArrayList<Map.Entry<String, String>>();
         if (cascadeDeletes) {
-            headers.add(new AbstractMap.SimpleEntry<String, String>("X-StackMob-CascadeDelete", "true"));
+            headers.add(new Pair<String, String>("X-StackMob-CascadeDelete", "true"));
         }
         return new StackMobRequestWithoutPayload(this.executor,
                                                  this.session,
@@ -964,7 +965,7 @@ public class StackMob {
                                  StackMobRawCallback callback) {
         List<Map.Entry<String, String>> headers = new ArrayList<Map.Entry<String, String>>();
         if (cascadeDelete) {
-            headers.add(new AbstractMap.SimpleEntry<String, String>("X-StackMob-CascadeDelete", "true"));
+            headers.add(new Pair<String, String>("X-StackMob-CascadeDelete", "true"));
         }
         return new StackMobRequestWithoutPayload(this.executor,
                                                  this.session,

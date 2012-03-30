@@ -25,6 +25,7 @@ import com.stackmob.sdk.callback.StackMobCallback;
 import com.stackmob.sdk.callback.StackMobIntermediaryCallback;
 import com.stackmob.sdk.callback.StackMobNoopCallback;
 import com.stackmob.sdk.exception.StackMobException;
+import com.stackmob.sdk.util.Pair;
 import com.stackmob.sdk.util.RelationMapping;
 import com.stackmob.sdk.util.SerializationMetadata;
 
@@ -428,7 +429,7 @@ public abstract class StackMobModel {
         RelationMapping mapping = new RelationMapping();
         String json = toJsonWithDepth(depth, mapping);
         List<Map.Entry<String,String>> headers= new ArrayList<Map.Entry<String,String>>();
-        if(!mapping.isEmpty()) headers.add(new AbstractMap.SimpleEntry<String,String>("X-StackMob-Relations", mapping.toHeaderString()));
+        if(!mapping.isEmpty()) headers.add(new Pair<String,String>("X-StackMob-Relations", mapping.toHeaderString()));
         StackMob.getStackMob().post(getSchemaName(), json, headers, new StackMobIntermediaryCallback(callback) {
             @Override
             public void success(String responseBody) {
