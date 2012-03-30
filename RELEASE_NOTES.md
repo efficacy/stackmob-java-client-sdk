@@ -1,5 +1,8 @@
 # Stackmob Java SDK (Release Notes)
 
+### 0.4.1 (03/30/2012)
+* Restore the minimum android sdk version to 2.2
+
 ### 0.4.0 (03/28/2012)
 * Model API
 
