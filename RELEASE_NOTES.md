@@ -1,5 +1,8 @@
 # Stackmob Java SDK (Release Notes)
 
+### 0.4.2 (04/02/2012)
+* Add optional logging
+
 ### 0.4.1 (03/30/2012)
 * Restore the minimum android sdk version to 2.2
 
