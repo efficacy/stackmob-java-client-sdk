@@ -31,6 +31,8 @@ public class StackMobConfiguration {
     public static String API_URL_FORMAT = "api.mob1.stackmob.com";
     public static String PUSH_API_URL_FORMAT = "push.mob1.stackmob.com";
 
+    public static boolean ENABLE_LOGGING = false;
+
     public static StackMobRedirectedCallback redirectedCallback = new StackMobRedirectedCallback() {
         @Override public void redirected(String originalURL, Map<String, String> redirectHeaders, String redirectBody, String newURL) {
             //do nothing for now
@@ -38,13 +40,16 @@ public class StackMobConfiguration {
     };
     
     public static StackMob newStackMob() {
-        return new StackMob(API_KEY,
-                            API_SECRET,
-                            USER_OBJECT_NAME,
-                            API_VERSION,
-                            API_URL_FORMAT,
-                            PUSH_API_URL_FORMAT,
-                            redirectedCallback);
+        StackMob stackmob = new StackMob(API_KEY,
+                                         API_SECRET,
+                                         USER_OBJECT_NAME,
+                                         API_VERSION,
+                                         API_URL_FORMAT,
+                                         PUSH_API_URL_FORMAT,
+                                         redirectedCallback);
+        StackMob.getLogger().setLogging(ENABLE_LOGGING);
+        StackMob.getLogger().logDebug("Starting java sdk version %s running on %s", StackMob.getVersion(), System.getProperty("os.name"));
+        return stackmob;
     }
 
 }

@@ -53,8 +53,9 @@ public class StackMob {
     private static final String versionKey= "sdk.version";
     private static String userAgentName = "Java Client";
     private static String version = null;
+    private static StackMobLogger logger = new StackMobLogger();
     
-    protected static String getUserAgent(String appName) {
+    public static String getVersion() {
         if(version == null ) {
             version = "";
             Properties props = new Properties();
@@ -68,8 +69,12 @@ public class StackMob {
                 if("${version}".equals(version)) version = "dev";
             }
         }
+        return version;
+    }
+    
+    protected static String getUserAgent(String appName) {
         return String.format("StackMob (%s; %s)%s", userAgentName,
-                                                    version,
+                                                    getVersion(),
                                                     (appName == null) ? "" : "/" + appName);
     }
     
@@ -104,6 +109,14 @@ public class StackMob {
 
     private static ExecutorService createNewExecutor() {
         return Executors.newCachedThreadPool();
+    }
+    
+    public static void setLogger(StackMobLogger logger) {
+        StackMob.logger = logger;
+    }
+
+    public static StackMobLogger getLogger() {
+        return logger;
     }
     
     private static StackMob stackmob;

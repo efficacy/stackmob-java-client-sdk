@@ -323,12 +323,16 @@ public abstract class StackMobRequest {
     protected void sendRequest(final OAuthRequest req) throws InterruptedException, ExecutionException {
         final StackMobRawCallback cb = this.callback;
 
+
         executor.submit(new Callable<Object>() {
             @Override
             public String call() throws Exception {
                 try {
+                    StackMob.getLogger().logInfo("Sending request %s", req.toString());
                     Response ret = req.send();
+                    StackMob.getLogger().logInfo("Received response %d", ret.getCode());
                     if(HttpRedirectHelper.isRedirected(ret.getCode())) {
+                        StackMob.getLogger().logInfo("Response was redirected");
                         String newLocation = HttpRedirectHelper.getNewLocation(ret.getHeaders());
                         HttpVerb verb = HttpVerbHelper.valueOf(req.getVerb().toString());
                         OAuthRequest newReq = getOAuthRequest(verb, newLocation);
@@ -356,10 +360,13 @@ public abstract class StackMobRequest {
                                     headers,
                                     ret.getBody().getBytes());
                         }
-                        catch(Throwable t) {}
+                        catch(Throwable t) {
+                            StackMob.getLogger().logError("Callback threw error %s", StackMobLogger.getStackTrace(t));
+                        }
                     }
                 }
                 catch(Throwable t) {
+                    StackMob.getLogger().logWarning("Invoking callback after unexpected exception %s", StackMobLogger.getStackTrace(t));
                     cb.done(getRequestVerb(req),
                             req.getUrl(),
                             getRequestHeaders(req),

@@ -68,6 +68,7 @@ public class StackMobTestCommon {
                 //do nothing
             }
         }));
+        StackMob.getLogger().setLogging(true);
         stackmob = StackMob.getStackMob();
     }
 
