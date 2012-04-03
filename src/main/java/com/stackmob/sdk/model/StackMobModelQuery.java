@@ -15,18 +15,19 @@
  */
 package com.stackmob.sdk.model;
 
-import com.google.gson.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.stackmob.sdk.api.StackMob;
 import com.stackmob.sdk.api.StackMobQuery;
 import com.stackmob.sdk.callback.StackMobCallback;
 import com.stackmob.sdk.callback.StackMobQueryCallback;
 import com.stackmob.sdk.exception.StackMobException;
-import com.stackmob.sdk.model.StackMobModel;
 import com.stackmob.sdk.util.GeoPoint;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 public class StackMobModelQuery<T extends StackMobModel>{
 

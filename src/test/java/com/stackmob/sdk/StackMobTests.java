@@ -16,6 +16,17 @@
 
 package com.stackmob.sdk;
 
+import static com.stackmob.sdk.concurrencyutils.CountDownLatchUtils.latchOne;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+
+import org.junit.Test;
+
 import com.stackmob.sdk.api.StackMobFile;
 import com.stackmob.sdk.api.StackMobQuery;
 import com.stackmob.sdk.api.StackMobQueryWithField;
@@ -27,15 +38,6 @@ import com.stackmob.sdk.testobjects.Game;
 import com.stackmob.sdk.testobjects.S3Object;
 import com.stackmob.sdk.testobjects.StackMobObjectOnServer;
 import com.stackmob.sdk.testobjects.User;
-import org.junit.Test;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
-
-import static com.stackmob.sdk.concurrencyutils.CountDownLatchUtils.latchOne;
 
 public class StackMobTests extends StackMobTestCommon {
 

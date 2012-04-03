@@ -16,7 +16,32 @@
 
 package com.stackmob.sdk.model;
 
-import com.google.gson.*;
+import static com.stackmob.sdk.concurrencyutils.CountDownLatchUtils.latchOne;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+
+import org.junit.Test;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import com.stackmob.sdk.StackMobTestCommon;
 import com.stackmob.sdk.callback.StackMobCallback;
 import com.stackmob.sdk.concurrencyutils.MultiThreadAsserter;
@@ -25,16 +50,6 @@ import com.stackmob.sdk.testobjects.Author;
 import com.stackmob.sdk.testobjects.Book;
 import com.stackmob.sdk.testobjects.Library;
 import com.stackmob.sdk.util.RelationMapping;
-import org.junit.Test;
-
-import java.lang.reflect.Field;
-import java.util.*;
-import java.util.concurrent.*;
-
-import static com.stackmob.sdk.concurrencyutils.CountDownLatchUtils.latch;
-import static com.stackmob.sdk.concurrencyutils.CountDownLatchUtils.latchOne;
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
 
 public class StackMobModelTests extends StackMobTestCommon {
     

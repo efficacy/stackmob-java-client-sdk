@@ -16,16 +16,14 @@
 
 package com.stackmob.sdk.api;
 
-import com.stackmob.sdk.callback.StackMobRawCallback;
-import com.stackmob.sdk.callback.StackMobRedirectedCallback;
-import com.stackmob.sdk.callback.StackMobCallback;
-import com.stackmob.sdk.net.HttpVerb;
-import com.stackmob.sdk.net.HttpVerbWithPayload;
-import com.stackmob.sdk.net.HttpVerbWithoutPayload;
-
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+
+import com.stackmob.sdk.callback.StackMobRawCallback;
+import com.stackmob.sdk.callback.StackMobRedirectedCallback;
+import com.stackmob.sdk.net.HttpVerb;
+import com.stackmob.sdk.net.HttpVerbWithoutPayload;
 
 public class StackMobUserBasedRequest extends StackMobRequest {
 

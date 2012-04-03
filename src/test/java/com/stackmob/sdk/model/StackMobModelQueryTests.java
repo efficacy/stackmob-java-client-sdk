@@ -15,19 +15,18 @@
  */
 package com.stackmob.sdk.model;
 
-import com.stackmob.sdk.StackMobTestCommon;
-import com.stackmob.sdk.callback.StackMobQueryCallback;
-import com.stackmob.sdk.concurrencyutils.MultiThreadAsserter;
-import com.stackmob.sdk.exception.StackMobException;
-import com.stackmob.sdk.model.StackMobModelQuery;
-import com.stackmob.sdk.testobjects.Author;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import static com.stackmob.sdk.concurrencyutils.CountDownLatchUtils.latchOne;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import static com.stackmob.sdk.concurrencyutils.CountDownLatchUtils.latchOne;
+import org.junit.Test;
+
+import com.stackmob.sdk.StackMobTestCommon;
+import com.stackmob.sdk.callback.StackMobQueryCallback;
+import com.stackmob.sdk.concurrencyutils.MultiThreadAsserter;
+import com.stackmob.sdk.exception.StackMobException;
+import com.stackmob.sdk.testobjects.Author;
 
 public class StackMobModelQueryTests extends StackMobTestCommon {
 

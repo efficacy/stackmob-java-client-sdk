@@ -16,6 +16,13 @@
 
 package com.stackmob.sdk;
 
+import static org.junit.Assert.assertNull;
+
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
+
 import com.google.gson.Gson;
 import com.stackmob.sdk.api.StackMob;
 import com.stackmob.sdk.api.StackMobConfiguration;
@@ -24,17 +31,8 @@ import com.stackmob.sdk.callback.StackMobRedirectedCallback;
 import com.stackmob.sdk.concurrencyutils.MultiThreadAsserter;
 import com.stackmob.sdk.exception.StackMobException;
 import com.stackmob.sdk.testobjects.Error;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
-import java.lang.reflect.Type;
-import java.util.concurrent.atomic.AtomicReference;
-import com.google.gson.reflect.TypeToken;
 import com.stackmob.sdk.testobjects.StackMobObject;
 import com.stackmob.sdk.testobjects.StackMobObjectOnServer;
-
-import static org.junit.Assert.*;
 
 public class StackMobTestCommon {
 

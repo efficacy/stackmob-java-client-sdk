@@ -72,7 +72,7 @@ public class StackMob {
         return version;
     }
     
-    protected static String getUserAgent(String appName) {
+    public static String getUserAgent(String appName) {
         return String.format("StackMob (%s; %s)%s", userAgentName,
                                                     getVersion(),
                                                     (appName == null) ? "" : "/" + appName);
